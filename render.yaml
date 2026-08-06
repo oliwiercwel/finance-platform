@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: financehub
+    runtime: python
+    buildCommand: ""
+    startCommand: cd backend && python server.py
+    plan: free

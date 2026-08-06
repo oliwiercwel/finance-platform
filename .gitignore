@@ -1,0 +1,45 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Baza danych
+*.db
+*.sqlite
+*.sqlite3
+
+# Zmienne środowiskowe
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logi
+logs
+*.log
+
+# Systemowe
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+dist/
+build/
+out/
+
+# Testy
+coverage/
+.nyc_output/
+
+# Przechwytywania
+*.pid
+*.seed
+*.pid.lock
