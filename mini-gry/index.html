@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Mini Gry</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #curtainCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: #fff;
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .game-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .game-card p {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            margin-bottom: 15px;
+        }
+
+        .difficulty {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .difficulty-easy {
+            background: #4ade80;
+            color: #166534;
+        }
+
+        .difficulty-medium {
+            background: #fbbf24;
+            color: #78350f;
+        }
+
+        .play-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 30px;
+            background: #fff;
+            color: #667eea;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover .play-btn {
+            transform: scale(1.05);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.5rem;
+            }
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="curtainCanvas"></canvas>
+    <div class="container">
+        <header>
+            <h1>🎮 Mini Gry</h1>
+            <p>Wybierz grę i baw się dobrze!</p>
+        </header>
+
+        <div class="games-grid">
+            <a href="snake.html" class="game-card">
+                <div class="game-icon">🐍</div>
+                <h2>Snake</h2>
+                <p>Steruj wężem, zbieraj jedzenie i rośnij! Uważaj na ściany i własny ogon.</p>
+                <span class="difficulty difficulty-medium">Średnia</span>
+                <div class="play-btn">▶ Graj</div>
+            </a>
+
+            <a href="pong.html" class="game-card">
+                <div class="game-icon">🏓</div>
+                <h2>Pong</h2>
+                <p>Odbijaj piłeczkę i pokonaj komputer! Klasyka gier arcade.</p>
+                <span class="difficulty difficulty-medium">Średnia</span>
+                <div class="play-btn">▶ Graj</div>
+            </a>
+
+            <a href="memory.html" class="game-card">
+                <div class="game-icon">🧠</div>
+                <h2>Memory</h2>
+                <p>Odkrywaj karty i znajdź wszystkie pary. Sprawdź swoją pamięć!</p>
+                <span class="difficulty difficulty-easy">Łatwa</span>
+                <div class="play-btn">▶ Graj</div>
+            </a>
+
+            <a href="guess.html" class="game-card">
+                <div class="game-icon">🎯</div>
+                <h2>Zgadywanka</h2>
+                <p>Zgadnij liczbę od 1 do 100. Komputer podpowiada: za dużo czy za mało?</p>
+                <span class="difficulty difficulty-easy">Łatwa</span>
+                <div class="play-btn">▶ Graj</div>
+            </a>
+
+            <a href="shooter.html" class="game-card">
+                <div class="game-icon">🚀</div>
+                <h2>Kosmiczny Strzelec</h2>
+                <p>Steruj statkiem i strzelaj do asteroid! Ile punktów zdobędziesz?</p>
+                <span class="difficulty difficulty-medium">Średnia</span>
+                <div class="play-btn">▶ Graj</div>
+            </a>
+
+            <a href="ruletka.html" class="game-card">
+                <div class="game-icon">🎰</div>
+                <h2>Ruletka 3D</h2>
+                <p>Obstawiaj na stole, oglądaj krupiera kręcącego kołem i wygraj 2000 PLN!</p>
+                <span class="difficulty difficulty-medium">Średnia</span>
+                <div class="play-btn">▶ Graj</div>
+            </a>
+
+            <a href="automaty.html" class="game-card">
+                <div class="game-icon">🎰</div>
+                <h2>Automaty</h2>
+                <p>Przeciągnij dźwignię i wygraj jackpot! Ludzik z Monopoly patrzy na Ciebie!</p>
+                <span class="difficulty difficulty-medium">Średnia</span>
+                <div class="play-btn">▶ Graj</div>
+            </a>
+        </div>
+
+        <footer>
+            <p>🎮 Mini Gry — baw się dobrze!</p>
+        </footer>
+    </div>
+
+    <script>
+        // ===== KURTYNA TEATRALNA =====
+        const curtainCanvas = document.getElementById('curtainCanvas');
+        const cctx = curtainCanvas.getContext('2d');
+        let cw, ch;
+
+        function resizeCurtain() {
+            cw = curtainCanvas.width = window.innerWidth;
+            ch = curtainCanvas.height = window.innerHeight;
+        }
+        resizeCurtain();
+        window.addEventListener('resize', resizeCurtain);
+
+        // ===== STAN KURTYNY =====
+        const curtain = {
+            state: 'closed',
+            leftOpen: 0,
+            rightOpen: 0,
+            clickable: true,
+            time: 0,
+            lightsTime: 0,
+            lettersTime: 0,
+            fadeTime: 0,
+            lights: [],
+            letters: ['W', 'I', 'T', 'A', 'J']
+        };
+
+        for (let i = 0; i < 5; i++) {
+            curtain.lights.push({
+                x: cw * (0.2 + i * 0.15),
+                angle: 0,
+                targetAngle: 0,
+                speed: 0.5 + Math.random() * 0.3,
+                phase: Math.random() * Math.PI * 2
+            });
+        }
+
+        // ===== RYSOWANIE =====
+        function drawCurtain() {
+            cctx.clearRect(0, 0, cw, ch);
+            if (curtain.state === 'done') return;
+
+            cctx.fillStyle = '#0a0a1a';
+            cctx.fillRect(0, 0, cw, ch);
+
+            if (curtain.state === 'lights' || curtain.state === 'letters' || curtain.state === 'fading') {
+                drawLights();
+            }
+
+            if (curtain.state === 'letters' || curtain.state === 'fading') {
+                drawLetters();
+            }
+
+            if (curtain.state === 'closed' || curtain.state === 'opening') {
+                drawCurtainHalf(0, curtain.leftOpen);
+                drawCurtainHalf(cw / 2, curtain.rightOpen);
+            }
+
+            if (curtain.state === 'closed') {
+                cctx.fillStyle = '#ffd700';
+                cctx.font = 'bold 28px Arial';
+                cctx.textAlign = 'center';
+                cctx.textBaseline = 'middle';
+                cctx.fillText('🎭 KLIKNIJ, ABY OTWORZYĆ 🎭', cw / 2, ch / 2);
+            }
+
+            if (curtain.state === 'fading') {
+                cctx.fillStyle = `rgba(10, 10, 26, ${curtain.fadeTime})`;
+                cctx.fillRect(0, 0, cw, ch);
+            }
+        }
+
+        function drawCurtainHalf(startX, openAmount) {
+            const width = cw / 2;
+            const folds = 8;
+            const foldWidth = width / folds;
+            const offset = openAmount * width;
+
+            for (let i = 0; i < folds; i++) {
+                const x = startX + i * foldWidth - offset;
+                if (x + foldWidth < 0 || x > cw) continue;
+
+                const gradient = cctx.createLinearGradient(x, 0, x + foldWidth, 0);
+                gradient.addColorStop(0, '#8B0000');
+                gradient.addColorStop(0.3, '#cc0000');
+                gradient.addColorStop(0.5, '#ff1a1a');
+                gradient.addColorStop(0.7, '#cc0000');
+                gradient.addColorStop(1, '#8B0000');
+
+                cctx.fillStyle = gradient;
+                cctx.fillRect(x, 0, foldWidth + 1, ch);
+                cctx.fillStyle = 'rgba(0,0,0,0.3)';
+                cctx.fillRect(x + foldWidth - 3, 0, 3, ch);
+            }
+
+            cctx.fillStyle = '#ffd700';
+            cctx.fillRect(startX + width - offset - 3, 0, 3, ch);
+        }
+
+        function drawLights() {
+            curtain.lights.forEach(light => {
+                const x = light.x;
+                const y = 0;
+                const angle = light.angle;
+
+                // Stożek światła - linear gradient od góry do dołu
+                cctx.save();
+                cctx.translate(x, y);
+                cctx.rotate(angle);
+
+                const coneGradient = cctx.createLinearGradient(0, 0, 0, ch);
+                coneGradient.addColorStop(0, 'rgba(255, 255, 200, 0.9)');
+                coneGradient.addColorStop(0.3, 'rgba(255, 255, 200, 0.5)');
+                coneGradient.addColorStop(0.7, 'rgba(255, 255, 200, 0.2)');
+                coneGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+
+                cctx.fillStyle = coneGradient;
+                cctx.beginPath();
+                cctx.moveTo(0, 0);
+                cctx.lineTo(-ch * 0.4, ch);
+                cctx.lineTo(ch * 0.4, ch);
+                cctx.closePath();
+                cctx.fill();
+
+                // Dodatkowy jasny środek stożka
+                const centerGradient = cctx.createLinearGradient(0, 0, 0, ch);
+                centerGradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+                centerGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)');
+                centerGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                cctx.fillStyle = centerGradient;
+                cctx.beginPath();
+                cctx.moveTo(0, 0);
+                cctx.lineTo(-ch * 0.15, ch);
+                cctx.lineTo(ch * 0.15, ch);
+                cctx.closePath();
+                cctx.fill();
+
+                cctx.restore();
+
+                // Źródło światła
+                cctx.beginPath();
+                cctx.arc(x, y + 10, 15, 0, Math.PI * 2);
+                cctx.fillStyle = '#fff';
+                cctx.fill();
+                cctx.strokeStyle = '#ffd700';
+                cctx.lineWidth = 2;
+                cctx.stroke();
+
+                // Połysk na źródle
+                cctx.beginPath();
+                cctx.arc(x - 4, y + 6, 5, 0, Math.PI * 2);
+                cctx.fillStyle = 'rgba(255,255,255,0.8)';
+                cctx.fill();
+            });
+        }
+
+        function drawLetters() {
+            const letterWidth = cw / 5;
+            const letterY = ch / 2;
+
+            curtain.letters.forEach((letter, i) => {
+                const x = letterWidth * i + letterWidth / 2;
+
+                const glow = cctx.createRadialGradient(x, letterY, 5, x, letterY, 60);
+                glow.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+                glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                cctx.fillStyle = glow;
+                cctx.fillRect(x - 60, letterY - 60, 120, 120);
+
+                cctx.fillStyle = '#ffd700';
+                cctx.font = 'bold 80px Arial';
+                cctx.textAlign = 'center';
+                cctx.textBaseline = 'middle';
+                cctx.shadowColor = '#ffd700';
+                cctx.shadowBlur = 20;
+                cctx.fillText(letter, x, letterY);
+                cctx.shadowBlur = 0;
+            });
+        }
+
+        // ===== UPDATE =====
+        function updateCurtain(dt) {
+            curtain.time += dt;
+
+            switch (curtain.state) {
+                case 'opening':
+                    // Otwieraj tylko tę stronę, która ma być otwarta
+                    if (curtain.leftOpen < 1) {
+                        curtain.leftOpen += dt * 1.5;
+                    }
+                    if (curtain.rightOpen < 1) {
+                        curtain.rightOpen += dt * 1.5;
+                    }
+                    if (curtain.leftOpen >= 1 && curtain.rightOpen >= 1) {
+                        curtain.leftOpen = 1;
+                        curtain.rightOpen = 1;
+                        curtain.state = 'dark';
+                        curtain.time = 0;
+                    }
+                    break;
+
+                case 'dark':
+                    if (curtain.time > 0.5) {
+                        curtain.state = 'lights';
+                        curtain.lightsTime = 0;
+                    }
+                    break;
+
+                case 'lights':
+                    curtain.lightsTime += dt;
+                    curtain.lights.forEach((light, i) => {
+                        light.angle = Math.sin(curtain.lightsTime * light.speed + light.phase) * 0.3;
+                    });
+                    if (curtain.lightsTime >= 5) {
+                        curtain.state = 'letters';
+                        curtain.lettersTime = 0;
+                        curtain.lights.forEach(light => {
+                            light.targetAngle = 0;
+                        });
+                    }
+                    break;
+
+                case 'letters':
+                    curtain.lights.forEach(light => {
+                        light.angle += (light.targetAngle - light.angle) * 0.1;
+                    });
+                    curtain.lettersTime += dt;
+                    if (curtain.lettersTime >= 2) {
+                        curtain.state = 'fading';
+                        curtain.fadeTime = 0;
+                    }
+                    break;
+
+                case 'fading':
+                    curtain.fadeTime += dt * 0.5;
+                    if (curtain.fadeTime >= 1) {
+                        curtain.state = 'done';
+                        curtainCanvas.style.display = 'none';
+                    }
+                    break;
+            }
+        }
+
+        // ===== KLIKNIĘCIA =====
+        function handleCurtainClick(e) {
+            if (curtain.state !== 'closed' || !curtain.clickable) return;
+
+            const rect = curtainCanvas.getBoundingClientRect();
+            let clientX;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+            } else {
+                clientX = e.clientX;
+            }
+            const x = clientX - rect.left;
+
+            // Kliknięcie w lewą stronę otwiera lewą kurtynę
+            if (x < cw / 2) {
+                curtain.leftOpen = 0;
+                curtain.rightOpen = 1; // prawa już otwarta
+            } else {
+                // Kliknięcie w prawą stronę otwiera prawą kurtynę
+                curtain.leftOpen = 1; // lewa już otwarta
+                curtain.rightOpen = 0;
+            }
+            curtain.state = 'opening';
+            curtain.clickable = false;
+        }
+
+        curtainCanvas.addEventListener('click', handleCurtainClick);
+        curtainCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleCurtainClick(e);
+        });
+
+        // ===== PĘTLA =====
+        let curtainLastTime = performance.now();
+
+        function curtainLoop(time) {
+            const dt = (time - curtainLastTime) / 1000;
+            curtainLastTime = time;
+            updateCurtain(dt);
+            drawCurtain();
+            requestAnimationFrame(curtainLoop);
+        }
+
+        requestAnimationFrame(curtainLoop);
+    </script>
+</body>
+</html>

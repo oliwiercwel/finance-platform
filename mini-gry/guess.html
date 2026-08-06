@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Zgadywanka</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .info {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="number"] {
+            padding: 12px 20px;
+            font-size: 1.2rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            width: 150px;
+            text-align: center;
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: #fff;
+        }
+
+        input[type="number"]::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #fff;
+            color: #667eea;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .message {
+            font-size: 1.3rem;
+            margin: 20px 0;
+            min-height: 40px;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .message.high {
+            background: rgba(255, 107, 107, 0.3);
+            border: 1px solid #ff6b6b;
+        }
+
+        .message.low {
+            background: rgba(74, 222, 128, 0.3);
+            border: 1px solid #4ade80;
+        }
+
+        .message.win {
+            background: rgba(74, 222, 128, 0.5);
+            border: 2px solid #4ade80;
+            font-size: 1.5rem;
+        }
+
+        .attempts {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+
+        .history-title {
+            font-size: 1rem;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .history-item {
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 3px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .history-item.high {
+            background: rgba(255, 107, 107, 0.3);
+        }
+
+        .history-item.low {
+            background: rgba(74, 222, 128, 0.3);
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .game-over.show {
+            display: flex;
+        }
+
+        .game-over h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .game-over p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎯 Zgadywanka</h1>
+        <div class="info">Zgadnij liczbę od <strong>1</strong> do <strong>100</strong></div>
+        <div class="attempts">Próby: <span id="attempts">0</span></div>
+        <div class="input-group">
+            <input type="number" id="guessInput" min="1" max="100" placeholder="Twoja liczba">
+            <button class="btn" id="guessBtn">Zgaduj!</button>
+        </div>
+        <div class="message" id="message">Wpisz liczbę i kliknij "Zgaduj!"</div>
+        <div class="history">
+            <div class="history-title">Historia prób:</div>
+            <div id="historyList"></div>
+        </div>
+        <button class="btn btn-secondary" id="restartBtn">🔄 Nowa gra</button>
+        <br>
+        <a href="index.html" class="back-btn">← Powrót do menu</a>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>🎉 Zgadłeś!</h2>
+        <p>Liczba to <span id="secretNumber">0</span>! Zgadłeś w <span id="finalAttempts">0</span> próbach!</p>
+        <button class="btn" id="playAgainBtn">🔄 Zagraj ponownie</button>
+        <br>
+        <a href="index.html" class="back-btn">← Powrót do menu</a>
+    </div>
+
+    <script>
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const messageEl = document.getElementById('message');
+        const attemptsEl = document.getElementById('attempts');
+        const historyList = document.getElementById('historyList');
+        const gameOverEl = document.getElementById('gameOver');
+        const secretNumberEl = document.getElementById('secretNumber');
+        const finalAttemptsEl = document.getElementById('finalAttempts');
+
+        let secretNumber = 0;
+        let attempts = 0;
+        let gameActive = true;
+        let gameId = 0; // identyfikator gry, żeby stare timeout-y nie działały
+
+        function startGame() {
+            gameId++; // nowa gra - stare timeout-y będą ignorowane
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            gameActive = true;
+            attemptsEl.textContent = 0;
+            messageEl.textContent = 'Wpisz liczbę i kliknij "Zgaduj!"';
+            messageEl.className = 'message';
+            historyList.innerHTML = '';
+            guessInput.value = '';
+            guessInput.disabled = false;
+            guessBtn.disabled = false;
+            gameOverEl.classList.remove('show');
+            guessInput.focus();
+        }
+
+        function makeGuess() {
+            if (!gameActive) return;
+
+            const guess = parseInt(guessInput.value);
+            if (isNaN(guess) || guess < 1 || guess > 100) {
+                messageEl.textContent = '⚠️ Wpisz liczbę od 1 do 100!';
+                messageEl.className = 'message';
+                return;
+            }
+
+            attempts++;
+            attemptsEl.textContent = attempts;
+
+            const historyItem = document.createElement('span');
+            historyItem.className = 'history-item';
+            historyItem.textContent = guess;
+
+            if (guess === secretNumber) {
+                const currentGameId = gameId;
+                messageEl.textContent = `🎉 Brawo! Zgadłeś! Liczba to ${secretNumber}!`;
+                messageEl.className = 'message win';
+                historyItem.classList.add('win');
+                gameActive = false;
+                guessInput.disabled = true;
+                guessBtn.disabled = true;
+                secretNumberEl.textContent = secretNumber;
+                finalAttemptsEl.textContent = attempts;
+                setTimeout(() => {
+                    if (currentGameId !== gameId) return; // stara gra - ignoruj
+                    gameOverEl.classList.add('show');
+                }, 1000);
+            } else if (guess < secretNumber) {
+                messageEl.textContent = 'Za mało! Spróbuj większej liczby.';
+                messageEl.className = 'message low';
+                historyItem.classList.add('low');
+            } else {
+                messageEl.textContent = 'Za dużo! Spróbuj mniejszej liczby.';
+                messageEl.className = 'message high';
+                historyItem.classList.add('high');
+            }
+
+            historyList.appendChild(historyItem);
+            guessInput.value = '';
+            guessInput.focus();
+        }
+
+        guessBtn.addEventListener('click', makeGuess);
+        guessInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                makeGuess();
+            }
+        });
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('playAgainBtn').addEventListener('click', startGame);
+
+        // Start gry
+        startGame();
+    </script>
+</body>
+</html>

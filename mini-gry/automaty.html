@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 Automaty</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a0a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 10px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ffd700, #ff6b6b, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .balance {
+            font-size: 1.3rem;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 25px;
+            border-radius: 25px;
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .bet-info {
+            font-size: 1.1rem;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 25px;
+            border-radius: 25px;
+        }
+
+        .status {
+            font-size: 1.1rem;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 25px;
+            border-radius: 25px;
+            min-width: 200px;
+        }
+
+        .status.win {
+            background: rgba(74, 222, 128, 0.3);
+            border: 1px solid #4ade80;
+        }
+
+        .status.lose {
+            background: rgba(255, 107, 107, 0.3);
+            border: 1px solid #ff6b6b;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            background: #0a0a1a;
+            max-width: 100%;
+            height: auto;
+            width: 100%;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            background: linear-gradient(45deg, #ffd700, #ffaa00);
+            color: #1a0a2e;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.25);
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ff4444);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 25px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .history {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            min-height: 30px;
+        }
+
+        .history-item {
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .history-item.win {
+            background: rgba(74, 222, 128, 0.3);
+            border-color: #4ade80;
+        }
+
+        .history-item.lose {
+            background: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .game-over.show {
+            display: flex;
+        }
+
+        .game-over h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .game-over.win h2 {
+            color: #ffd700;
+        }
+
+        .game-over.lose h2 {
+            color: #ff6b6b;
+        }
+
+        .game-over p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        .bet-amount {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 15px;
+            border-radius: 25px;
+        }
+
+        .bet-amount button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #ffd700;
+            color: #1a0a2e;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .bet-amount button:hover {
+            transform: scale(1.1);
+        }
+
+        .bet-amount span {
+            font-size: 1.1rem;
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.6rem;
+            }
+            .hud {
+                gap: 10px;
+            }
+            .balance, .bet-info, .status {
+                font-size: 0.9rem;
+                padding: 6px 15px;
+            }
+            .btn {
+                padding: 8px 18px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎰 Automaty</h1>
+        <div class="hud">
+            <div class="balance">💰 Saldo: <span id="balance">200</span> PLN</div>
+            <div class="bet-amount">
+                <button id="betMinus">−</button>
+                <span id="betAmount">10</span> PLN
+                <button id="betPlus">+</button>
+            </div>
+            <div class="status" id="status">Kliknij czerwony przycisk lub wciśnij SPACJĘ!</div>
+        </div>
+        <div class="canvas-wrapper">
+            <canvas id="game" width="1000" height="700"></canvas>
+        </div>
+        <div class="controls">
+            <button class="btn btn-secondary" id="resetBtn">🔄 Reset gry</button>
+            <a href="index.html" class="back-btn">← Menu</a>
+        </div>
+        <div class="history" id="history"></div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2 id="gameOverTitle">🏆 WYGRANA!</h2>
+        <p id="gameOverText">Osiągnąłeś 2000 PLN!</p>
+        <button class="btn" id="playAgainBtn">🔄 Zagraj ponownie</button>
+        <br>
+        <a href="index.html" class="back-btn">← Powrót do menu</a>
+    </div>
+
+    <script>
+        // ===== KONFIGURACJA =====
+        const START_BALANCE = 200;
+        const WIN_BALANCE = 2000;
+        const DEFAULT_BET = 10;
+
+        // Symbole na bębnach
+        const SYMBOLS = [
+            { id: 'cherry', emoji: '🍒', name: 'Wiśnie', value: 3 },
+            { id: 'lemon', emoji: '🍋', name: 'Cytryny', value: 5 },
+            { id: 'grape', emoji: '🍇', name: 'Winogrona', value: 10 },
+            { id: 'bell', emoji: '🔔', name: 'Dzwonek', value: 15 },
+            { id: 'star', emoji: '⭐', name: 'Gwiazda', value: 20 },
+            { id: 'seven', emoji: '🎰', name: 'Siódemka', value: 30 },
+            { id: 'diamond', emoji: '💎', name: 'Diament', value: 50 }
+        ];
+
+        // ===== STAN GRY =====
+        let balance = START_BALANCE;
+        let betAmount = DEFAULT_BET;
+        let gameState = 'idle'; // idle, dragging, spinning, result
+        let history = [];
+
+        // ===== CANVAS =====
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        // ===== ELEMENTY UI =====
+        const balanceEl = document.getElementById('balance');
+        const betAmountEl = document.getElementById('betAmount');
+        const statusEl = document.getElementById('status');
+        const resetBtn = document.getElementById('resetBtn');
+        const historyEl = document.getElementById('history');
+        const gameOverEl = document.getElementById('gameOver');
+        const gameOverTitleEl = document.getElementById('gameOverTitle');
+        const gameOverTextEl = document.getElementById('gameOverText');
+
+        // ===== LUDZIK Z MONOPOLY =====
+        const MONOPOLY_MAN = {
+            x: 500,
+            y: 100,
+            headAngle: 0,
+            headTarget: 0,
+            eyeX: 0,
+            eyeY: 0,
+            mood: 'neutral', // neutral, happy, sad, excited
+            moodTimer: 0,
+            bodyBob: 0
+        };
+
+        // ===== CZERWONY PRZYCISK =====
+        const BUTTON = {
+            x: 900,
+            y: 500,
+            radius: 40,
+            pressed: false,
+            pressAnim: 0,
+            animating: false
+        };
+
+        // ===== BĘBNY =====
+        const REELS = [
+            { x: 250, y: 300, width: 150, height: 250, symbols: [], offset: 0, speed: 0, spinning: false, result: 0 },
+            { x: 425, y: 300, width: 150, height: 250, symbols: [], offset: 0, speed: 0, spinning: false, result: 0 },
+            { x: 600, y: 300, width: 150, height: 250, symbols: [], offset: 0, speed: 0, spinning: false, result: 0 }
+        ];
+
+        // ===== ANIMACJA =====
+        let lastTime = 0;
+        let coinAnimations = [];
+        let lightFlash = 0;
+        let winFlash = 0;
+
+        // ===== INICJALIZACJA BĘBNÓW =====
+        function initReels() {
+            REELS.forEach(reel => {
+                reel.symbols = [];
+                for (let i = 0; i < 20; i++) {
+                    reel.symbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+                }
+                reel.offset = 0;
+                reel.speed = 0;
+                reel.spinning = false;
+            });
+        }
+        initReels();
+
+        // ===== RYSOWANIE LUDZIKA Z MONOPOLY =====
+        function drawMonopolyMan() {
+            const x = MONOPOLY_MAN.x;
+            const y = MONOPOLY_MAN.y;
+            const bob = Math.sin(MONOPOLY_MAN.bodyBob) * 2;
+            const headAngle = MONOPOLY_MAN.headAngle;
+
+            // Cień
+            ctx.beginPath();
+            ctx.ellipse(x, y + 80, 50, 12, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fill();
+
+            // Nogi
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(x - 25, y + 30, 20, 50);
+            ctx.fillRect(x + 5, y + 30, 20, 50);
+
+            // Buty
+            ctx.fillStyle = '#333';
+            ctx.fillRect(x - 30, y + 75, 25, 10);
+            ctx.fillRect(x + 5, y + 75, 25, 10);
+
+            // Tułów (smoking)
+            ctx.fillStyle = '#2d1b4e';
+            ctx.beginPath();
+            ctx.moveTo(x - 30, y + 30);
+            ctx.lineTo(x + 30, y + 30);
+            ctx.lineTo(x + 25, y - 20);
+            ctx.lineTo(x - 25, y - 20);
+            ctx.closePath();
+            ctx.fill();
+
+            // Kamizelka (złoty pasek)
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(x - 25, y - 5, 50, 5);
+
+            // Mucha
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.moveTo(x - 8, y - 10);
+            ctx.lineTo(x + 8, y - 10);
+            ctx.lineTo(x, y - 2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ręce
+            ctx.strokeStyle = '#2d1b4e';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(x - 25, y);
+            ctx.lineTo(x - 40, y + 20);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + 25, y);
+            ctx.lineTo(x + 40, y + 20);
+            ctx.stroke();
+
+            // Laska
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(x + 40, y + 20);
+            ctx.lineTo(x + 50, y + 60);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x + 50, y + 60, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffd700';
+            ctx.fill();
+
+            // Głowa (obraca się za kursorem)
+            ctx.save();
+            ctx.translate(x, y - 40 + bob);
+            ctx.rotate(headAngle * 0.3);
+
+            // Szyja
+            ctx.fillStyle = '#f5c6a0';
+            ctx.fillRect(-5, 0, 10, 10);
+
+            // Głowa
+            ctx.beginPath();
+            ctx.arc(0, -15, 18, 0, Math.PI * 2);
+            ctx.fillStyle = '#f5c6a0';
+            ctx.fill();
+
+            // Włosy
+            ctx.beginPath();
+            ctx.arc(0, -20, 18, Math.PI, 0);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+
+            // Cylinder
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(-12, -40, 24, 20);
+            ctx.fillRect(-18, -22, 36, 5);
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-12, -40, 24, 20);
+
+            // Oczy (stałe w miejscu)
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(-6, -15, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(6, -15, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Źrenice (poruszają się w ograniczonym zakresie - nie wychodzą poza oko)
+            const pupilMax = 3; // maksymalne przesunięcie źrenicy w obrębie oka
+            const pupilX = Math.max(-pupilMax, Math.min(pupilMax, MONOPOLY_MAN.eyeX * 2));
+            const pupilY = Math.max(-pupilMax, Math.min(pupilMax, MONOPOLY_MAN.eyeY * 2));
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(-6 + pupilX, -15 + pupilY, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(6 + pupilX, -15 + pupilY, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Wąsy
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-8, -5);
+            ctx.lineTo(-2, -3);
+            ctx.lineTo(2, -3);
+            ctx.lineTo(8, -5);
+            ctx.stroke();
+
+            // Usta (zależnie od nastroju)
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            if (MONOPOLY_MAN.mood === 'happy' || MONOPOLY_MAN.mood === 'excited') {
+                ctx.beginPath();
+                ctx.arc(0, -2, 6, 0.1 * Math.PI, 0.9 * Math.PI);
+                ctx.stroke();
+            } else if (MONOPOLY_MAN.mood === 'sad') {
+                ctx.beginPath();
+                ctx.arc(0, 2, 6, 1.1 * Math.PI, 1.9 * Math.PI);
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(-5, -2);
+                ctx.lineTo(5, -2);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ===== RYSOWANIE AUTOMATU =====
+        function drawMachine() {
+            // Obudowa
+            const gradient = ctx.createLinearGradient(150, 200, 850, 200);
+            gradient.addColorStop(0, '#2d1b4e');
+            gradient.addColorStop(0.5, '#4a2d6e');
+            gradient.addColorStop(1, '#2d1b4e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(150, 200, 700, 400);
+
+            // Metalowa rama
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(150, 200, 700, 400);
+
+            // Chromowane narożniki
+            ctx.fillStyle = '#c0c0c0';
+            ctx.fillRect(150, 200, 20, 20);
+            ctx.fillRect(830, 200, 20, 20);
+            ctx.fillRect(150, 580, 20, 20);
+            ctx.fillRect(830, 580, 20, 20);
+
+            // Panel świateł (góra)
+            for (let i = 0; i < 20; i++) {
+                const x = 180 + i * 35;
+                const y = 220;
+                const flash = Math.sin(lightFlash + i * 0.5) > 0;
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = flash ? '#ffd700' : '#ff6b6b';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Tytuł
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🎰 LUCKY 7 🎰', 500, 260);
+
+            // Bębny
+            REELS.forEach(reel => {
+                drawReel(reel);
+            });
+
+            // Panel wygranej
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(250, 560, 500, 30);
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(250, 560, 500, 30);
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('💎 50x  🎰 30x  ⭐ 20x  🔔 15x  🍇 10x  🍋 5x  🍒 3x', 500, 575);
+
+            // Czerwony przycisk
+            drawButton();
+        }
+
+        function drawReel(reel) {
+            // Tło bębna
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(reel.x - 5, reel.y - 5, reel.width + 10, reel.height + 10);
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(reel.x - 5, reel.y - 5, reel.width + 10, reel.height + 10);
+
+            // Gradient bębna
+            const gradient = ctx.createLinearGradient(reel.x, reel.y, reel.x + reel.width, reel.y);
+            gradient.addColorStop(0, 'rgba(255,255,255,0.1)');
+            gradient.addColorStop(0.5, 'rgba(255,255,255,0)');
+            gradient.addColorStop(1, 'rgba(255,255,255,0.1)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(reel.x, reel.y, reel.width, reel.height);
+
+            // Symbole
+            const symbolHeight = 50;
+            const visibleCount = 5;
+            const startY = reel.y - symbolHeight;
+
+            for (let i = 0; i < visibleCount + 2; i++) {
+                const symbolIndex = Math.floor((i + reel.offset) % reel.symbols.length);
+                const symbol = reel.symbols[symbolIndex];
+                const y = startY + i * symbolHeight - (reel.offset % 1) * symbolHeight;
+
+                if (y > reel.y - symbolHeight && y < reel.y + reel.height + symbolHeight) {
+                    ctx.font = '40px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(symbol.emoji, reel.x + reel.width / 2, y + symbolHeight / 2);
+                }
+            }
+
+            // Odbicie szkła
+            const glassGradient = ctx.createLinearGradient(reel.x, reel.y, reel.x, reel.y + reel.height);
+            glassGradient.addColorStop(0, 'rgba(255,255,255,0.15)');
+            glassGradient.addColorStop(0.5, 'rgba(255,255,255,0)');
+            glassGradient.addColorStop(1, 'rgba(255,255,255,0.1)');
+            ctx.fillStyle = glassGradient;
+            ctx.fillRect(reel.x, reel.y, reel.width, reel.height);
+
+            // Linia wygranej
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(reel.x - 5, reel.y + reel.height / 2);
+            ctx.lineTo(reel.x + reel.width + 5, reel.y + reel.height / 2);
+            ctx.stroke();
+        }
+
+        function drawButton() {
+            const x = BUTTON.x;
+            const y = BUTTON.y;
+            const pressOffset = BUTTON.pressAnim * 8;
+
+            // Cień
+            ctx.beginPath();
+            ctx.ellipse(x, y + 45, 45, 10, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fill();
+
+            // Podstawa
+            ctx.beginPath();
+            ctx.arc(x, y + 5, 45, 0, Math.PI * 2);
+            ctx.fillStyle = '#8B0000';
+            ctx.fill();
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Czerwony przycisk
+            const gradient = ctx.createRadialGradient(x - 10, y - 10 - pressOffset, 5, x, y - pressOffset, 40);
+            gradient.addColorStop(0, '#ff6b6b');
+            gradient.addColorStop(0.5, '#ff4444');
+            gradient.addColorStop(1, '#8B0000');
+            ctx.beginPath();
+            ctx.arc(x, y - pressOffset, 40, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Połysk
+            ctx.beginPath();
+            ctx.arc(x - 12, y - 15 - pressOffset, 10, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fill();
+
+            // Tekst
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('SPIN', x, y + 5 - pressOffset);
+        }
+
+        // ===== RYSOWANIE MONET =====
+        function drawCoins() {
+            coinAnimations.forEach(coin => {
+                coin.y += coin.vy;
+                coin.vy += 0.3;
+                coin.rotation += 0.1;
+
+                ctx.save();
+                ctx.translate(coin.x, coin.y);
+                ctx.rotate(coin.rotation);
+                ctx.beginPath();
+                ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffd700';
+                ctx.fill();
+                ctx.strokeStyle = '#b8860b';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#b8860b';
+                ctx.font = 'bold 8px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('10', 0, 0);
+                ctx.restore();
+            });
+
+            // Usuń monety poza ekranem
+            coinAnimations = coinAnimations.filter(c => c.y < H + 20);
+        }
+
+        // ===== RYSOWANIE GŁÓWNE =====
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            // Tło
+            const gradient = ctx.createLinearGradient(0, 0, 0, H);
+            gradient.addColorStop(0, '#0a0a1a');
+            gradient.addColorStop(1, '#1a0a2e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, W, H);
+
+            // Gwiazdy
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            for (let i = 0; i < 30; i++) {
+                const x = (i * 137) % W;
+                const y = (i * 71) % H;
+                ctx.fillRect(x, y, 2, 2);
+            }
+
+            // Ludzik z Monopoly
+            drawMonopolyMan();
+
+            // Automat
+            drawMachine();
+
+            // Monety
+            drawCoins();
+
+            // Efekt wygranej
+            if (winFlash > 0) {
+                ctx.fillStyle = `rgba(255, 215, 0, ${winFlash * 0.1})`;
+                ctx.fillRect(0, 0, W, H);
+            }
+        }
+
+        // ===== UPDATE =====
+        function update(dt) {
+            // Ludzik
+            MONOPOLY_MAN.bodyBob += dt * 2;
+            MONOPOLY_MAN.headAngle += (MONOPOLY_MAN.headTarget - MONOPOLY_MAN.headAngle) * 0.1;
+
+            // Nastrój
+            if (MONOPOLY_MAN.moodTimer > 0) {
+                MONOPOLY_MAN.moodTimer -= dt;
+                if (MONOPOLY_MAN.moodTimer <= 0) {
+                    MONOPOLY_MAN.mood = 'neutral';
+                }
+            }
+
+            // Przycisk - animacja
+            if (BUTTON.animating) {
+                BUTTON.pressAnim += (0 - BUTTON.pressAnim) * 0.15;
+                if (Math.abs(BUTTON.pressAnim) < 0.01) {
+                    BUTTON.pressAnim = 0;
+                    BUTTON.animating = false;
+                }
+            }
+
+            // Bębny
+            REELS.forEach(reel => {
+                if (reel.spinning) {
+                    reel.offset += reel.speed * dt;
+                    reel.speed *= 0.98;
+                    if (reel.speed < 0.5) {
+                        reel.spinning = false;
+                        reel.offset = Math.floor(reel.offset);
+                        // Ustaw wynik
+                        reel.symbols[Math.floor(reel.offset) % reel.symbols.length] = SYMBOLS[reel.result];
+                    }
+                }
+            });
+
+            // Światła
+            lightFlash += dt * 3;
+
+            // Efekt wygranej
+            if (winFlash > 0) {
+                winFlash -= dt * 0.5;
+            }
+        }
+
+        // ===== LOGIKA SPINU =====
+        function startSpin() {
+            if (gameState !== 'idle') return;
+            if (balance < betAmount) {
+                statusEl.textContent = '❌ Za mało środków!';
+                statusEl.className = 'status lose';
+                MONOPOLY_MAN.mood = 'sad';
+                MONOPOLY_MAN.moodTimer = 2;
+                return;
+            }
+
+            balance -= betAmount;
+            updateHUD();
+            gameState = 'spinning';
+
+            // Losuj wyniki
+            const results = REELS.map(() => Math.floor(Math.random() * SYMBOLS.length));
+
+            // Ustaw bębny
+            REELS.forEach((reel, i) => {
+                reel.spinning = true;
+                reel.speed = 20 + i * 5;
+                reel.result = results[i];
+                // Dodaj losowe symbole na początku
+                for (let j = 0; j < 10; j++) {
+                    reel.symbols.unshift(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+                }
+            });
+
+            statusEl.textContent = '🎰 Kręcimy...';
+            statusEl.className = 'status';
+            MONOPOLY_MAN.mood = 'neutral';
+        }
+
+        function checkResult() {
+            // Sprawdź czy wszystkie bębny się zatrzymały
+            if (gameState !== 'spinning') return;
+            if (REELS.some(r => r.spinning)) return;
+
+            gameState = 'result';
+
+            // Oblicz wygraną
+            const symbols = REELS.map(reel => {
+                const idx = Math.floor(reel.offset) % reel.symbols.length;
+                return reel.symbols[idx];
+            });
+
+            const [s1, s2, s3] = symbols;
+            let winnings = 0;
+            let winType = '';
+
+            if (s1.id === s2.id && s2.id === s3.id) {
+                winnings = betAmount * s1.value;
+                winType = `3x ${s1.emoji} ${s1.name}!`;
+            } else if (s1.id === s2.id && (s1.id === 'diamond' || s1.id === 'seven')) {
+                winnings = betAmount * (s1.id === 'diamond' ? 2 : 1);
+                winType = `2x ${s1.emoji}`;
+            }
+
+            if (winnings > 0) {
+                balance += winnings;
+                statusEl.textContent = `🎉 Wygrana: +${winnings} PLN (${winType})`;
+                statusEl.className = 'status win';
+                MONOPOLY_MAN.mood = winnings >= betAmount * 20 ? 'excited' : 'happy';
+                MONOPOLY_MAN.moodTimer = 3;
+                winFlash = 1;
+
+                // Monety
+                for (let i = 0; i < Math.min(winnings / 10, 20); i++) {
+                    coinAnimations.push({
+                        x: 300 + Math.random() * 400,
+                        y: 300,
+                        vy: -5 - Math.random() * 5,
+                        rotation: Math.random() * Math.PI * 2
+                    });
+                }
+            } else {
+                statusEl.textContent = '💔 Przegrana';
+                statusEl.className = 'status lose';
+                MONOPOLY_MAN.mood = 'sad';
+                MONOPOLY_MAN.moodTimer = 2;
+            }
+
+            // Historia
+            history.unshift({ symbols, winnings });
+            if (history.length > 10) history.pop();
+            updateHistory();
+
+            updateHUD();
+
+            // Sprawdź warunki wygranej/przegranej
+            if (balance >= WIN_BALANCE) {
+                setTimeout(() => {
+                    gameOverTitleEl.textContent = '🏆 WYGRANA!';
+                    gameOverTextEl.textContent = `Osiągnąłeś ${WIN_BALANCE} PLN!`;
+                    gameOverEl.className = 'game-over win show';
+                }, 1500);
+            } else if (balance <= 0) {
+                setTimeout(() => {
+                    gameOverTitleEl.textContent = '💸 PRZEGRANA!';
+                    gameOverTextEl.textContent = 'Straciłeś wszystkie pieniądze!';
+                    gameOverEl.className = 'game-over lose show';
+                }, 1500);
+            }
+
+            // Wróć do idle
+            setTimeout(() => {
+                gameState = 'idle';
+            }, 1000);
+        }
+
+        // ===== OBSŁUGA PRZYCISKU (mysz + dotyk) =====
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = W / rect.width;
+            const scaleY = H / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function isOnButton(pos) {
+            const dx = pos.x - BUTTON.x;
+            const dy = pos.y - BUTTON.y;
+            return Math.sqrt(dx * dx + dy * dy) < BUTTON.radius + 10;
+        }
+
+        function pressButton() {
+            if (gameState !== 'idle') return;
+            BUTTON.pressAnim = 1;
+            BUTTON.animating = true;
+            startSpin();
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getCanvasPos(e);
+            if (isOnButton(pos)) {
+                pressButton();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getCanvasPos(e);
+            // Ludzik patrzy za kursorem
+            MONOPOLY_MAN.headTarget = (pos.x - MONOPOLY_MAN.x) / 100;
+            MONOPOLY_MAN.eyeX = (pos.x - MONOPOLY_MAN.x) / 50;
+            MONOPOLY_MAN.eyeY = (pos.y - MONOPOLY_MAN.y) / 50;
+        });
+
+        // Spacja
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                pressButton();
+            }
+        });
+
+        // Dotyk
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+            if (isOnButton(pos)) {
+                pressButton();
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+            MONOPOLY_MAN.headTarget = (pos.x - MONOPOLY_MAN.x) / 100;
+            MONOPOLY_MAN.eyeX = (pos.x - MONOPOLY_MAN.x) / 50;
+            MONOPOLY_MAN.eyeY = (pos.y - MONOPOLY_MAN.y) / 50;
+        });
+
+        // ===== UPDATE HUD =====
+        function updateHUD() {
+            balanceEl.textContent = balance;
+        }
+
+        function updateHistory() {
+            historyEl.innerHTML = '';
+            history.forEach(item => {
+                const el = document.createElement('div');
+                el.className = `history-item ${item.winnings > 0 ? 'win' : 'lose'}`;
+                el.textContent = `${item.symbols.map(s => s.emoji).join(' ')} ${item.winnings > 0 ? '+' + item.winnings : '0'} PLN`;
+                historyEl.appendChild(el);
+            });
+        }
+
+        // ===== PRZYCISKI =====
+        resetBtn.addEventListener('click', () => {
+            balance = START_BALANCE;
+            history = [];
+            gameState = 'idle';
+            updateHUD();
+            updateHistory();
+            statusEl.textContent = 'Kliknij czerwony przycisk lub wciśnij SPACJĘ!';
+            statusEl.className = 'status';
+            gameOverEl.className = 'game-over';
+            initReels();
+            MONOPOLY_MAN.mood = 'neutral';
+            MONOPOLY_MAN.moodTimer = 0;
+            coinAnimations = [];
+            winFlash = 0;
+        });
+
+        document.getElementById('playAgainBtn').addEventListener('click', () => {
+            resetBtn.click();
+        });
+
+        // Zmiana stawki
+        document.getElementById('betMinus').addEventListener('click', () => {
+            if (betAmount > 5) {
+                betAmount -= 5;
+                betAmountEl.textContent = betAmount;
+            }
+        });
+
+        document.getElementById('betPlus').addEventListener('click', () => {
+            if (betAmount < 100) {
+                betAmount += 5;
+                betAmountEl.textContent = betAmount;
+            }
+        });
+
+        // ===== GŁÓWNA PĘTLA =====
+        let lastFrameTime = performance.now();
+
+        function gameLoop(time) {
+            const dt = (time - lastFrameTime) / 1000;
+            lastFrameTime = time;
+
+            update(dt);
+            draw();
+            checkResult();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start
+        updateHUD();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

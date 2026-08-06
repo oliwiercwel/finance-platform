@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Memory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 30px;
+            border-radius: 25px;
+            display: inline-block;
+        }
+
+        .stats span {
+            margin: 0 15px;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+            user-select: none;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card.flipped {
+            background: rgba(255,255,255,0.9);
+            border-color: #fff;
+        }
+
+        .card.matched {
+            background: rgba(74, 222, 128, 0.3);
+            border-color: #4ade80;
+            cursor: default;
+        }
+
+        .card.matched:hover {
+            transform: scale(1);
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 40px;
+            background: #fff;
+            color: #667eea;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 30px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .game-over.show {
+            display: flex;
+        }
+
+        .game-over h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .game-over p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .memory-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                max-width: 350px;
+            }
+            .card {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧠 Memory</h1>
+        <div class="stats">
+            <span>Ruchy: <span id="moves">0</span></span>
+            <span>Pary: <span id="pairs">0</span>/8</span>
+        </div>
+        <div class="memory-grid" id="memoryGrid"></div>
+        <button class="btn" id="restartBtn">🔄 Nowa gra</button>
+        <br>
+        <a href="index.html" class="back-btn">← Powrót do menu</a>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>🏆 Wygrałeś!</h2>
+        <p>Ukończyłeś grę w <span id="finalMoves">0</span> ruchach!</p>
+        <button class="btn" id="playAgainBtn">🔄 Zagraj ponownie</button>
+        <br>
+        <a href="index.html" class="back-btn">← Powrót do menu</a>
+    </div>
+
+    <script>
+        const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+        const grid = document.getElementById('memoryGrid');
+        const movesEl = document.getElementById('moves');
+        const pairsEl = document.getElementById('pairs');
+        const gameOverEl = document.getElementById('gameOver');
+        const finalMovesEl = document.getElementById('finalMoves');
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let lockBoard = false;
+        let gameId = 0; // identyfikator gry, żeby stare timeout-y nie działały
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createCards() {
+            const cardEmojis = [...emojis, ...emojis];
+            cards = shuffle(cardEmojis);
+            grid.innerHTML = '';
+            cards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.emoji = emoji;
+                card.addEventListener('click', () => flipCard(card));
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard(card) {
+            if (lockBoard) return;
+            if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            if (flippedCards.length >= 2) return;
+
+            card.classList.add('flipped');
+            card.textContent = card.dataset.emoji;
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                moves++;
+                movesEl.textContent = moves;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            lockBoard = true;
+            const currentGameId = gameId;
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.emoji === card2.dataset.emoji) {
+                setTimeout(() => {
+                    if (currentGameId !== gameId) return; // stara gra - ignoruj
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    matchedPairs++;
+                    pairsEl.textContent = matchedPairs;
+                    flippedCards = [];
+                    lockBoard = false;
+
+                    if (matchedPairs === emojis.length) {
+                        setTimeout(() => {
+                            if (currentGameId !== gameId) return;
+                            finalMovesEl.textContent = moves;
+                            gameOverEl.classList.add('show');
+                        }, 500);
+                    }
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    if (currentGameId !== gameId) return; // stara gra - ignoruj
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.textContent = '';
+                    card2.textContent = '';
+                    flippedCards = [];
+                    lockBoard = false;
+                }, 1000);
+            }
+        }
+
+        function startGame() {
+            gameId++; // nowa gra - stare timeout-y będą ignorowane
+            matchedPairs = 0;
+            moves = 0;
+            flippedCards = [];
+            lockBoard = false;
+            movesEl.textContent = 0;
+            pairsEl.textContent = 0;
+            gameOverEl.classList.remove('show');
+            createCards();
+        }
+
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('playAgainBtn').addEventListener('click', startGame);
+
+        // Start gry
+        startGame();
+    </script>
+</body>
+</html>
