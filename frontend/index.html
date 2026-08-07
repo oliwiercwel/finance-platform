@@ -1088,6 +1088,7 @@
             const searchInput = document.getElementById('searchInput');
             const searchCloseBtn = document.getElementById('searchCloseBtn');
             const searchResults = document.getElementById('searchResults');
+            const headerSearchInput = document.querySelector('.header .search-box input');
 
             // Open search overlay
             searchButton.addEventListener('click', function(e) {
@@ -1095,6 +1096,107 @@
                 searchOverlay.classList.add('open');
                 searchInput.focus();
             });
+
+            // Add real-time search to header search box
+            headerSearchInput.addEventListener('input', async function(e) {
+                const query = this.value.trim();
+
+                if (query.length === 0) {
+                    return;
+                }
+
+                if (query.length < 2) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/search/advanced?q=${encodeURIComponent(query)}`);
+                    if (!response.ok) throw new Error('Błąd wyszukiwania');
+
+                    const results = await response.json();
+
+                    // Show dropdown with results
+                    showHeaderSearchResults(results);
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            });
+
+            // Function to show search results dropdown in header
+            function showHeaderSearchResults(results) {
+                // Close any existing dropdown
+                const existingDropdown = document.querySelector('.header-search-results');
+                if (existingDropdown) {
+                    existingDropdown.remove();
+                }
+
+                if (results.length === 0) {
+                    return;
+                }
+
+                // Create dropdown container
+                const dropdown = document.createElement('div');
+                dropdown.className = 'header-search-results';
+                dropdown.style.position = 'absolute';
+                dropdown.style.top = '100%';
+                dropdown.style.left = '0';
+                dropdown.style.right = '0';
+                dropdown.style.background = 'var(--search-bg)';
+                dropdown.style.border = '1px solid var(--border-color)';
+                dropdown.style.borderRadius = '0 0 8px 8px';
+                dropdown.style.boxShadow = 'var(--shadow-md)';
+                dropdown.style.zIndex = '1000';
+                dropdown.style.maxHeight = '300px';
+                dropdown.style.overflowY = 'auto';
+
+                // Add results
+                results.slice(0, 6).forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'header-search-result-item';
+                    item.style.padding = '10px 15px';
+                    item.style.cursor = 'pointer';
+                    item.style.display = 'flex';
+                    item.style.justifyContent = 'space-between';
+                    item.style.alignItems = 'center';
+                    item.style.borderBottom = '1px solid var(--border-color)';
+
+                    item.innerHTML = `
+                        <span style="font-weight: 500; color: var(--text-primary);">${result.symbol} - ${result.name}</span>
+                        <span style="color: ${result.change >= 0 ? 'var(--secondary-color)' : 'var(--accent-color)'}; font-weight: 500;">
+                            ${result.change >= 0 ? '+' : ''}${result.change}%
+                        </span>
+                    `;
+
+                    item.addEventListener('click', async () => {
+                        headerSearchInput.value = result.symbol;
+                        dropdown.remove();
+
+                        try {
+                            const detailResponse = await fetch(`/api/stocks/${result.symbol}`);
+                            if (!detailResponse.ok) throw new Error('Błąd pobierania szczegółów');
+
+                            const assetData = await detailResponse.json();
+                            showAssetDetail(assetData);
+                        } catch (error) {
+                            console.error('Error loading asset details:', error);
+                        }
+                    });
+
+                    dropdown.appendChild(item);
+                });
+
+                // Position dropdown under search box
+                const searchBox = document.querySelector('.header .search-box');
+                searchBox.style.position = 'relative';
+                searchBox.appendChild(dropdown);
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!searchBox.contains(e.target)) {
+                        dropdown.remove();
+                    }
+                }, { once: true });
+            }
 
             // Close search overlay
             function closeSearchOverlay() {
