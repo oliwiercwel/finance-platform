@@ -231,11 +231,13 @@
             box-shadow: var(--shadow-md);
             border: 1px solid var(--border-color);
             border-top: none;
-            transition: transform 0.25s ease-out;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
         }
 
         .search-overlay.open .search-panel {
             transform: translateY(0);
+            opacity: 1;
         }
 
         .search-tabs {
@@ -1134,11 +1136,15 @@
             const searchResults = document.getElementById('searchResults');
             const headerSearchInput = document.querySelector('.header .search-box input');
 
-            // Open search overlay
-            searchButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                searchOverlay.classList.add('open');
-                searchInput.focus();
+            // Open search overlay when clicking anywhere on the search box (not just the button)
+            const headerSearchBox = document.querySelector('.header .search-box');
+            headerSearchBox.addEventListener('click', function(e) {
+                // Only open if clicking on the search box itself, not on the input or button
+                if (e.target === this || e.target === this.querySelector('input')) {
+                    searchOverlay.classList.add('open');
+                    searchInput.focus();
+                    showHotSymbols();
+                }
             });
 
             // Add real-time search to header search box
