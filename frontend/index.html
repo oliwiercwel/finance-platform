@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/charts.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- TradingView Lightweight Charts SDK -->
-    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- KLineCharts - Using stable version 19.0.0 -->
+    <script src="https://unpkg.com/klinecharts@19.0.0/dist/umd/klinecharts.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/klinecharts@19.0.0/dist/klinecharts.css">
     <style>
         /* TradingView-inspired styles with enhanced styling */
         :root {
@@ -193,28 +194,214 @@
             box-shadow: var(--shadow-sm);
         }
 
-        .search-section {
-            background: var(--search-bg);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
             display: none;
             opacity: 0;
-            transform: translateY(-10px);
-            transition: all var(--transition-speed) ease-out;
-            position: relative;
-            z-index: 100;
+            pointer-events: none;
+            transition: opacity 0.25s ease-out;
         }
 
-        .search-section.show {
+        .search-overlay.open {
             display: block;
+            opacity: 1;
+            pointer-events: auto;
         }
 
-        .search-section.animate {
-            opacity: 1;
+        .search-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--search-bg);
+            border-radius: 0 0 12px 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            transform: translateY(-100%);
+            transition: transform 0.25s ease-out;
+        }
+
+        .search-overlay.open .search-panel {
             transform: translateY(0);
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .search-tab {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .search-tab.active, .search-tab:hover {
+            color: var(--primary-color);
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+
+        .search-tab.disabled {
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .category-chip {
+            padding: 6px 12px;
+            background: var(--input-bg);
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .category-chip:hover, .category-chip.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .search-results-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+
+        .search-result-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-result-row:hover {
+            background-color: var(--result-hover);
+            padding-left: 8px;
+            padding-right: 8px;
+            border-radius: 4px;
+        }
+
+        .result-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--input-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .result-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-ticker {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .result-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .result-type-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        .result-exchange {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-left: auto;
+            padding-left: 12px;
+        }
+
+        .search-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            z-index: 1001;
+        }
+
+        .search-close-btn:hover {
+            color: var(--accent-color);
+        }
+
+        /* Loading skeleton for results */
+        .result-skeleton {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .skeleton-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--input-bg);
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .skeleton-text {
+            flex: 1;
+            height: 16px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-subtext {
+            width: 60%;
+            height: 12px;
+            background: var(--input-bg);
+            border-radius: 4px;
         }
 
         .search-input-wrapper {
@@ -424,7 +611,6 @@
             <nav class="nav">
                 <a href="#home">Strona Główna</a>
                 <a href="#markets">Rynki</a>
-                <a href="#advanced-search">Zaawansowana Wyszukiwarka</a>
                 <a href="#portfolio">Portfolio</a>
                 <a href="#news">Newsy</a>
                 <a href="#analysis">Analiza</a>
@@ -488,16 +674,43 @@
                     </div>
                 </section>
 
-                <!-- Search Section - Now with animated dropdown -->
-                <section class="search-section" id="searchSection" style="display: none;">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="advancedSearchInput" placeholder="Wpisz symbol lub nazwę..." autocomplete="off">
-                        <i class="fas fa-search search-icon"></i>
+                <!-- Search Overlay - TradingView style -->
+                <div class="search-overlay" id="searchOverlay">
+                    <div class="search-panel">
+                        <button class="search-close-btn" id="searchCloseBtn">
+                            <i class="fas fa-times"></i>
+                        </button>
+
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchInput" placeholder="Symbol, ISIN lub CUSIP" autocomplete="off">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+
+                        <div class="search-tabs">
+                            <div class="search-tab active" data-tab="symbols">Symbole</div>
+                            <div class="search-tab disabled" data-tab="ideas">Pomysły</div>
+                            <div class="search-tab disabled" data-tab="scripts">Skrypty</div>
+                            <div class="search-tab disabled" data-tab="people">Ludzie</div>
+                        </div>
+
+                        <div class="category-filters">
+                            <div class="category-chip active" data-category="all">Wszystko</div>
+                            <div class="category-chip" data-category="stocks">Akcje</div>
+                            <div class="category-chip" data-category="funds">Fundusze</div>
+                            <div class="category-chip" data-category="futures">Kontrakty terminowe</div>
+                            <div class="category-chip" data-category="forex">Forex</div>
+                            <div class="category-chip" data-category="crypto">Krypto</div>
+                            <div class="category-chip" data-category="indices">Indeksy</div>
+                            <div class="category-chip" data-category="bonds">Obligacje</div>
+                            <div class="category-chip" data-category="economy">Gospodarka</div>
+                            <div class="category-chip" data-category="options">Opcje</div>
+                        </div>
+
+                        <div class="search-results-container" id="searchResults">
+                            <!-- Search results will appear here -->
+                        </div>
                     </div>
-                    <div class="results-grid" id="searchResultsGrid">
-                        <!-- Search results will appear here -->
-                    </div>
-                </section>
+                </div>
 
                 <!-- Detailed Asset View -->
                 <section class="asset-detail-section" id="assetDetail" style="display: none;">
@@ -642,7 +855,7 @@
             }
         }
 
-        // Show Asset Detail Function - Now with real historical data and close button
+        // Show Asset Detail Function - Now with KLineCharts implementation
         async function showAssetDetail(asset) {
             const assetDetail = document.getElementById('assetDetail');
             assetDetail.style.display = 'block';
@@ -668,101 +881,130 @@
             document.getElementById('assetVolume').textContent = asset.volume || '-';
             document.getElementById('assetMarketCap').textContent = asset.cap || 'N/A';
 
-            try {
-                // Fetch real historical data from API
-                const historyResponse = await fetch(`/api/stocks/${asset.symbol}/history?period=1D`);
-                if (!historyResponse.ok) throw new Error('Błąd pobierania historii');
+            // Add interval selector
+            if (!document.getElementById('chartIntervalSelector')) {
+                const intervalSelector = document.createElement('div');
+                intervalSelector.id = 'chartIntervalSelector';
+                intervalSelector.className = 'interval-selector';
+                intervalSelector.innerHTML = `
+                    <button class="interval-btn active" data-period="1D">1D</button>
+                    <button class="interval-btn" data-period="1W">1W</button>
+                    <button class="interval-btn" data-period="1M">1M</button>
+                    <button class="interval-btn" data-period="1Y">1Y</button>
+                `;
+                assetDetail.querySelector('.asset-header').appendChild(intervalSelector);
 
-                const historyData = await historyResponse.json();
+                // Add interval selector functionality
+                document.querySelectorAll('.interval-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.interval-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        loadChartData(asset.symbol, this.dataset.period);
+                    });
+                });
+            }
 
-                // Initialize TradingView Lightweight Chart with real data
-                const chart = LightweightCharts.createChart(document.getElementById('assetChart'), {
-                    width: 800,
-                    height: 300,
-                    layout: {
-                        backgroundColor: document.body.classList.contains('dark-mode') ? '#2a2f3a' : '#ffffff',
-                        textColor: document.body.classList.contains('dark-mode') ? '#e8e9eb' : '#1f2937'
+            // Initialize KLineChart
+            const chartContainer = document.getElementById('assetChart');
+            chartContainer.innerHTML = '';
+
+            // Initialize chart
+            const chart = klinecharts.init(chartContainer);
+
+            // Set dark theme based on current mode
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            chart.setStyles({
+                grid: {
+                    horizontal: {
+                        color: isDarkMode ? '#333' : '#eee'
                     },
-                    grid: {
-                        vertLines: { color: 'rgba(42, 47, 58, 0.1)' },
-                        horzLines: { color: 'rgba(42, 47, 58, 0.1)' }
+                    vertical: {
+                        color: isDarkMode ? '#333' : '#eee'
                     }
-                });
-
-                const candlestickSeries = chart.addCandlestickSeries({
-                    upColor: '#26a69a',
-                    downColor: '#ef5350',
-                    borderVisible: false,
-                    wickUpColor: '#26a69a',
-                    wickDownColor: '#ef5350'
-                });
-
-                // Format historical data for TradingView
-                const formattedData = historyData.map(item => ({
-                    time: new Date(item.date).getTime() / 1000,
-                    open: item.open,
-                    high: item.high,
-                    low: item.low,
-                    close: item.close
-                }));
-
-                candlestickSeries.setData(formattedData);
-
-                // Add volume series
-                const volumeSeries = chart.addHistogramSeries({
-                    color: '#26a69a',
-                    priceFormat: {
-                        type: 'volume',
+                },
+                candle: {
+                    type: 'candle_solid',
+                    bar: {
+                        upColor: '#26a69a',
+                        downColor: '#ef5350'
                     },
-                    priceScaleId: '',
-                    scaleMargins: {
-                        top: 0.8,
-                        bottom: 0,
-                    },
+                    priceMark: {
+                        highColor: '#d9d9d9',
+                        lowColor: '#d9d9d9'
+                    }
+                },
+                indicator: {
+                    bars: [
+                        {
+                            colors: ['#26a69a', '#ef5350']
+                        }
+                    ]
+                }
+            });
+
+            // Load chart data
+            await loadChartData(asset.symbol, '1D', chart);
+        }
+
+        // Load chart data function
+        async function loadChartData(symbol, period, chart) {
+            try {
+                const response = await fetch(`/api/stocks/${symbol}/history?period=${period}`);
+                if (!response.ok) throw new Error('Błąd pobierania danych');
+
+                const historyData = await response.json();
+
+                // Transform data to KLineCharts format
+                // Note: API returns dates in YYYY-MM-DD format, need to convert to timestamps
+                const transformedData = historyData.map(item => {
+                    // Convert date string to timestamp (multiply by 1000 to get milliseconds)
+                    const date = new Date(item.date);
+                    const timestamp = Math.floor(date.getTime() / 1000);
+
+                    return {
+                        timestamp: timestamp,
+                        open: item.open,
+                        high: item.high,
+                        low: item.low,
+                        close: item.close,
+                        volume: item.volume
+                    };
                 });
 
-                const volumeData = historyData.map(item => ({
-                    time: new Date(item.date).getTime() / 1000,
-                    value: item.volume,
-                    color: item.close > item.open ? '#26a69a' : '#ef5350'
-                }));
+                // Apply data to chart
+                chart.applyNewData(transformedData);
 
-                volumeSeries.setData(volumeData);
+                // Add volume indicator
+                chart.createIndicator({
+                    name: 'VOL',
+                    shortName: 'VOL',
+                    calcParams: [20],
+                    series: 'normal',
+                    precision: 0,
+                    shouldOhlc: false,
+                    shouldFormatBigNumber: false
+                });
 
+                // Add MA indicator
+                chart.createIndicator({
+                    name: 'MA',
+                    shortName: 'MA',
+                    calcParams: [5, 10, 20],
+                    series: 'price',
+                    precision: 2,
+                    shouldOhlc: false,
+                    shouldFormatBigNumber: false
+                });
+
+                // Fit content
+                chart.resize();
                 chart.timeScale().fitContent();
+
             } catch (error) {
                 console.error('Error loading chart data:', error);
-                // Fallback to sample data if API fails
-                const chart = LightweightCharts.createChart(document.getElementById('assetChart'), {
-                    width: 800,
-                    height: 300,
-                    layout: {
-                        backgroundColor: document.body.classList.contains('dark-mode') ? '#2a2f3a' : '#ffffff',
-                        textColor: document.body.classList.contains('dark-mode') ? '#e8e9eb' : '#1f2937'
-                    },
-                    grid: {
-                        vertLines: { visible: false },
-                        horzLines: { visible: false }
-                    }
-                });
-
-                const series = chart.addAreaSeries({
-                    topColor: 'rgba(33, 150, 243, 0.56)',
-                    bottomColor: 'rgba(33, 150, 243, 0.04)',
-                    lineColor: 'rgba(33, 150, 243, 1)',
-                    lineWidth: 2
-                });
-
-                const now = new Date();
-                const data = [];
-                for (let i = 0; i < 100; i++) {
-                    const time = new Date(now.getTime() - (100 - i) * 60 * 1000);
-                    const price = asset.price * (1 + (Math.random() - 0.5) * 0.02);
-                    data.push({ time: time.getTime() / 1000, value: price });
-                }
-                series.setData(data);
-
-                chart.timeScale().fitContent();
+                // Show error message in chart container
+                const chartContainer = document.getElementById('assetChart');
+                chartContainer.innerHTML = `<div class="error-message">Błąd ładowania danych wykresu: ${error.message}</div>`;
             }
         }
 
@@ -789,97 +1031,181 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadMarketData('all');
 
-            // Search button functionality - toggle search dropdown
+            // Search overlay functionality
             const searchButton = document.querySelector('.search-box button');
-            const searchSection = document.getElementById('searchSection');
-            const searchInput = document.getElementById('advancedSearchInput');
+            const searchOverlay = document.getElementById('searchOverlay');
+            const searchInput = document.getElementById('searchInput');
+            const searchCloseBtn = document.getElementById('searchCloseBtn');
+            const searchResults = document.getElementById('searchResults');
 
+            // Open search overlay
             searchButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                const isVisible = searchSection.style.display === 'block';
+                searchOverlay.classList.add('open');
+                searchInput.focus();
+            });
 
-                if (isVisible) {
-                    searchSection.style.opacity = '0';
-                    searchSection.style.transform = 'translateY(-10px)';
-                    setTimeout(() => {
-                        searchSection.style.display = 'none';
-                    }, 200);
-                } else {
-                    searchSection.style.display = 'block';
-                    setTimeout(() => {
-                        searchSection.classList.add('animate');
-                        searchInput.focus();
-                    }, 10);
+            // Close search overlay
+            function closeSearchOverlay() {
+                searchOverlay.classList.remove('open');
+                searchInput.value = '';
+                searchResults.innerHTML = '';
+            }
+
+            searchCloseBtn.addEventListener('click', closeSearchOverlay);
+
+            // Close on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeSearchOverlay();
                 }
             });
 
-            // Search functionality - now with real API calls and autocomplete
+            // Close on backdrop click
+            searchOverlay.addEventListener('click', function(e) {
+                if (e.target === searchOverlay) {
+                    closeSearchOverlay();
+                }
+            });
+
+            // Tab switching
+            document.querySelectorAll('.search-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    if (this.classList.contains('disabled')) return;
+
+                    document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Category filtering
+            let currentResults = [];
+            let currentCategory = 'all';
+
+            document.querySelectorAll('.category-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCategory = this.dataset.category;
+                    filterResults();
+                });
+            });
+
+            function filterResults() {
+                if (currentResults.length === 0) return;
+
+                const filtered = currentResults.filter(result => {
+                    if (currentCategory === 'all') return true;
+                    return result.type.toLowerCase() === currentCategory;
+                });
+
+                renderResults(filtered);
+            }
+
+            function renderResults(results) {
+                searchResults.innerHTML = '';
+
+                if (results.length === 0) {
+                    searchResults.innerHTML = '<div class="no-results">Brak wyników</div>';
+                    return;
+                }
+
+                results.forEach(result => {
+                    const row = document.createElement('div');
+                    row.className = 'search-result-row';
+                    row.innerHTML = `
+                        <div class="result-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="result-main">
+                            <div class="result-ticker">${result.symbol}</div>
+                            <div class="result-name">${result.name}</div>
+                        </div>
+                        <div class="result-type-badge">${result.type || 'N/A'}</div>
+                        <div class="result-exchange">${result.exchange || 'N/A'}</div>
+                    `;
+
+                    row.addEventListener('click', async () => {
+                        searchInput.value = result.symbol;
+                        closeSearchOverlay();
+
+                        try {
+                            const detailResponse = await fetch(`/api/stocks/${result.symbol}`);
+                            if (!detailResponse.ok) throw new Error('Błąd pobierania szczegółów');
+
+                            const assetData = await detailResponse.json();
+                            showAssetDetail(assetData);
+                        } catch (error) {
+                            console.error('Error loading asset details:', error);
+                            showAssetDetail({
+                                symbol: result.symbol,
+                                name: result.name,
+                                price: 0,
+                                change: '0.00%',
+                                volume: '-',
+                                marketCap: '-'
+                            });
+                        }
+                    });
+
+                    searchResults.appendChild(row);
+                });
+            }
+
+            // Search functionality with debounce
             let searchTimeout = null;
 
             searchInput.addEventListener('input', async function() {
                 const query = this.value.trim();
-                if (query.length < 2) {
-                    document.getElementById('searchResultsGrid').innerHTML = '';
+
+                if (query.length === 0) {
+                    searchResults.innerHTML = '';
                     return;
                 }
 
-                // Debounce the search to avoid too many API calls
+                if (query.length < 2) {
+                    return;
+                }
+
+                // Show loading skeleton
+                searchResults.innerHTML = `
+                    <div class="result-skeleton">
+                        <div class="skeleton-icon"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-subtext"></div>
+                    </div>
+                    <div class="result-skeleton">
+                        <div class="skeleton-icon"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-subtext"></div>
+                    </div>
+                    <div class="result-skeleton">
+                        <div class="skeleton-icon"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-subtext"></div>
+                    </div>
+                `;
+
+                // Debounce the search
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(async () => {
                     try {
-                        const resultsGrid = document.getElementById('searchResultsGrid');
-                        resultsGrid.innerHTML = '<div class="loading-spinner">Wyszukiwanie...</div>';
-
-                        // Call the real search API
-                        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                        // Call the advanced search API
+                        const response = await fetch(`/api/search/advanced?q=${encodeURIComponent(query)}`);
                         if (!response.ok) throw new Error('Błąd wyszukiwania');
 
                         const results = await response.json();
 
-                        resultsGrid.innerHTML = '';
+                        // Store results and filter
+                        currentResults = results;
+                        currentCategory = 'all';
+                        document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+                        document.querySelector('.category-chip[data-category="all"]').classList.add('active');
 
-                        if (results.length === 0) {
-                            resultsGrid.innerHTML = '<div class="no-results">Brak wyników</div>';
-                            return;
-                        }
-
-                        results.forEach(result => {
-                            const item = document.createElement('div');
-                            item.className = 'result-item';
-                            item.innerHTML = `
-                                <div class="result-symbol">${result.symbol}</div>
-                                <div class="result-name">${result.name}</div>
-                                <div class="result-type">${result.type || 'N/A'}</div>
-                            `;
-                            item.addEventListener('click', async () => {
-                                searchInput.value = result.symbol;
-                                resultsGrid.innerHTML = '';
-
-                                try {
-                                    // Fetch detailed data for the selected asset
-                                    const detailResponse = await fetch(`/api/stocks/${result.symbol}`);
-                                    if (!detailResponse.ok) throw new Error('Błąd pobierania szczegółów');
-
-                                    const assetData = await detailResponse.json();
-                                    showAssetDetail(assetData);
-                                } catch (error) {
-                                    console.error('Error loading asset details:', error);
-                                    showAssetDetail({
-                                        symbol: result.symbol,
-                                        name: result.name,
-                                        price: 0,
-                                        change: '0.00%',
-                                        volume: '-',
-                                        marketCap: '-'
-                                    });
-                                }
-                            });
-                            resultsGrid.appendChild(item);
-                        });
+                        renderResults(currentResults);
                     } catch (error) {
                         console.error('Search error:', error);
-                        const resultsGrid = document.getElementById('searchResultsGrid');
-                        resultsGrid.innerHTML = `<div class="error-message">Błąd wyszukiwania: ${error.message}</div>`;
+                        searchResults.innerHTML = `<div class="error-message">Błąd wyszukiwania: ${error.message}</div>`;
                     }
                 }, 300);
             });
