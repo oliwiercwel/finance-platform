@@ -1,20 +1,17 @@
 # Zależności dla projektu finance-platform
-# Wersje dostosowane do Pythona 3.9.7
+# Wersje dostosowane do Pythona 3.11.9
 
 # Główne zależności
-Flask==2.0.1
-requests==2.26.0
-python-dotenv==0.19.0
-
-# Zależności dla API
-yahoo-finance==1.4.0
+Flask==3.0.3
+requests==2.32.3
+python-dotenv==1.0.1
 
 # Zależności dla frontend
-waitress==2.0.0
+waitress==3.0.0
 
 # Zależności dla bazy danych (jeśli potrzebne)
 # sqlite3 jest wbudowany w Pythona
 # psycopg2==2.9.1  # Odkomentuj, jeśli używasz PostgreSQL
 
 # Zależności dla testów
-pytest==6.2.4
+pytest==8.3.2
