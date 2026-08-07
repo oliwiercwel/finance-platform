@@ -1,84 +1,115 @@
-# FinanceHub - Platforma Finansowa 📈
+# Finance Platform
 
-Platforma do śledzenia rynków finansowych w czasie rzeczywistym z danymi z Yahoo Finance.
+Finance Platform to aplikacja webowa do śledzenia notowań giełdowych, walut i kryptowalut.
 
-## 🚀 Szybki start (lokalnie)
+## Funkcje
 
-### Wymagania:
-- **Python 3** (zainstalowany)
-- Przeglądarka internetowa
+- Śledzenie notowań akcji z różnych giełd (GPW, NASDAQ, NYSE, Europa, Chiny)
+- Monitorowanie kursów kryptowalut (BTC, ETH, BNB, XRP, ADA, SOL, DOGE)
+- Śledzenie kursów walut (EUR/PLN, USD/PLN, GBP/USD, USD/JPY, EUR/USD)
+- Śledzenie cen towarów (złoto, srebro, ropa, gaz)
+- Wyszukiwanie zaawansowane instrumentów finansowych
+- Historia notowań dla poszczególnych instrumentów
+- Aktualności finansowe
 
-### Uruchomienie:
-```bash
-cd backend
-python server.py
-```
-Otwórz: **http://localhost:8000**
+## Technologie
 
-## 🌐 Wdrożenie na Render.com (DARMOWE)
+- **Backend**: Python 3.9.7
+- **Frontend**: HTML, CSS, JavaScript
+- **API**: Yahoo Finance API
+- **Serwer**: Wbudowany serwer HTTP Pythona
 
-### Krok 1: Utwórz repozytorium GitHub
-1. Załóż konto na [github.com](https://github.com) (darmowe)
-2. Utwórz **nowe repozytorium** np. `finance-platform`
-3. Wgraj całą zawartość folderu `finance-platform`
+## Wymagania
 
-### Krok 2: Załóż konto na Render.com
-1. Wejdź na [render.com](https://render.com) i zarejestruj się
-2. Kliknij **"New +"** → **"Web Service"**
-3. Podepnij swoje konto GitHub
+- Python 3.9.7
+- Zależności z pliku `backend/requirements.txt`
+
+## Instalacja
+
+1. Sklonuj repozytorium:
+   ```bash
+   git clone https://github.com/oliwiercwel/finance-platform.git
+   cd finance-platform
+   ```
+
+2. Zainstaluj zależności:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+3. Uruchom serwer:
+   ```bash
+   python server.py
+   ```
+
+4. Otwórz przeglądarkę i przejdź do:
+   ```
+   http://localhost:8000
+   ```
+
+## Wdrożenie na Render
+
+Projekt jest skonfigurowany do wdrożenia na platformie Render. Plik `render.yaml` zawiera niezbędną konfigurację.
+
+### Kroki wdrożenia:
+
+1. Utwórz konto na [Render](https://render.com)
+2. Utwórz nowy serwis webowy
+3. Połącz swoje repozytorium GitHub
 4. Wybierz repozytorium `finance-platform`
+5. Render automatycznie wykryje plik `render.yaml`
+6. Kliknij "Deploy"
 
-### Krok 3: Konfiguracja
-Ustaw następujące opcje:
-- **Name:** `financehub`
-- **Environment:** `Python`
-- **Build Command:** (puste - brak zależności)
-- **Start Command:** `cd backend && python server.py`
-- **Instance Type:** Free (darmowy)
+### Konfiguracja Render
 
-### Krok 4: Wdrożenie
-Kliknij **"Create Web Service"**
+Plik `render.yaml` zawiera następującą konfigurację:
 
-Render automatycznie:
-- Pobraze kod z GitHub
-- Zainstaluje Pythona
-- Uruchomi serwer
-- Przydzieli darmowy URL np. `https://financehub.onrender.com`
+```yaml
+services:
+  - type: web
+    name: finance-platform
+    runtime: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && python server.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.7
+    plan: free
+```
 
-### Krok 5: Gotowe! 🎉
-Twoja strona działa pod adresem:
-**https://financehub.onrender.com**
-
-## 📊 Funkcje
-
-- **Rynki w czasie rzeczywistym** - aktualne notowania z Yahoo Finance
-- **Zaawansowana wyszukiwarka** - wyszukaj dowolny ticker z całego świata
-- **Szczegóły akcji** - kliknij na wynik, aby zobaczyć pełne dane
-- **Newsy** - aktualne wiadomości finansowe
-- **Wykresy** - historia cen dla wybranego symbolu
-- **Portfolio** - śledź swoje inwestycje
-
-## 📁 Struktura projektu
+## Struktura projektu
 
 ```
 finance-platform/
-├── backend/
-│   ├── server.py          # Serwer Python (proxy do Yahoo Finance)
-│   └── Procfile           # Konfiguracja Render
-└── frontend/
-    ├── index.html         # Strona główna
-    ├── css/style.css      # Style
-    └── js/app.js          # Logika aplikacji
+├── backend/                  # Kod backendowy
+│   ├── server.py             # Główny serwer API
+│   ├── requirements.txt      # Zależności Pythona
+│   └── database/             # Pliki bazy danych
+├── frontend/                 # Kod frontendowy
+│   ├── index.html            # Główny plik HTML
+│   ├── css/                  # Pliki CSS
+│   └── js/                   # Pliki JavaScript
+├── render.yaml               # Konfiguracja Render
+├── .gitignore                # Pliki ignorowane przez Git
+└── README.md                 # Ten plik
 ```
 
-## ⚙️ Technologie
+## API
 
-- **Backend:** Python (bez zależności - wbudowany http.server)
-- **Frontend:** HTML, CSS, JavaScript, Chart.js
-- **Dane:** Yahoo Finance API
+Aplikacja udostępnia następujące endpointy API:
 
-## ⚠️ Uwagi
+- `GET /api/health` - Sprawdzenie statusu serwera
+- `GET /api/stocks` - Lista wszystkich notowań
+- `GET /api/search/advanced?q={query}` - Wyszukiwanie instrumentów
+- `GET /api/stocks/{symbol}/detail` - Szczegóły instrumentu
+- `GET /api/stocks/{symbol}/history?period={period}` - Historia notowań
+- `GET /api/news` - Aktualności finansowe
 
-- Darmowy tier Render.com ma limit 750 godzin/miesiąc (wystarczy dla 1-2 osób)
-- Serwer może się "uśpić" po 15 minutach bezczynności na darmowym tierze
-- Pierwsze otwarcie po uśpieniu może potrwać kilka sekund
+## Licencja
+
+MIT
+
+## Autor
+
+Oliwier Cwel

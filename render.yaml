@@ -2,8 +2,13 @@ services:
   - type: web
     name: finance-platform
     runtime: python
+<<<<<<< Updated upstream
     buildCommand: "cd backend && pip install -r requirements.txt"
     startCommand: "cd backend && python server.py"
+=======
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python backend/server.py"
+>>>>>>> Stashed changes
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7

@@ -1450,8 +1450,43 @@ function simulateRealTimeUpdates() {
     }, 3000); // Co 3 sekundy
 }
 
+// Inicjalizacja motywu (dzienny/nocny)
+function initTheme() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (!themeToggle) return;
+    
+    // Sprawdź zapisany motyw w localStorage
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.body.classList.add('dark-mode');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        document.body.classList.remove('dark-mode');
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+    
+    // Obsługa kliknięcia
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        
+        if (isDark) {
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            localStorage.setItem('theme', 'light');
+        }
+    });
+}
+
 // Inicjalizacja aplikacji
 document.addEventListener('DOMContentLoaded', async () => {
+    // Inicjalizacja motywu
+    initTheme();
+    
     // Spróbuj załadować dane z backendu
     await initDataFromBackend();
     
