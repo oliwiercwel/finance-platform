@@ -10,12 +10,41 @@
     <!-- TradingView Lightweight Charts SDK -->
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <style>
-        /* TradingView-inspired styles */
+        /* TradingView-inspired styles with enhanced styling */
+        :root {
+            --primary-color: #4285f4;
+            --primary-hover: #3367d6;
+            --secondary-color: #34a853;
+            --accent-color: #ea4335;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --border-color: #dadce0;
+            --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.1);
+            --shadow-md: 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+            --transition-speed: 0.2s;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-primary);
+            background-color: #f8f9fa;
+            transition: background-color var(--transition-speed);
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #e8eaed;
+        }
+
         .tradingview-layout {
             display: grid;
-            grid-template-columns: 250px 1fr;
+            grid-template-columns: minmax(200px, 250px) 1fr;
             gap: 20px;
             padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
         .sidebar {
@@ -23,6 +52,8 @@
             border-radius: 8px;
             padding: 15px;
             height: fit-content;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
 
         .market-categories {
@@ -32,17 +63,25 @@
         }
 
         .category-item {
-            padding: 10px 15px;
+            padding: 12px 16px;
             cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s;
+            border-radius: 6px;
+            transition: all var(--transition-speed);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
         }
 
         .category-item:hover, .category-item.active {
             background: var(--category-hover);
+            color: var(--primary-color);
+        }
+
+        .category-item i {
+            width: 20px;
+            text-align: center;
         }
 
         .main-content-area {
@@ -53,59 +92,114 @@
 
         .market-overview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .asset-card {
             background: var(--card-bg);
             border-radius: 8px;
-            padding: 15px;
+            padding: 16px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all var(--transition-speed);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .asset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform var(--transition-speed);
+        }
+
+        .asset-card:hover::before {
+            transform: scaleX(1);
         }
 
         .asset-card:hover {
-            background: var(--card-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
         .asset-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+        }
+
+        .asset-symbol {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .asset-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
 
         .asset-price {
             font-size: 1.2rem;
-            font-weight: bold;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
         .asset-change {
             font-size: 0.9rem;
+            font-weight: 500;
+            text-align: right;
+            margin-bottom: 8px;
         }
 
         .positive {
-            color: var(--positive-color);
+            color: var(--secondary-color);
         }
 
         .negative {
-            color: var(--negative-color);
+            color: var(--accent-color);
+        }
+
+        .asset-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .asset-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .chart-container {
             height: 300px;
             background: var(--chart-bg);
             border-radius: 4px;
-            margin-top: 10px;
+            margin-top: 12px;
+            box-shadow: var(--shadow-sm);
         }
 
         .search-section {
             background: var(--search-bg);
             border-radius: 8px;
-            padding: 15px;
+            padding: 16px;
             margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
 
         .search-input-wrapper {
@@ -114,69 +208,193 @@
 
         .search-input {
             width: 100%;
-            padding: 12px 40px 12px 15px;
-            border-radius: 25px;
-            border: none;
+            padding: 14px 48px 14px 18px;
+            border-radius: 28px;
+            border: 1px solid var(--border-color);
             background: var(--input-bg);
-            color: var(--text-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
         }
 
         .search-icon {
             position: absolute;
-            right: 15px;
+            right: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--icon-color);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
         }
 
         .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
         }
 
         .result-item {
             background: var(--result-bg);
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px 14px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all var(--transition-speed);
+            border: 1px solid var(--border-color);
         }
 
         .result-item:hover {
             background: var(--result-hover);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .result-symbol {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .result-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .result-type {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* Loading states */
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(66, 133, 244, 0.3);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .no-data, .no-results, .error-message {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            border-radius: 6px;
+        }
+
+        .error-message {
+            color: var(--accent-color);
+            background-color: rgba(234, 67, 53, 0.1);
+            border: 1px solid rgba(234, 67, 53, 0.2);
         }
 
         /* Dark mode variables */
         :root {
-            --sidebar-bg: #f5f7fa;
-            --category-hover: #e8f0fe;
-            --card-bg: white;
-            --card-hover: #f8f9ff;
-            --search-bg: white;
-            --input-bg: #f0f2f5;
-            --chart-bg: #f8f9ff;
-            --result-bg: white;
-            --result-hover: #f0f2f5;
+            --sidebar-bg: #ffffff;
+            --category-hover: #f1f3f4;
+            --card-bg: #ffffff;
+            --card-hover: #f8f9fa;
+            --search-bg: #ffffff;
+            --input-bg: #f1f3f4;
+            --chart-bg: #ffffff;
+            --result-bg: #ffffff;
+            --result-hover: #f1f3f4;
             --positive-color: #16c784;
             --negative-color: #ea3943;
             --text-color: #1f2937;
             --icon-color: #6b7280;
+            --border-color: #dadce0;
         }
 
         body.dark-mode {
-            --sidebar-bg: #1e2127;
-            --category-hover: #2a2f3a;
-            --card-bg: #22272e;
-            --card-hover: #2a2f3a;
-            --search-bg: #22272e;
-            --input-bg: #2a2f3a;
-            --chart-bg: #2a2f3a;
-            --result-bg: #22272e;
-            --result-hover: #2a2f3a;
-            --text-color: #e8e9eb;
-            --icon-color: #9ca3af;
+            --sidebar-bg: #1e1e1e;
+            --category-hover: #2d2d2d;
+            --card-bg: #2d2d2d;
+            --card-hover: #3a3a3a;
+            --search-bg: #2d2d2d;
+            --input-bg: #3a3a3a;
+            --chart-bg: #1e1e1e;
+            --result-bg: #2d2d2d;
+            --result-hover: #3a3a3a;
+            --text-color: #e8eaed;
+            --icon-color: #aaaaaa;
+            --border-color: #3d3d3d;
+            --primary-color: #8ab4f8;
+            --primary-hover: #7baaf7;
+            --secondary-color: #81c995;
+            --accent-color: #f28b82;
+        }
+
+        /* Responsive design improvements */
+        @media (max-width: 768px) {
+            .tradingview-layout {
+                grid-template-columns: 1fr;
+                padding: 12px;
+            }
+
+            .sidebar {
+                display: flex;
+                overflow-x: auto;
+                padding: 12px 0;
+            }
+
+            .market-categories {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                padding: 0 12px;
+            }
+
+            .category-item {
+                flex-shrink: 0;
+                padding: 8px 12px;
+            }
+
+            .market-overview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .asset-card {
+                padding: 14px;
+            }
+
+            .search-input {
+                padding: 12px 44px 12px 16px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .asset-card, .result-item {
+            animation: fadeIn 0.3s ease-out;
         }
     </style>
 </head>
@@ -349,90 +567,174 @@
             });
         });
 
-        // Load Market Data Function
-        function loadMarketData(category) {
-            // This will be implemented to fetch data from Yahoo Finance API
-            console.log('Loading data for category:', category);
-            // Placeholder data for demonstration
-            const placeholderData = [
-                { symbol: 'AAPL', name: 'Apple Inc.', price: 185.45, change: '+1.23%', volume: '24.5M', marketCap: '2.8T' },
-                { symbol: 'TSLA', name: 'Tesla Inc.', price: 175.23, change: '-0.87%', volume: '32.1M', marketCap: '560B' },
-                { symbol: 'BTC-USD', name: 'Bitcoin', price: 45234.56, change: '+2.45%', volume: '18.7B', marketCap: '880B' },
-                { symbol: 'EURPLN=X', name: 'Euro/Polish Zloty', price: 4.3215, change: '-0.15%', volume: '-', marketCap: '-' },
-                { symbol: 'GC=F', name: 'Gold Futures', price: 1985.40, change: '+0.32%', volume: '25K', marketCap: '-' },
-                { symbol: 'WIG20.WA', name: 'WIG20 Index', price: 2456.78, change: '+1.23%', volume: '-', marketCap: '-' }
-            ];
+        // Load Market Data Function - Now with real API calls
+        async function loadMarketData(category) {
+            try {
+                // Show loading state
+                const grid = document.getElementById('marketOverviewGrid');
+                grid.innerHTML = '<div class="loading-spinner">Ładowanie danych...</div>';
 
-            const grid = document.getElementById('marketOverviewGrid');
-            grid.innerHTML = '';
+                // Fetch data from backend API
+                const response = await fetch('/api/stocks');
+                if (!response.ok) throw new Error('Błąd pobierania danych');
 
-            placeholderData.forEach(asset => {
-                const card = document.createElement('div');
-                card.className = 'asset-card';
-                card.innerHTML = `
-                    <div class="asset-info">
-                        <div>
-                            <div class="asset-symbol">${asset.symbol}</div>
-                            <div class="asset-name">${asset.name}</div>
+                const stocks = await response.json();
+
+                // Filter by category if needed
+                const filteredStocks = category === 'all' || !category
+                    ? stocks
+                    : stocks.filter(stock => {
+                        if (category === 'stocks') return stock.symbol.endsWith('.WA') || !stock.symbol.includes('.') && !stock.symbol.includes('-') && !stock.symbol.includes('=');
+                        if (category === 'crypto') return stock.symbol.includes('-USD');
+                        if (category === 'forex') return stock.symbol.includes('=');
+                        if (category === 'commodities') return stock.symbol.includes('=F');
+                        if (category === 'indices') return stock.symbol.includes('.WA') || stock.name.toLowerCase().includes('index');
+                        return true;
+                    });
+
+                grid.innerHTML = '';
+
+                if (filteredStocks.length === 0) {
+                    grid.innerHTML = '<div class="no-data">Brak danych dla wybranej kategorii</div>';
+                    return;
+                }
+
+                filteredStocks.forEach(asset => {
+                    const card = document.createElement('div');
+                    card.className = 'asset-card';
+                    card.innerHTML = `
+                        <div class="asset-info">
+                            <div>
+                                <div class="asset-symbol">${asset.symbol}</div>
+                                <div class="asset-name">${asset.name}</div>
+                            </div>
+                            <div class="asset-price">${formatPrice(asset.price)} ${asset.currency || ''}</div>
                         </div>
-                        <div class="asset-price">${formatPrice(asset.price)}</div>
-                    </div>
-                    <div class="asset-change ${asset.change.startsWith('+') ? 'positive' : 'negative'}">
-                        ${asset.change}
-                    </div>
-                    <div class="asset-meta">
-                        <span>Vol: ${asset.volume}</span>
-                        ${asset.marketCap ? `<span>Cap: ${asset.marketCap}</span>` : ''}
-                    </div>
-                `;
-                card.addEventListener('click', () => showAssetDetail(asset));
-                grid.appendChild(card);
-            });
+                        <div class="asset-change ${asset.change >= 0 ? 'positive' : 'negative'}">
+                            ${asset.change >= 0 ? '+' : ''}${asset.change.toFixed(2)}%
+                        </div>
+                        <div class="asset-meta">
+                            ${asset.volume ? `<span>Vol: ${asset.volume}</span>` : ''}
+                            ${asset.cap ? `<span>Cap: ${asset.cap}</span>` : ''}
+                        </div>
+                    `;
+                    card.addEventListener('click', () => showAssetDetail(asset));
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading market data:', error);
+                const grid = document.getElementById('marketOverviewGrid');
+                grid.innerHTML = `<div class="error-message">Błąd ładowania danych: ${error.message}</div>`;
+            }
         }
 
-        // Show Asset Detail Function
-        function showAssetDetail(asset) {
+        // Show Asset Detail Function - Now with real historical data
+        async function showAssetDetail(asset) {
             document.getElementById('assetDetail').style.display = 'block';
             document.getElementById('assetName').textContent = asset.name;
             document.getElementById('assetSymbol').textContent = asset.symbol;
             document.getElementById('assetExchange').textContent = getExchange(asset.symbol);
             document.getElementById('assetPrice').textContent = formatPrice(asset.price);
-            document.getElementById('assetChange').textContent = asset.change;
-            document.getElementById('assetVolume').textContent = asset.volume;
-            document.getElementById('assetMarketCap').textContent = asset.marketCap || 'N/A';
+            document.getElementById('assetChange').textContent = `${asset.change >= 0 ? '+' : ''}${asset.change.toFixed(2)}%`;
+            document.getElementById('assetVolume').textContent = asset.volume || '-';
+            document.getElementById('assetMarketCap').textContent = asset.cap || 'N/A';
 
-            // Initialize TradingView Lightweight Chart
-            const chart = LightweightCharts.createChart(document.getElementById('assetChart'), {
-                width: 800,
-                height: 300,
-                layout: {
-                    backgroundColor: document.body.classList.contains('dark-mode') ? '#2a2f3a' : '#ffffff',
-                    textColor: document.body.classList.contains('dark-mode') ? '#e8e9eb' : '#1f2937'
-                },
-                grid: {
-                    vertLines: { visible: false },
-                    horzLines: { visible: false }
+            try {
+                // Fetch real historical data from API
+                const historyResponse = await fetch(`/api/stocks/${asset.symbol}/history?period=1D`);
+                if (!historyResponse.ok) throw new Error('Błąd pobierania historii');
+
+                const historyData = await historyResponse.json();
+
+                // Initialize TradingView Lightweight Chart with real data
+                const chart = LightweightCharts.createChart(document.getElementById('assetChart'), {
+                    width: 800,
+                    height: 300,
+                    layout: {
+                        backgroundColor: document.body.classList.contains('dark-mode') ? '#2a2f3a' : '#ffffff',
+                        textColor: document.body.classList.contains('dark-mode') ? '#e8e9eb' : '#1f2937'
+                    },
+                    grid: {
+                        vertLines: { color: 'rgba(42, 47, 58, 0.1)' },
+                        horzLines: { color: 'rgba(42, 47, 58, 0.1)' }
+                    }
+                });
+
+                const candlestickSeries = chart.addCandlestickSeries({
+                    upColor: '#26a69a',
+                    downColor: '#ef5350',
+                    borderVisible: false,
+                    wickUpColor: '#26a69a',
+                    wickDownColor: '#ef5350'
+                });
+
+                // Format historical data for TradingView
+                const formattedData = historyData.map(item => ({
+                    time: new Date(item.date).getTime() / 1000,
+                    open: item.open,
+                    high: item.high,
+                    low: item.low,
+                    close: item.close
+                }));
+
+                candlestickSeries.setData(formattedData);
+
+                // Add volume series
+                const volumeSeries = chart.addHistogramSeries({
+                    color: '#26a69a',
+                    priceFormat: {
+                        type: 'volume',
+                    },
+                    priceScaleId: '',
+                    scaleMargins: {
+                        top: 0.8,
+                        bottom: 0,
+                    },
+                });
+
+                const volumeData = historyData.map(item => ({
+                    time: new Date(item.date).getTime() / 1000,
+                    value: item.volume,
+                    color: item.close > item.open ? '#26a69a' : '#ef5350'
+                }));
+
+                volumeSeries.setData(volumeData);
+
+                chart.timeScale().fitContent();
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+                // Fallback to sample data if API fails
+                const chart = LightweightCharts.createChart(document.getElementById('assetChart'), {
+                    width: 800,
+                    height: 300,
+                    layout: {
+                        backgroundColor: document.body.classList.contains('dark-mode') ? '#2a2f3a' : '#ffffff',
+                        textColor: document.body.classList.contains('dark-mode') ? '#e8e9eb' : '#1f2937'
+                    },
+                    grid: {
+                        vertLines: { visible: false },
+                        horzLines: { visible: false }
+                    }
+                });
+
+                const series = chart.addAreaSeries({
+                    topColor: 'rgba(33, 150, 243, 0.56)',
+                    bottomColor: 'rgba(33, 150, 243, 0.04)',
+                    lineColor: 'rgba(33, 150, 243, 1)',
+                    lineWidth: 2
+                });
+
+                const now = new Date();
+                const data = [];
+                for (let i = 0; i < 100; i++) {
+                    const time = new Date(now.getTime() - (100 - i) * 60 * 1000);
+                    const price = asset.price * (1 + (Math.random() - 0.5) * 0.02);
+                    data.push({ time: time.getTime() / 1000, value: price });
                 }
-            });
+                series.setData(data);
 
-            const series = chart.addAreaSeries({
-                topColor: 'rgba(33, 150, 243, 0.56)',
-                bottomColor: 'rgba(33, 150, 243, 0.04)',
-                lineColor: 'rgba(33, 150, 243, 1)',
-                lineWidth: 2
-            });
-
-            // Generate sample data for the chart
-            const now = new Date();
-            const data = [];
-            for (let i = 0; i < 100; i++) {
-                const time = new Date(now.getTime() - (100 - i) * 60 * 1000);
-                const price = asset.price * (1 + (Math.random() - 0.5) * 0.02);
-                data.push({ time: time.getTime() / 1000, value: price });
+                chart.timeScale().fitContent();
             }
-            series.setData(data);
-
-            chart.timeScale().fitContent();
         }
 
         // Helper Functions
@@ -458,55 +760,76 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadMarketData('all');
 
-            // Search functionality
+            // Search functionality - now with real API calls
             const searchInput = document.getElementById('advancedSearchInput');
-            searchInput.addEventListener('input', function() {
+            let searchTimeout = null;
+
+            searchInput.addEventListener('input', async function() {
                 const query = this.value.trim();
                 if (query.length < 2) {
                     document.getElementById('searchResultsGrid').innerHTML = '';
                     return;
                 }
 
-                // This would normally call the Yahoo Finance search API
-                console.log('Searching for:', query);
+                // Debounce the search to avoid too many API calls
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const resultsGrid = document.getElementById('searchResultsGrid');
+                        resultsGrid.innerHTML = '<div class="loading-spinner">Wyszukiwanie...</div>';
 
-                // Placeholder search results
-                const results = [
-                    { symbol: 'AAPL', name: 'Apple Inc.', type: 'Akcja' },
-                    { symbol: 'TSLA', name: 'Tesla Inc.', type: 'Akcja' },
-                    { symbol: 'BTC-USD', name: 'Bitcoin USD', type: 'Krypto' },
-                    { symbol: 'WIG20.WA', name: 'WIG20 Index', type: 'Indeks' }
-                ].filter(item =>
-                    item.symbol.toLowerCase().includes(query.toLowerCase()) ||
-                    item.name.toLowerCase().includes(query.toLowerCase())
-                );
+                        // Call the real search API
+                        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                        if (!response.ok) throw new Error('Błąd wyszukiwania');
 
-                const resultsGrid = document.getElementById('searchResultsGrid');
-                resultsGrid.innerHTML = '';
+                        const results = await response.json();
 
-                results.forEach(result => {
-                    const item = document.createElement('div');
-                    item.className = 'result-item';
-                    item.innerHTML = `
-                        <div class="result-symbol">${result.symbol}</div>
-                        <div class="result-name">${result.name}</div>
-                        <div class="result-type">${result.type}</div>
-                    `;
-                    item.addEventListener('click', () => {
-                        searchInput.value = result.symbol;
                         resultsGrid.innerHTML = '';
-                        // Here you would load the detailed view for the selected asset
-                        showAssetDetail({
-                            symbol: result.symbol,
-                            name: result.name,
-                            price: 0,
-                            change: '0.00%',
-                            volume: '-',
-                            marketCap: '-'
+
+                        if (results.length === 0) {
+                            resultsGrid.innerHTML = '<div class="no-results">Brak wyników</div>';
+                            return;
+                        }
+
+                        results.forEach(result => {
+                            const item = document.createElement('div');
+                            item.className = 'result-item';
+                            item.innerHTML = `
+                                <div class="result-symbol">${result.symbol}</div>
+                                <div class="result-name">${result.name}</div>
+                                <div class="result-type">${result.type || 'N/A'}</div>
+                            `;
+                            item.addEventListener('click', async () => {
+                                searchInput.value = result.symbol;
+                                resultsGrid.innerHTML = '';
+
+                                try {
+                                    // Fetch detailed data for the selected asset
+                                    const detailResponse = await fetch(`/api/stocks/${result.symbol}`);
+                                    if (!detailResponse.ok) throw new Error('Błąd pobierania szczegółów');
+
+                                    const assetData = await detailResponse.json();
+                                    showAssetDetail(assetData);
+                                } catch (error) {
+                                    console.error('Error loading asset details:', error);
+                                    showAssetDetail({
+                                        symbol: result.symbol,
+                                        name: result.name,
+                                        price: 0,
+                                        change: '0.00%',
+                                        volume: '-',
+                                        marketCap: '-'
+                                    });
+                                }
+                            });
+                            resultsGrid.appendChild(item);
                         });
-                    });
-                    resultsGrid.appendChild(item);
-                });
+                    } catch (error) {
+                        console.error('Search error:', error);
+                        const resultsGrid = document.getElementById('searchResultsGrid');
+                        resultsGrid.innerHTML = `<div class="error-message">Błąd wyszukiwania: ${error.message}</div>`;
+                    }
+                }, 300);
             });
         });
     </script>
