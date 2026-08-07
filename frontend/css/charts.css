@@ -1,0 +1,50 @@
+/* ========== LIGHTWEIGHT CHARTS STYLES ========== */
+
+/* ... (existing styles) */
+
+/* Emoticon buttons styling */
+.chart-emoticon {
+    color: var(--primary-color);
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 1.2em;
+    transition: color 0.2s;
+}
+
+.chart-emoticon:hover {
+    color: var(--primary-hover);
+}
+
+body.dark-mode .chart-emoticon {
+    color: var(--dark-primary);
+}
+
+body.dark-mode .chart-emoticon:hover {
+    color: var(--dark-primary-hover);
+}
+
+/* Chart container styling */
+#chartContainer {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60%;
+    height: 400px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+/* Optional: Add hover effect for better UX */
+#chartContainer:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Dark mode adaptation (if needed) */
+body.dark-mode #chartContainer {
+    background: #1e1e1e;
+    border-color: #333;
+}
+
+/* ... (rest of existing styles) */

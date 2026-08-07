@@ -5,294 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinanceHub - Platforma Inwestycyjna</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/charts.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- TradingView Lightweight Charts SDK -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <i class="fas fa-chart-line"></i>
-                <span>FinanceHub</span>
-            </div>
-            <nav class="nav">
-                <a href="#home">Strona Główna</a>
-                <a href="#markets">Rynki</a>
-                <a href="#advanced-search">Zaawansowana Wyszukiwarka</a>
-                <a href="#portfolio">Portfolio</a>
-                <a href="#news">Newsy</a>
-                <a href="#analysis">Analiza</a>
-            </nav>
-            <div class="search-box">
-                <input type="text" placeholder="Szukaj akcji, kryptowalut..." id="searchInput">
-                <button><i class="fas fa-search"></i></button>
-            </div>
-            <button class="theme-toggle" id="themeToggle" title="Przełącz motyw">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Hero Section -->
-        <section class="hero">
-            <div class="container">
-                <h1>Śledź rynki finansowe w czasie rzeczywistym</h1>
-                <p>Analizuj akcje, kryptowaluty, towary i waluty na jednej platformie</p>
-            </div>
-        </section>
-
-        <!-- Market Overview -->
-        <section class="market-overview" id="markets">
-            <div class="container">
-                <h2>Przegląd Rynków</h2>
-                <div class="market-cards">
-                    <div class="market-card">
-                        <div class="market-header">
-                            <i class="fas fa-chart-bar"></i>
-                            <h3>WIG20</h3>
-                        </div>
-                        <div class="market-value">
-                            <span class="price" id="wig20Price">2,456.78</span>
-                            <span class="change positive" id="wig20Change">+1.23%</span>
-                        </div>
-                        <div class="mini-chart" id="wig20Chart"></div>
-                    </div>
-                    <div class="market-card">
-                        <div class="market-header">
-                            <i class="fas fa-dollar-sign"></i>
-                            <h3>EUR/PLN</h3>
-                        </div>
-                        <div class="market-value">
-                            <span class="price" id="eurplnPrice">4.32</span>
-                            <span class="change negative" id="eurplnChange">-0.15%</span>
-                        </div>
-                        <div class="mini-chart" id="eurplnChart"></div>
-                    </div>
-                    <div class="market-card">
-                        <div class="market-header">
-                            <i class="fab fa-bitcoin"></i>
-                            <h3>BTC/USD</h3>
-                        </div>
-                        <div class="market-value">
-                            <span class="price" id="btcPrice">$45,234</span>
-                            <span class="change positive" id="btcChange">+2.45%</span>
-                        </div>
-                        <div class="mini-chart" id="btcChart"></div>
-                    </div>
-                    <div class="market-card">
-                        <div class="market-header">
-                            <i class="fas fa-oil-can"></i>
-                            <h3>Ropa WTI</h3>
-                        </div>
-                        <div class="market-value">
-                            <span class="price" id="oilPrice">$78.50</span>
-                            <span class="change negative" id="oilChange">-0.89%</span>
-                        </div>
-                        <div class="mini-chart" id="oilChart"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Advanced Search Section -->
-        <section class="advanced-search-section" id="advanced-search">
-            <div class="container">
-                <h2>Zaawansowana Wyszukiwarka</h2>
-                <p class="section-subtitle">Wyszukaj dowolny ticker z całego świata - akcje, kryptowaluty, waluty, towary</p>
-                
-                <div class="advanced-search-box">
-                    <div class="advanced-search-input-wrapper">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="advancedSearchInput" placeholder="Wpisz symbol lub nazwę np. AAPL, Tesla, BTC-USD, WIG20.WA..." autocomplete="off">
-                        <button class="btn-clear-search" id="advancedSearchClear" title="Wyczyść">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="search-type-filters">
-                        <button class="search-type-btn active" data-type="all">Wszystkie</button>
-                        <button class="search-type-btn" data-type="EQUITY">Akcje</button>
-                        <button class="search-type-btn" data-type="CRYPTOCURRENCY">Krypto</button>
-                        <button class="search-type-btn" data-type="CURRENCY">Waluty</button>
-                        <button class="search-type-btn" data-type="FUTURE">Towary</button>
-                        <button class="search-type-btn" data-type="INDEX">Indeksy</button>
-                    </div>
-                </div>
-                
-                <div class="advanced-search-results" id="advancedSearchResults">
-                    <div class="search-placeholder">
-                        <i class="fas fa-search fa-3x"></i>
-                        <p>Wpisz minimum 2 znaki, aby rozpocząć wyszukiwanie</p>
-                        <p class="search-hint">Przykłady: AAPL, TSLA, BTC-USD, EURPLN=X, WIG20.WA, GC=F</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Stock List -->
-        <section class="stock-list" id="markets-list">
-            <div class="container">
-                <h2>Wszystkie Rynki</h2>
-                
-                <!-- Filtry kategorii -->
-                <div class="market-filters">
-                    <button class="filter-btn active" data-category="all">Wszystkie</button>
-                    <button class="filter-btn" data-category="poland">🇵🇱 Polska</button>
-                    <button class="filter-btn" data-category="usa">🇺🇸 USA</button>
-                    <button class="filter-btn" data-category="europe">🇪🇺 Europa</button>
-                    <button class="filter-btn" data-category="china">🇨🇳 Chiny</button>
-                    <button class="filter-btn" data-category="korea">🇰🇷 Korea</button>
-                    <button class="filter-btn" data-category="crypto">🪙 Krypto</button>
-                    <button class="filter-btn" data-category="forex">💱 Waluty</button>
-                    <button class="filter-btn" data-category="commodities">🛢️ Towary</button>
-                </div>
-                
-                <div class="stock-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Symbol</th>
-                                <th>Nazwa</th>
-                                <th>Cena</th>
-                                <th>Zmiana</th>
-                                <th>Wolumen</th>
-                                <th>Kapitalizacja</th>
-                                <th>Wykres</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stockTableBody">
-                            <!-- Dynamiczne wypełnienie przez JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- News Section -->
-        <section class="news-section" id="news">
-            <div class="container">
-                <h2>Najważniejsze Newsy</h2>
-                <div class="news-grid" id="newsGrid">
-                    <!-- Dynamiczne wypełnienie przez JS -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Chart Section -->
-        <section class="chart-section" id="analysis">
-            <div class="container">
-                <h2>Wykres Interaktywny</h2>
-                <div class="chart-controls">
-                    <select id="chartSymbol">
-                        <option value="WIG20.WA">WIG20</option>
-                        <option value="AAPL">Apple</option>
-                        <option value="TSLA">Tesla</option>
-                        <option value="BTC-USD">Bitcoin</option>
-                    </select>
-                    <select id="chartPeriod">
-                        <option value="1D">1 Dzień</option>
-                        <option value="1W">1 Tydzień</option>
-                        <option value="1M">1 Miesiąc</option>
-                        <option value="3M">3 Miesiące</option>
-                        <option value="1Y">1 Rok</option>
-                    </select>
-                </div>
-                <div class="main-chart" id="mainChart"></div>
-            </div>
-        </section>
-        <!-- Portfolio Section -->
-        <section class="portfolio-section" id="portfolio">
-            <div class="container">
-                <h2>Moje Portfolio</h2>
-                <div class="portfolio-content">
-                    <div class="portfolio-summary">
-                        <div class="portfolio-card">
-                            <h3>Wartość Portfolio</h3>
-                            <div class="portfolio-value" id="portfolioValue">0.00 PLN</div>
-                            <div class="portfolio-change" id="portfolioChange">0.00%</div>
-                        </div>
-                        <div class="portfolio-card">
-                            <h3>Zyski/Struty</h3>
-                            <div class="portfolio-value" id="portfolioProfit">0.00 PLN</div>
-                            <div class="portfolio-change" id="portfolioProfitPercent">0.00%</div>
-                        </div>
-                    </div>
-                    <div class="portfolio-positions" id="portfolioPositions">
-                        <h3>Pozycje</h3>
-                        <div class="positions-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Symbol</th>
-                                        <th>Nazwa</th>
-                                        <th>Ilość</th>
-                                        <th>Cena Zakupu</th>
-                                        <th>Cena Aktualna</th>
-                                        <th>Wartość</th>
-                                        <th>Zysk/Strata</th>
-                                        <th>Akcje</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="portfolioTableBody">
-                                    <tr>
-                                        <td colspan="8" style="text-align: center; padding: 40px; color: #5f6368;">
-                                            Brak pozycji w portfolio. Dodaj pierwszą pozycję!
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <button class="btn-add-position" onclick="showAddPositionModal()">
-                            <i class="fas fa-plus"></i> Dodaj Pozycję
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 FinanceHub. Wszelkie prawa zastrzeżone.</p>
-            <p>Dane mają charakter informacyjny i nie stanowią rekomendacji inwestycyjnej.</p>
-        </div>
-    </footer>
-
+    <!-- Dodaj przycisk do wyświetlania wykresu -->
+    <button id="showChartButton">wig20.wa</button>
+    
+    <!-- Kontener na wykres po prawej stronie -->
+    <div id="chartContainer" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); width: 60%; height: 400px; background: #f0f0f0; border: 1px solid #ccc; padding: 10px;"></div>
+    
+    <!-- Reszta istniejącego zawartości -->
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/charts.js"></script>
     <script src="js/app.js"></script>
     
-    <!-- Modal dla dodawania pozycji -->
-    <div class="modal" id="addPositionModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Dodaj Pozycję do Portfolio</h3>
-                <button class="modal-close" onclick="closeAddPositionModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="addPositionForm">
-                    <div class="form-group">
-                        <label for="positionSymbol">Symbol</label>
-                        <input type="text" id="positionSymbol" placeholder="np. AAPL, BTC, WIG20" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="positionName">Nazwa</label>
-                        <input type="text" id="positionName" placeholder="np. Apple Inc." required>
-                    </div>
-                    <div class="form-group">
-                        <label for="positionQuantity">Ilość</label>
-                        <input type="number" id="positionQuantity" step="0.0001" placeholder="0.00" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="positionPrice">Cena Zakupu</label>
-                        <input type="number" id="positionPrice" step="0.01" placeholder="0.00" required>
-                    </div>
-                    <button type="submit" class="btn-submit">Dodaj Pozycję</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- Dodaj skrypt do obsługi przycisku -->
+    <script>
+        document.getElementById('showChartButton').addEventListener('click', function() {
+            // Pobierz dane z API dla ticker "wig20.wa"
+            fetch('https://api.example.com/data/wig20.wa') // Zastąp URL swoim API
+                .then(response => {
+                    if (!response.ok) throw new Error('Błąd pobierania danych');
+                    return response.json();
+                })
+                .then(data => {
+                    // Inicjalizacja wykresu z danymi z API
+                    const chart = lightweightCharts.create({
+                        container: document.getElementById('chartContainer'),
+                        width: 600,
+                        height: 400,
+                        timeScale: {
+                            timeVisible: true,
+                            timeVisiblePerc: 100
+                        }
+                    });
+                    
+                    // Dodaj serię danych
+                    const series = chart.addSeries({
+                        color: 'blue',
+                        data: data.map(item => ({ time: item.time, value: item.price }))
+                    });
+                })
+                .catch(error => {
+                    console.error('Błąd:', error);
+                    alert('Nie można załadować danych dla wig20.wa');
+                });
+        });
+    </script>
 </body>
 </html>

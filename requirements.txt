@@ -9,9 +9,5 @@ python-dotenv==1.0.1
 # Zależności dla frontend
 waitress==3.0.0
 
-# Zależności dla bazy danych (jeśli potrzebne)
-# sqlite3 jest wbudowany w Pythona
-# psycopg2==2.9.1  # Odkomentuj, jeśli używasz PostgreSQL
-
 # Zależności dla testów
 pytest==8.3.2
