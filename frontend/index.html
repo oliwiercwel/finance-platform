@@ -628,9 +628,24 @@
             }
         }
 
-        // Show Asset Detail Function - Now with real historical data
+        // Show Asset Detail Function - Now with real historical data and close button
         async function showAssetDetail(asset) {
-            document.getElementById('assetDetail').style.display = 'block';
+            const assetDetail = document.getElementById('assetDetail');
+            assetDetail.style.display = 'block';
+
+            // Add close button if not exists
+            if (!document.getElementById('closeAssetDetail')) {
+                const closeButton = document.createElement('button');
+                closeButton.id = 'closeAssetDetail';
+                closeButton.className = 'close-button';
+                closeButton.innerHTML = '<i class="fas fa-times"></i>';
+                closeButton.title = 'Zamknij';
+                closeButton.addEventListener('click', () => {
+                    assetDetail.style.display = 'none';
+                });
+                assetDetail.querySelector('.asset-header').appendChild(closeButton);
+            }
+
             document.getElementById('assetName').textContent = asset.name;
             document.getElementById('assetSymbol').textContent = asset.symbol;
             document.getElementById('assetExchange').textContent = getExchange(asset.symbol);
