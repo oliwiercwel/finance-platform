@@ -218,15 +218,16 @@
         .search-panel {
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            width: 400px;
+            max-width: 90vw;
             background: var(--search-bg);
             border-radius: 0 0 12px 12px;
             padding: 20px;
             box-shadow: var(--shadow-md);
             border: 1px solid var(--border-color);
             border-top: none;
-            transform: translateY(-100%);
             transition: transform 0.25s ease-out;
         }
 
@@ -290,6 +291,56 @@
             max-height: 60vh;
             overflow-y: auto;
             margin-top: 16px;
+        }
+
+        .hot-symbols-section {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hot-symbols-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hot-symbol-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        .hot-symbol-item:hover {
+            background-color: var(--result-hover);
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .hot-symbol-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .hot-symbol-change {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .hot-symbol-change.positive {
+            color: var(--secondary-color);
+        }
+
+        .hot-symbol-change.negative {
+            color: var(--accent-color);
         }
 
         .search-result-row {
@@ -1159,7 +1210,8 @@
                 const query = this.value.trim();
 
                 if (query.length === 0) {
-                    searchResults.innerHTML = '';
+                    // Show hot symbols when input is empty
+                    showHotSymbols();
                     return;
                 }
 
@@ -1208,6 +1260,68 @@
                         searchResults.innerHTML = `<div class="error-message">Błąd wyszukiwania: ${error.message}</div>`;
                     }
                 }, 300);
+            });
+
+            // Show hot symbols when search is empty
+            function showHotSymbols() {
+                // Define top 6 hot symbols
+                const hotSymbols = [
+                    { symbol: 'TSLA', name: 'Tesla', change: '+2.45%' },
+                    { symbol: 'AAPL', name: 'Apple', change: '-0.87%' },
+                    { symbol: 'BTC-USD', name: 'Bitcoin', change: '+3.12%' },
+                    { symbol: 'AMZN', name: 'Amazon', change: '+1.23%' },
+                    { symbol: 'MSFT', name: 'Microsoft', change: '-0.45%' },
+                    { symbol: 'NVDA', name: 'NVIDIA', change: '+4.78%' }
+                ];
+
+                searchResults.innerHTML = `
+                    <div class="hot-symbols-section">
+                        <div class="hot-symbols-title">Popularne symbole</div>
+                        ${hotSymbols.map(symbol => `
+                            <div class="hot-symbol-item" data-symbol="${symbol.symbol}">
+                                <span class="hot-symbol-name">${symbol.symbol} - ${symbol.name}</span>
+                                <span class="hot-symbol-change ${symbol.change.startsWith('+') ? 'positive' : 'negative'}">
+                                    ${symbol.change}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                // Add click handlers to hot symbols
+                document.querySelectorAll('.hot-symbol-item').forEach(item => {
+                    item.addEventListener('click', async () => {
+                        const symbol = item.dataset.symbol;
+                        searchInput.value = symbol;
+                        closeSearchOverlay();
+
+                        try {
+                            const detailResponse = await fetch(`/api/stocks/${symbol}`);
+                            if (!detailResponse.ok) throw new Error('Błąd pobierania szczegółów');
+
+                            const assetData = await detailResponse.json();
+                            showAssetDetail(assetData);
+                        } catch (error) {
+                            console.error('Error loading asset details:', error);
+                            showAssetDetail({
+                                symbol: symbol,
+                                name: item.querySelector('.hot-symbol-name').textContent.split(' - ')[1],
+                                price: 0,
+                                change: '0.00%',
+                                volume: '-',
+                                marketCap: '-'
+                            });
+                        }
+                    });
+                });
+            }
+
+            // Show hot symbols on initial open
+            searchButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                searchOverlay.classList.add('open');
+                searchInput.focus();
+                showHotSymbols();
             });
         });
     </script>
