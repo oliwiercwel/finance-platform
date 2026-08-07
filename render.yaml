@@ -1,7 +1,11 @@
 services:
   - type: web
-    name: financehub
+    name: finance-platform
     runtime: python
-    buildCommand: ""
-    startCommand: cd backend && python server.py
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && python server.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.7
     plan: free
+    rootDir: backend
