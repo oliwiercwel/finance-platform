@@ -198,8 +198,23 @@
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 20px;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
             border: 1px solid var(--border-color);
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all var(--transition-speed) ease-out;
+            position: relative;
+            z-index: 100;
+        }
+
+        .search-section.show {
+            display: block;
+        }
+
+        .search-section.animate {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .search-input-wrapper {
@@ -473,9 +488,8 @@
                     </div>
                 </section>
 
-                <!-- Advanced Search Section -->
-                <section class="search-section">
-                    <h2>Wyszukiwarka Instrumentów</h2>
+                <!-- Search Section - Now with animated dropdown -->
+                <section class="search-section" id="searchSection" style="display: none;">
                     <div class="search-input-wrapper">
                         <input type="text" id="advancedSearchInput" placeholder="Wpisz symbol lub nazwę..." autocomplete="off">
                         <i class="fas fa-search search-icon"></i>
@@ -775,8 +789,31 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadMarketData('all');
 
-            // Search functionality - now with real API calls
+            // Search button functionality - toggle search dropdown
+            const searchButton = document.querySelector('.search-box button');
+            const searchSection = document.getElementById('searchSection');
             const searchInput = document.getElementById('advancedSearchInput');
+
+            searchButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                const isVisible = searchSection.style.display === 'block';
+
+                if (isVisible) {
+                    searchSection.style.opacity = '0';
+                    searchSection.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        searchSection.style.display = 'none';
+                    }, 200);
+                } else {
+                    searchSection.style.display = 'block';
+                    setTimeout(() => {
+                        searchSection.classList.add('animate');
+                        searchInput.focus();
+                    }, 10);
+                }
+            });
+
+            // Search functionality - now with real API calls and autocomplete
             let searchTimeout = null;
 
             searchInput.addEventListener('input', async function() {
