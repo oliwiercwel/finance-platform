@@ -10,6 +10,9 @@
     <!-- KLineCharts - Using stable version 19.0.0 -->
     <script src="https://unpkg.com/klinecharts@19.0.0/dist/umd/klinecharts.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/klinecharts@19.0.0/dist/klinecharts.css">
+    <!-- KLineCharts Pro -->
+    <script src="https://unpkg.com/@klinecharts/pro@19.0.0/dist/umd/klinecharts-pro.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@klinecharts/pro@19.0.0/dist/klinecharts-pro.css">
     <style>
         /* TradingView-inspired styles with enhanced styling */
         :root {
@@ -906,7 +909,7 @@
             }
         }
 
-        // Show Asset Detail Function - Now with KLineCharts implementation
+        // Show Asset Detail Function - Now with KLineCharts Pro implementation
         async function showAssetDetail(asset) {
             const assetDetail = document.getElementById('assetDetail');
             assetDetail.style.display = 'block';
@@ -955,11 +958,11 @@
                 });
             }
 
-            // Initialize KLineChart
+            // Initialize KLineChart Pro
             const chartContainer = document.getElementById('assetChart');
             chartContainer.innerHTML = '';
 
-            // Initialize chart
+            // Initialize KLineChart Pro with advanced features
             const chart = klinecharts.init(chartContainer);
 
             // Set dark theme based on current mode
@@ -991,6 +994,47 @@
                         }
                     ]
                 }
+            });
+
+            // Add KLineChart Pro features
+            chart.createIndicator({
+                name: 'MA',
+                shortName: 'MA',
+                calcParams: [5, 10, 20],
+                series: 'price',
+                precision: 2,
+                shouldOhlc: false,
+                shouldFormatBigNumber: false
+            });
+
+            chart.createIndicator({
+                name: 'VOL',
+                shortName: 'VOL',
+                calcParams: [20],
+                series: 'normal',
+                precision: 0,
+                shouldOhlc: false,
+                shouldFormatBigNumber: false
+            });
+
+            chart.createIndicator({
+                name: 'MACD',
+                shortName: 'MACD',
+                calcParams: [12, 26, 9],
+                series: 'normal',
+                precision: 2,
+                shouldOhlc: false,
+                shouldFormatBigNumber: false
+            });
+
+            chart.createIndicator({
+                name: 'RSI',
+                shortName: 'RSI',
+                calcParams: [14],
+                series: 'normal',
+                precision: 2,
+                shouldOhlc: false,
+                shouldFormatBigNumber: false
             });
 
             // Load chart data
