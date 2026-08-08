@@ -1,0 +1,6 @@
+/* Chart page styles */
+body { font-family: sans-serif; background: #f8f9fa; }
+.header { background: #1a1a2e; color: white; padding: 15px 20px; }
+.header a { color: white; text-decoration: none; font-weight: bold; font-size: 1.2rem; }
+.container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+#chartContainer { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
