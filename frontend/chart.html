@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wykres - FinanceHub</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #131722;
+        color: #d1d4dc;
+    }
+    .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        background: #1e222d;
+        border-bottom: 1px solid #2a2e39;
+    }
+    .topbar a {
+        color: #2962ff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .topbar a:hover { color: #4285f4; }
+    #symbolLabel {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #d1d4dc;
+    }
+    #chartContainer {
+        width: 100%;
+        height: calc(100vh - 57px);
+    }
+</style>
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+<div class="topbar">
+    <a href="index.html"><i>&#8592;</i> Powrót</a>
+    <span id="symbolLabel">Wykres</span>
+</div>
+<div id="chartContainer"></div>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const symbol = params.get('symbol') || 'NASDAQ:TSLA';
+    document.getElementById('symbolLabel').textContent = symbol;
+
+    new TradingView.widget({
+        container_id: 'chartContainer',
+        autosize: true,
+        symbol: symbol,
+        interval: 'D',
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',
+        locale: 'pl',
+        toolbar_bg: '#1e222d',
+        enable_publishing: false,
+        allow_symbol_change: true,
+        hide_side_toolbar: false,
+        studies: ['MASimple@tv-basicstudies', 'RSI@tv-basicstudies'],
+        backgroundColor: '#131722',
+        gridColor: '#2a2e39'
+    });
+</script>
+</body>
+</html>
