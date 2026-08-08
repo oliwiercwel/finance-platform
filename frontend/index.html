@@ -1444,12 +1444,12 @@
                 // Transform data to KLineCharts format
                 // Note: API returns dates in YYYY-MM-DD format, need to convert to timestamps
                 const transformedData = historyData.map(item => {
-                    // Convert date string to timestamp (multiply by 1000 to get milliseconds)
+                    // Convert date string to timestamp (seconds)
                     const date = new Date(item.date);
                     const timestamp = Math.floor(date.getTime() / 1000);
 
                     return {
-                        timestamp: timestamp,
+                        time: timestamp,
                         open: item.open,
                         high: item.high,
                         low: item.low,
@@ -1461,31 +1461,8 @@
                 // Apply data to chart
                 chart.applyNewData(transformedData);
 
-                // Add volume indicator
-                chart.createIndicator({
-                    name: 'VOL',
-                    shortName: 'VOL',
-                    calcParams: [20],
-                    series: 'normal',
-                    precision: 0,
-                    shouldOhlc: false,
-                    shouldFormatBigNumber: false
-                });
-
-                // Add MA indicator
-                chart.createIndicator({
-                    name: 'MA',
-                    shortName: 'MA',
-                    calcParams: [5, 10, 20],
-                    series: 'price',
-                    precision: 2,
-                    shouldOhlc: false,
-                    shouldFormatBigNumber: false
-                });
-
                 // Fit content
                 chart.resize();
-                chart.timeScale().fitContent();
 
             } catch (error) {
                 console.error('Error loading chart data:', error);
@@ -1718,8 +1695,27 @@
                         <div class="result-exchange">${result.exchange || 'N/A'}</div>
                     `;
 
-                    row.addEventListener('click', () => {
-                        window.location.href = `chart.html?symbol=${encodeURIComponent(result.symbol)}`;
+                    row.addEventListener('click', async () => {
+                        searchInput.value = result.symbol;
+                        closeSearchOverlay();
+
+                        try {
+                            const detailResponse = await fetch(`/api/stocks/${result.symbol}`);
+                            if (!detailResponse.ok) throw new Error('Błąd pobierania szczegółów');
+
+                            const assetData = await detailResponse.json();
+                            showAssetDetail(assetData);
+                        } catch (error) {
+                            console.error('Error loading asset details:', error);
+                            showAssetDetail({
+                                symbol: result.symbol,
+                                name: result.name,
+                                price: 0,
+                                change: 0,
+                                volume: '-',
+                                cap: '-'
+                            });
+                        }
                     });
 
                     searchResults.appendChild(row);
