@@ -9,24 +9,39 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@300;500;700;900&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', 'Plus Jakarta Sans', sans-serif; background:#090d16; color:#f8fafc; overflow-x:hidden; }
-    .glass { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); backdrop-filter:blur(20px) saturate(130%); }
-    .glass:hover { border-color:rgba(0,242,254,0.35); box-shadow:0 0 25px rgba(0,242,254,0.08); }
-    .neon-tq { color:#00f2fe; text-shadow:0 0 16px rgba(0,242,254,0.45); }
-    .neon-v { color:#7928ca; text-shadow:0 0 16px rgba(121,40,202,0.45); }
+    body { font-family: 'Inter', 'Plus Jakarta Sans', sans-serif; background:#f8f9fa; color:#202124; overflow-x:hidden; }
+    .glass { background:rgba(255,255,255,0.85); border:1px solid rgba(26,115,232,0.15); backdrop-filter:blur(20px) saturate(130%); }
+    .glass:hover { border-color:rgba(26,115,232,0.45); box-shadow:0 0 25px rgba(26,115,232,0.10); }
+    .blue-tq { color:#1a73e8; text-shadow:0 0 16px rgba(26,115,232,0.45); }
+    .blue-tq { color:#1a73e8; text-shadow:0 0 16px rgba(26,115,232,0.45); }
+    .green-g { color:#34a853; }
+    .red-r { color:#ea4335; }
+    .yellow-w { color:#fbbc04; }
     @keyframes pulse-glow { 0%,100%{ opacity:1; } 50%{ opacity:0.45; } }
     .pulse-dot { animation:pulse-glow 2s infinite; }
   </style>
 </head>
 <body class="min-h-screen p-6 lg:p-10">
 
+  <header class="mb-8">
+    <div class="glass rounded-2xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-800 flex items-center justify-center shadow-lg shadow-blue-900/40">
+        <i class="fa-solid fa-chart-pie text-white text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-black tracking-tight text-white">FINANCE HUB</h1>
+        <p class="text-xs text-slate-400 font-medium">Profesjonalny Dashboard Inwestycyjny</p>
+      </div>
+    </div>
+  </header>
+
   <!-- TOP TICKER BAR -->
   <header class="glass rounded-2xl p-4 mb-8 flex items-center gap-6 overflow-x-auto whitespace-nowrap">
     <span class="text-xs uppercase tracking-widest text-slate-500 font-bold">Live Markets</span>
-    <span class="text-sm font-medium text-emerald-400"><i class="fa-solid fa-arrow-trend-up mr-2"></i>WIG +0.24%</span>
-    <span class="text-sm font-medium text-emerald-400"><i class="fa-solid fa-arrow-trend-up mr-2"></i>S&P 500 +0.62%</span>
-    <span class="text-sm font-medium text-rose-400"><i class="fa-solid fa-arrow-trend-down mr-2"></i>NASDAQ -0.15%</span>
-    <span class="text-xs text-slate-500 ml-auto"><i class="fa-solid fa-circle text-[8px] text-emerald-400 pulse-dot mr-2"></i>Live</span>
+    <span class="text-sm font-medium green-g"><i class="fa-solid fa-arrow-trend-up mr-2"></i>WIG +0.24%</span>
+    <span class="text-sm font-medium green-g"><i class="fa-solid fa-arrow-trend-up mr-2"></i>S&P 500 +0.62%</span>
+    <span class="text-sm font-medium red-r"><i class="fa-solid fa-arrow-trend-down mr-2"></i>NASDAQ -0.15%</span>
+    <span class="text-xs text-slate-500 ml-auto"><i class="fa-solid fa-circle text-[8px] green-g pulse-dot mr-2"></i>Live</span>
   </header>
 
   <!-- BENTO GRID -->
@@ -38,7 +53,7 @@
       <p class="text-slate-400 text-sm mb-6">Inflacja roczna + stopa procentowa NBP</p>
       <div class="grid md:grid-cols-2 gap-6">
         <div>
-          <h3 class="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-4">Inflacja miesięczna (%)</h3>
+          <h3 class="text-xs uppercase tracking-widest text-blue-400 font-bold mb-4">Inflacja miesięczna (%)</h3>
           <canvas id="inflationChart" height="180"></canvas>
         </div>
         <table class="text-sm">
@@ -53,7 +68,7 @@
 
     <!-- CRYPTO DYNAMICS -->
     <section class="glass rounded-3xl p-6 lg:col-span-5 lg:row-span-2 transition duration-300 hover:scale-[1.01]">
-      <h2 class="text-xl font-black mb-1 neon-tq">Krypto Dynamika</h2>
+      <h2 class="text-xl font-black mb-1 blue-tq">Krypto Dynamika</h2>
       <p class="text-xs text-slate-500 mb-5">Dominacja rynku BTC</p>
       <canvas id="cryptoChart" height="160"></canvas>
       <div class="flex gap-4 mt-5">
@@ -104,18 +119,18 @@
 
   <!-- RIGHT SIDEBAR -->
   <aside class="fixed right-6 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4 z-50">
-    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-[#00f2fe] transition"><i class="fa-regular fa-clock"></i></a>
-    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-[#7928ca] transition"><i class="fa-regular fa-bell"></i></a>
-    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-emerald-400 transition"><i class="fa-regular fa-calendar"></i></a>
-    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-[#00f2fe] transition"><i class="fa-solid fa-chart-line"></i></a>
-    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-violet-400 transition"><i class="fa-solid fa-gear"></i></a>
-    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-rose-400 transition"><i class="fa-solid fa-layer-group"></i></a>
+    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-blue-400 transition"><i class="fa-regular fa-clock"></i></a>
+    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-blue-600 transition"><i class="fa-regular fa-bell"></i></a>
+    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-green-400 transition"><i class="fa-regular fa-calendar"></i></a>
+    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-blue-500 transition"><i class="fa-solid fa-chart-line"></i></a>
+    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-violet-600 transition"><i class="fa-solid fa-gear"></i></a>
+    <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-red-400 transition"><i class="fa-solid fa-layer-group"></i></a>
   </aside>
 
   <script>
-    new Chart(document.getElementById('inflationChart'), { type: 'bar', data: { labels: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip'], datasets:[{ label:'Inflacja %', data:[3.2,3.8,4.1,4.6,4.9,5.1,5.2], backgroundColor:'#00f2fe', borderRadius:8 }] }, options: { plugins:{legend:{display:false}} } });
-    new Chart(document.getElementById('cryptoChart'), { type: 'doughnut', data: { labels: ['BTC','ETH','Inne'], datasets:[{ data:[59.39,10.55,30.05], backgroundColor:['#00f2fe','#7928ca','#1e293b'], borderColor:'#090d16', borderWidth:2 }] }, options: { plugins:{legend:{position:'bottom', labels:{color:'#94a3b8'}}} } });
-    new Chart(document.getElementById('forexChart'), { type:'line', data: { labels:['1D','2D','3D','4D','5D'], datasets:[{ label:'EUR/PLN', data:[4.29,4.30,4.28,4.27,4.2945], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', tension:0.4, fill:true, pointBackgroundColor:'#10b981'}] }, options: { plugins:{legend:{display:false}} } });
+    new Chart(document.getElementById('inflationChart'), { type: 'bar', data: { labels: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip'], datasets:[{ label:'Inflacja %', data:[3.2,3.8,4.1,4.6,4.9,5.1,5.2], backgroundColor:'#1a73e8', borderRadius:8 }] }, options: { plugins:{legend:{display:false}} } });
+    new Chart(document.getElementById('cryptoChart'), { type: 'doughnut', data: { labels: ['BTC','ETH','Inne'], datasets:[{ data:[59.39,10.55,30.05], backgroundColor:['#1a73e8','#34a853','#1e1e1e'], borderColor:'#121212', borderWidth:2 }] }, options: { plugins:{legend:{position:'bottom', labels:{color:'#94a3b8'}}} } });
+    new Chart(document.getElementById('forexChart'), { type:'line', data: { labels:['1D','2D','3D','4D','5D'], datasets:[{ label:'EUR/PLN', data:[4.29,4.30,4.28,4.27,4.2945], borderColor:'#34a853', backgroundColor:'rgba(52,168,83,0.15)', tension:0.4, fill:true, pointBackgroundColor:'#10b981'}] }, options: { plugins:{legend:{display:false}} } });
     function setTime(t) { alert('Wybrano okres: '+t); }
   </script>
 </body>
