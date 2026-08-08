@@ -44,11 +44,208 @@
 
         .tradingview-layout {
             display: grid;
-            grid-template-columns: minmax(200px, 250px) 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 20px;
             padding: 20px;
             max-width: 1600px;
             margin: 0 auto;
+        }
+
+        .main-content-area {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tradingview-widget-section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .watched-stocks-panel {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+
+        .watched-stocks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .watched-stocks-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .add-stock-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .add-stock-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .watched-stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .watched-stock-item:hover {
+            background-color: var(--result-hover);
+            padding-left: 8px;
+            padding-right: 8px;
+            border-radius: 4px;
+        }
+
+        .watched-stock-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .watched-stock-symbol {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .watched-stock-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .watched-stock-price {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .watched-stock-change {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 16px;
+        }
+
+        .watched-stock-change.positive {
+            color: var(--secondary-color);
+        }
+
+        .watched-stock-change.negative {
+            color: var(--accent-color);
+        }
+
+        .remove-stock-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .remove-stock-btn:hover {
+            color: var(--accent-color);
+        }
+
+        .market-overview-widget {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .technical-analysis-widget {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .economic-calendar-widget {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .news-feed-widget {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .widget-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .see-all-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .see-all-btn:hover {
+            background: rgba(66, 133, 244, 0.1);
         }
 
         .sidebar {
@@ -722,52 +919,205 @@
 
             <!-- Main Content Area -->
             <div class="main-content-area">
-                <!-- TradingView Widget - Large Chart on Top Left -->
-                <div class="tradingview-widget-section">
-                    <div class="tradingview-widget-container" style="height:500px;width:100%">
-                        <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                        <div class="tradingview-widget-copyright">
-                            <a href="https://www.tradingview.com/symbols/NASDAQ-AAPL/" rel="noopener nofollow" target="_blank">
-                                <span class="blue-text">AAPL stock chart</span>
-                            </a>
-                            <span class="trademark">by TradingView</span>
+                <div class="left-column">
+                    <!-- TradingView Widget - Large Chart on Top Left -->
+                    <div class="tradingview-widget-section">
+                        <div class="tradingview-widget-container" style="height:500px;width:100%">
+                            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+                            <div class="tradingview-widget-copyright">
+                                <a href="https://www.tradingview.com/symbols/NASDAQ-AAPL/" rel="noopener nofollow" target="_blank">
+                                    <span class="blue-text">AAPL stock chart</span>
+                                </a>
+                                <span class="trademark">by TradingView</span>
+                            </div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                            {
+                                "allow_symbol_change": true,
+                                "calendar": false,
+                                "details": false,
+                                "hide_side_toolbar": true,
+                                "hide_top_toolbar": false,
+                                "hide_legend": false,
+                                "hide_volume": false,
+                                "hotlist": false,
+                                "interval": "D",
+                                "locale": "en",
+                                "save_image": true,
+                                "style": "1",
+                                "symbol": "NASDAQ:AAPL",
+                                "theme": "light",
+                                "timezone": "Etc/UTC",
+                                "backgroundColor": "#ffffff",
+                                "gridColor": "rgba(46, 46, 46, 0.2)",
+                                "watchlist": [],
+                                "withdateranges": false,
+                                "compareSymbols": [],
+                                "studies": [],
+                                "autosize": true
+                            };
+                            </script>
                         </div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-                        {
-                            "allow_symbol_change": true,
-                            "calendar": false,
-                            "details": false,
-                            "hide_side_toolbar": true,
-                            "hide_top_toolbar": false,
-                            "hide_legend": false,
-                            "hide_volume": false,
-                            "hotlist": false,
-                            "interval": "D",
-                            "locale": "en",
-                            "save_image": true,
-                            "style": "1",
-                            "symbol": "NASDAQ:AAPL",
-                            "theme": "light",
-                            "timezone": "Etc/UTC",
-                            "backgroundColor": "#ffffff",
-                            "gridColor": "rgba(46, 46, 46, 0.2)",
-                            "watchlist": [],
-                            "withdateranges": false,
-                            "compareSymbols": [],
-                            "studies": [],
-                            "autosize": true
-                        };
-                        </script>
                     </div>
+
+                    <!-- Market Overview -->
+                    <section class="market-overview" id="markets">
+                        <h2>Przegląd Rynków</h2>
+                        <div class="market-overview-grid" id="marketOverviewGrid">
+                            <!-- Dynamic content will be loaded here -->
+                        </div>
+                    </section>
                 </div>
 
-                <!-- Market Overview -->
-                <section class="market-overview" id="markets">
-                    <h2>Przegląd Rynków</h2>
-                    <div class="market-overview-grid" id="marketOverviewGrid">
-                        <!-- Dynamic content will be loaded here -->
+                <div class="right-column">
+                    <!-- Watched Stocks Panel -->
+                    <div class="watched-stocks-panel">
+                        <div class="watched-stocks-header">
+                            <h3 class="watched-stocks-title">Obserwowane Akcje</h3>
+                            <button class="add-stock-btn" id="addStockBtn">
+                                <i class="fas fa-plus"></i> Dodaj
+                            </button>
+                        </div>
+                        <div class="watched-stocks-list" id="watchedStocksList">
+                            <!-- Watched stocks will be loaded here -->
+                            <div class="watched-stock-item">
+                                <div class="watched-stock-info">
+                                    <span class="watched-stock-symbol">AAPL</span>
+                                    <span class="watched-stock-name">Apple Inc.</span>
+                                </div>
+                                <div>
+                                    <span class="watched-stock-price">192.45</span>
+                                    <span class="watched-stock-change positive">+1.25%</span>
+                                    <button class="remove-stock-btn" title="Usuń">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="watched-stock-item">
+                                <div class="watched-stock-info">
+                                    <span class="watched-stock-symbol">TSLA</span>
+                                    <span class="watched-stock-name">Tesla Inc.</span>
+                                </div>
+                                <div>
+                                    <span class="watched-stock-price">245.67</span>
+                                    <span class="watched-stock-change negative">-0.87%</span>
+                                    <button class="remove-stock-btn" title="Usuń">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="watched-stock-item">
+                                <div class="watched-stock-info">
+                                    <span class="watched-stock-symbol">MSFT</span>
+                                    <span class="watched-stock-name">Microsoft Corp.</span>
+                                </div>
+                                <div>
+                                    <span class="watched-stock-price">412.34</span>
+                                    <span class="watched-stock-change positive">+0.45%</span>
+                                    <button class="remove-stock-btn" title="Usuń">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </section>
+
+                    <!-- Market Overview Widget -->
+                    <div class="market-overview-widget">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Przegląd Rynku</h3>
+                            <button class="see-all-btn">Zobacz wszystkie</button>
+                        </div>
+                        <div class="market-overview-content">
+                            <!-- Market data will be loaded here -->
+                            <div class="market-index">
+                                <div class="index-info">
+                                    <span class="index-name">S&P 500</span>
+                                    <span class="index-value">4,500.25</span>
+                                </div>
+                                <div class="index-change positive">+0.75%</div>
+                            </div>
+                            <div class="market-index">
+                                <div class="index-info">
+                                    <span class="index-name">NASDAQ</span>
+                                    <span class="index-value">15,250.75</span>
+                                </div>
+                                <div class="index-change positive">+1.12%</div>
+                            </div>
+                            <div class="market-index">
+                                <div class="index-info">
+                                    <span class="index-name">Dow Jones</span>
+                                    <span class="index-value">38,750.45</span>
+                                </div>
+                                <div class="index-change negative">-0.25%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical Analysis Widget -->
+                    <div class="technical-analysis-widget">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Analiza Techniczna</h3>
+                            <button class="see-all-btn">Zobacz wszystkie</button>
+                        </div>
+                        <div class="technical-analysis-content">
+                            <!-- Technical analysis data will be loaded here -->
+                            <div class="ta-signal">
+                                <div class="signal-info">
+                                    <span class="signal-symbol">AAPL</span>
+                                    <span class="signal-type">Strong Buy</span>
+                                </div>
+                                <div class="signal-indicators">12/15</div>
+                            </div>
+                            <div class="ta-signal">
+                                <div class="signal-info">
+                                    <span class="signal-symbol">TSLA</span>
+                                    <span class="signal-type">Buy</span>
+                                </div>
+                                <div class="signal-indicators">9/15</div>
+                            </div>
+                            <div class="ta-signal">
+                                <div class="signal-info">
+                                    <span class="signal-symbol">NVDA</span>
+                                    <span class="signal-type">Strong Buy</span>
+                                </div>
+                                <div class="signal-indicators">14/15</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Economic Calendar Widget -->
+                    <div class="economic-calendar-widget">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Kalendarz Ekonomiczny</h3>
+                            <button class="see-all-btn">Zobacz wszystkie</button>
+                        </div>
+                        <div class="economic-calendar-content">
+                            <!-- Economic calendar events will be loaded here -->
+                            <div class="calendar-event">
+                                <div class="event-time">14:30</div>
+                                <div class="event-info">
+                                    <span class="event-title">US GDP Growth Rate</span>
+                                    <span class="event-impact">High Impact</span>
+                                </div>
+                            </div>
+                            <div class="calendar-event">
+                                <div class="event-time">16:00</div>
+                                <div class="event-info">
+                                    <span class="event-title">ECB Interest Rate Decision</span>
+                                    <span class="event-impact">High Impact</span>
+                                </div>
+                            </div>
+                            <div class="calendar-event">
+                                <div class="event-time">08:30</div>
+                                <div class="event-info">
+                                    <span class="event-title">US Non-Farm Payrolls</span>
+                                    <span class="event-impact">High Impact</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
                 <!-- Search Overlay - TradingView style -->
                 <div class="search-overlay" id="searchOverlay">
@@ -1367,27 +1717,8 @@
                         <div class="result-exchange">${result.exchange || 'N/A'}</div>
                     `;
 
-                    row.addEventListener('click', async () => {
-                        searchInput.value = result.symbol;
-                        closeSearchOverlay();
-
-                        try {
-                            const detailResponse = await fetch(`/api/stocks/${result.symbol}`);
-                            if (!detailResponse.ok) throw new Error('Błąd pobierania szczegółów');
-
-                            const assetData = await detailResponse.json();
-                            showAssetDetail(assetData);
-                        } catch (error) {
-                            console.error('Error loading asset details:', error);
-                            showAssetDetail({
-                                symbol: result.symbol,
-                                name: result.name,
-                                price: 0,
-                                change: '0.00%',
-                                volume: '-',
-                                marketCap: '-'
-                            });
-                        }
+                    row.addEventListener('click', () => {
+                        window.location.href = `chart.html?symbol=${encodeURIComponent(result.symbol)}`;
                     });
 
                     searchResults.appendChild(row);
