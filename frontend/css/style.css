@@ -1145,3 +1145,170 @@ tbody tr:hover {
         align-items: center;
     }
 }
+
+/* ===== HOT Instrument Buttons & Category Tiles ===== */
+.quick-instruments {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.quick-instruments .instrument-btn {
+    position: relative;
+    overflow: hidden;
+    animation: slideInUp 0.5s ease-out;
+    animation-fill-mode: both;
+    border: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--card-bg), #f0f2f5);
+    box-shadow: 0 2px 8px rgba(66,133,244,0.1);
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.quick-instruments .instrument-btn:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(66,133,244,0.3);
+}
+
+.quick-instruments .instrument-btn::before {
+    content: 'HOT';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: linear-gradient(135deg, #ea4335, #ff6b6b);
+    color: white;
+    font-size: 0.55rem;
+    font-weight: 900;
+    padding: 2px 7px;
+    border-radius: 0 8px 0 8px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(234,67,53,0.5);
+}
+
+.quick-instruments .instrument-btn:nth-child(1) { animation-delay: 0.05s; }
+.quick-instruments .instrument-btn:nth-child(2) { animation-delay: 0.1s; }
+.quick-instruments .instrument-btn:nth-child(3) { animation-delay: 0.15s; }
+.quick-instruments .instrument-btn:nth-child(4) { animation-delay: 0.2s; }
+.quick-instruments .instrument-btn:nth-child(5) { animation-delay: 0.25s; }
+.quick-instruments .instrument-btn:nth-child(6) { animation-delay: 0.3s; }
+
+/* Category Tiles */
+.categories-section {
+    margin-top: 24px;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(580px, 1fr));
+    gap: 16px;
+}
+
+.category-tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+}
+
+.category-tile:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+}
+
+.category-tile:nth-child(1) { animation-delay: 0.1s; }
+.category-tile:nth-child(2) { animation-delay: 0.2s; }
+.category-tile:nth-child(3) { animation-delay: 0.3s; }
+
+.category-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.category-tile .tile-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.category-tile h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.category-tile p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.category-tile .tile-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.category-tile .tile-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 14px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(18px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Dark mode adjustments */
+body.dark-mode .quick-instruments .instrument-btn {
+    background: linear-gradient(135deg, var(--card-bg), #2a2a2a);
+    box-shadow: 0 2px 8px rgba(66,133,244,0.15);
+}
+
+body.dark-mode .quick-instruments .instrument-btn:hover {
+    box-shadow: 0 8px 20px rgba(66,133,244,0.4);
+}
+
+body.dark-mode .category-tile {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+body.dark-mode .category-tile:hover {
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+}
+
+body.dark-mode .category-tile .tile-tags {
+    border-top: 1px solid rgba(255,255,255,0.08);
+}

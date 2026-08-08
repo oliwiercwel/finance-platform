@@ -968,11 +968,60 @@
                         </div>
                     </div>
 
-                    <!-- Market Overview -->
-                    <section class="market-overview" id="markets">
-                        <h2>Przegląd Rynków</h2>
-                        <div class="market-overview-grid" id="marketOverviewGrid">
-                            <!-- Dynamic content will be loaded here -->
+                    <!-- Category Tiles (animated, ~600px width, 1/3 screen) -->
+                    <section class="categories-section" id="categories" style="margin-top:20px;">
+                        <h2 style="font-size:1.4rem;font-weight:700;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                            <i class="fas fa-layer-group" style="color:var(--primary-color);"></i>
+                            Kategorie Inwestycyjne
+                        </h2>
+                        <div class="categories-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(580px,1fr));gap:16px;">
+                            <!-- Tile: Best Valued -->
+                            <div class="category-tile" style="background:linear-gradient(135deg,#1e222d,#2a2e39);border:1px solid #3a3a3a;border-radius:14px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.3);position:relative;overflow:hidden;animation:fadeIn 0.5s ease-out;transition:transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(66,133,244,0.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                                <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#34a853,#4285f4);"></div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="font-size:0.75rem;font-weight:700;color:#34a853;text-transform:uppercase;letter-spacing:1px;">HOT</span>
+                                    <span style="font-size:0.7rem;color:#888;">Najlepiej wyceniane</span>
+                                </div>
+                                <h3 style="font-size:1.1rem;font-weight:700;color:#d1d4dc;margin-bottom:8px;">Najlepiej Wyceniane Spółki</h3>
+                                <p style="font-size:0.85rem;color:#aaa;line-height:1.5;">Spółki z najniższym wskaźnikiem P/E — potencjał wzrostu przy rozsądnej wycenie.</p>
+                                <div style="margin-top:16px;padding-top:12px;border-top:1px solid #333;display:flex;gap:12px;flex-wrap:wrap;">
+                                    <span style="font-size:0.8rem;background:#34a853;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">TSLA</span>
+                                    <span style="font-size:0.8rem;background:#2962ff;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">AAPL</span>
+                                    <span style="font-size:0.8rem;background:#f28b82;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">NVDA</span>
+                                </div>
+                            </div>
+
+                            <!-- Tile: Most Profitable -->
+                            <div class="category-tile" style="background:linear-gradient(135deg,#2d1e1e,#3a2222);border:1px solid #5a3333;border-radius:14px;padding:24px;box-shadow:0 4px 20px rgba(234,67,53,0.2);position:relative;overflow:hidden;animation:fadeIn 0.6s ease-out;transition:transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(234,67,53,0.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                                <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ea4335,#f28b82);"></div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="font-size:0.75rem;font-weight:700;color:#ea4335;text-transform:uppercase;letter-spacing:1px;">TOP ZYSK</span>
+                                    <span style="font-size:0.7rem;color:#888;">Najbardziej opłacalne</span>
+                                </div>
+                                <h3 style="font-size:1.1rem;font-weight:700;color:#d1d4dc;margin-bottom:8px;">Najbardziej Opłacalne Sektory</h3>
+                                <p style="font-size:0.85rem;color:#aaa;line-height:1.5;">Sektory z najwyższym ROI w ostatnich 12 miesiącach — energia, technologia, zdrowie.</p>
+                                <div style="margin-top:16px;padding-top:12px;border-top:1px solid #444;display:flex;gap:12px;flex-wrap:wrap;">
+                                    <span style="font-size:0.8rem;background:#ea4335;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">Energia</span>
+                                    <span style="font-size:0.8rem;background:#2962ff;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">Tech</span>
+                                    <span style="font-size:0.8rem;background:#34a853;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">Zdrowie</span>
+                                </div>
+                            </div>
+
+                            <!-- Tile: Best Results -->
+                            <div class="category-tile" style="background:linear-gradient(135deg,#1e2a3a,#243a4a);border:1px solid #3a5a7a;border-radius:14px;padding:24px;box-shadow:0 4px 20px rgba(66,133,244,0.2);position:relative;overflow:hidden;animation:fadeIn 0.7s ease-out;transition:transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(66,133,244,0.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                                <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#4285f4,#89c4f5);"></div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="font-size:0.75rem;font-weight:700;color:#4285f4;text-transform:uppercase;letter-spacing:1px;">FINANSE</span>
+                                    <span style="font-size:0.7rem;color:#888;">Najlepsze wyniki</span>
+                                </div>
+                                <h3 style="font-size:1.1rem;font-weight:700;color:#d1d4dc;margin-bottom:8px;">Najlepsze Wyniki Finansowe</h3>
+                                <p style="font-size:0.85rem;color:#aaa;line-height:1.5;">Spółki z najwyższym wzrostem przychodów i zysku netto w ostatnim kwartale.</p>
+                                <div style="margin-top:16px;padding-top:12px;border-top:1px solid #444;display:flex;gap:12px;flex-wrap:wrap;">
+                                    <span style="font-size:0.8rem;background:#4285f4;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">NVDA +140%</span>
+                                    <span style="font-size:0.8rem;background:#34a853;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">MSFT +25%</span>
+                                    <span style="font-size:0.8rem;background:#ea4335;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;">AMD +80%</span>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </div>
