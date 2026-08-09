@@ -357,24 +357,27 @@
         setTab('akcje');
         return;
       }
-      container.innerHTML = '<div class="text-center text-slate-400 py-4">Wyszukiwanie Yahoo Finance...</div>';
+      container.innerHTML = '<div class="text-center text-slate-400 py-4">Wyszukiwanie...</div>';
       try {
-        const resp = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(v) + '&quotesCount=20&newsCount=0'));
+        // Use backend API (no CORS issues, faster, more reliable)
+        const resp = await fetch('/api/search/advanced?q=' + encodeURIComponent(v));
         const data = await resp.json();
         container.innerHTML = '';
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-3 gap-2';
-        if (data.quotes && data.quotes.length) {
-          data.quotes.forEach(q => {
+        if (data && data.length) {
+          data.forEach(q => {
             if (!q.symbol) return;
             const a = document.createElement('a');
             a.href = 'chart.html?symbol=' + q.symbol;
             a.className = 'block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition';
-            a.innerHTML = '<strong>' + q.symbol + '</strong><span class="block text-xs text-slate-400">' + (q.longname || q.shortname || q.exchange || '') + '</span>';
+            const changeClass = q.change >= 0 ? 'green-g' : 'red-r';
+            const changeSign = q.change >= 0 ? '+' : '';
+            a.innerHTML = '<strong>' + q.symbol + '</strong><span class="block text-xs text-slate-400">' + (q.name || q.exchange || '') + '</span><span class="block text-xs font-bold ' + changeClass + '">' + changeSign + q.change.toFixed(2) + '%</span>';
             grid.appendChild(a);
           });
         } else {
-          grid.innerHTML = '<div class="col-span-3 text-center text-slate-400">Brak wyników w Yahoo Finance</div>';
+          grid.innerHTML = '<div class="col-span-3 text-center text-slate-400">Brak wyników</div>';
         }
         container.appendChild(grid);
       } catch (e) {
