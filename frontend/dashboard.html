@@ -20,6 +20,33 @@
 </head>
 <body class="min-h-screen p-6 lg:p-10">
 
+  <!-- WYSZUKIWARKA I BANER NA SAMĄ GÓRĘ -->
+  <section class="w-full bg-gradient-to-r from-blue-700 to-blue-500 rounded-2xl p-6 mb-6 shadow-xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 opacity-10 text-[12rem] leading-none translate-x-10 -translate-y-10">
+      <i class="fa-solid fa-chart-line"></i>
+    </div>
+    <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+          <i class="fa-solid fa-chart-pie text-white text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-4xl font-black tracking-tight text-white drop-shadow-md">FINANCE HUB</h1>
+          <p class="text-sm text-blue-100">Profesjonalny Dashboard Inwestycyjny</p>
+        </div>
+      </div>
+      <div class="w-full lg:w-auto lg:min-w-[32rem] relative">
+        <input id="searchInput" type="text" placeholder="Wpisz ticker, np. BTC, SOL, NASDAQ..." class="w-full h-14 px-6 rounded-2xl border-2 border-white/30 text-lg shadow-inner bg-white/90 text-center text-blue-900 placeholder-blue-300 focus:outline-none focus:border-white focus:bg-white transition-all duration-300" onfocus="this.parentElement.querySelector('.suggestions').style.display='block';" onblur="setTimeout(()=>this.parentElement.querySelector('.suggestions').style.display='none',300)">
+        <div class="suggestions hidden absolute top-full left-0 right-0 bg-white rounded-xl shadow-2xl border border-blue-100 mt-2 z-50 text-left max-h-72 overflow-y-auto">
+          <div onclick="window.location='chart.html?symbol=BTC'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50"><strong class="text-blue-700">BTC</strong><span class="text-xs text-slate-400 ml-2">Bitcoin</span></div>
+          <div onclick="window.location='chart.html?symbol=ETH'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50"><strong class="text-blue-700">ETH</strong><span class="text-xs text-slate-400 ml-2">Ethereum</span></div>
+          <div onclick="window.location='chart.html?symbol=SOL'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50"><strong class="text-blue-700">SOL</strong><span class="text-xs text-slate-400 ml-2">Solana</span></div>
+          <div onclick="window.location='chart.html?symbol=TSLA'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer"><strong class="text-blue-700">TSLA</strong><span class="text-xs text-slate-400 ml-2">Tesla</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- TOP TICKER BAR -->
   <header class="glass rounded-2xl p-4 mb-8 flex items-center gap-6 overflow-x-auto whitespace-nowrap">
     <span class="text-xs uppercase tracking-widest text-slate-500 font-bold">Live Markets</span>
@@ -118,22 +145,7 @@
     <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-rose-400 transition"><i class="fa-solid fa-layer-group"></i></a>
   </aside>
 
-  <!-- WYSZUKIWARKA -->
-  <section class="mb-8 text-center">
-    <h2 class="text-5xl font-black mb-2 text-blue-700">FINANCE HUB</h2>
-    <p class="text-slate-500 mb-6">Profesjonalny Dashboard Inwestycyjny</p>
-    <div class="max-w-2xl mx-auto relative">
-      <input id="searchInput" type="text" placeholder="Wpisz ticker, np. BTC, SOL, NASDAQ..." class="w-full h-16 px-6 rounded-2xl border-2 border-blue-200 text-xl shadow-lg focus:outline-none focus:border-blue-500 bg-white text-center transition-all duration-300" onfocus="this.parentElement.querySelector('.suggestions').style.display='block';" onblur="setTimeout(()=>this.parentElement.querySelector('.suggestions').style.display='none',300)">
-      <div class="suggestions hidden absolute top-full left-0 right-0 bg-white rounded-xl shadow-2xl border border-blue-100 mt-2 z-50 text-left max-h-80 overflow-y-auto">
-        <div onclick="window.location='chart.html?symbol=BTC'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b"><strong>BTC</strong><span class="text-xs text-slate-400 ml-2">Bitcoin</span></div>
-        <div onclick="window.location='chart.html?symbol=ETH'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b"><strong>ETH</strong><span class="text-xs text-slate-400 ml-2">Ethereum</span></div>
-        <div onclick="window.location='chart.html?symbol=SOL'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b"><strong>SOL</strong><span class="text-xs text-slate-400 ml-2">Solana</span></div>
-        <div onclick="window.location='chart.html?symbol=TSLA'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer"><strong>TSLA</strong><span class="text-xs text-slate-400 ml-2">Tesla</span></div>
-      </div>
-    </div>
-  </section>
-
-  <script>
+  </main>
     new Chart(document.getElementById('inflationChart'), { type: 'bar', data: { labels: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip'], datasets:[{ label:'Inflacja %', data:[3.2,3.8,4.1,4.6,4.9,5.1,5.2], backgroundColor:'#00f2fe', borderRadius:8 }] }, options: { plugins:{legend:{display:false}} } });
     new Chart(document.getElementById('cryptoChart'), { type: 'doughnut', data: { labels: ['BTC','ETH','Inne'], datasets:[{ data:[59.39,10.55,30.05], backgroundColor:['#00f2fe','#7928ca','#1e293b'], borderColor:'#090d16', borderWidth:2 }] }, options: { plugins:{legend:{position:'bottom', labels:{color:'#94a3b8'}}} } });
     new Chart(document.getElementById('forexChart'), { type:'line', data: { labels:['1D','2D','3D','4D','5D'], datasets:[{ label:'EUR/PLN', data:[4.29,4.30,4.28,4.27,4.2945], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', tension:0.4, fill:true, pointBackgroundColor:'#10b981'}] }, options: { plugins:{legend:{display:false}} } });
