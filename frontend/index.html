@@ -35,12 +35,85 @@
         </div>
       </div>
       <div class="w-full lg:w-auto lg:min-w-[32rem] relative">
-        <input type="text" placeholder="Wpisz ticker, np. BTC, SOL, NASDAQ..." class="w-full h-14 px-6 rounded-2xl border-2 border-white/30 text-lg shadow-inner bg-white/90 text-center text-blue-900 placeholder-blue-300 focus:outline-none focus:border-white focus:bg-white transition-all duration-300">
-        <div class="suggestions hidden absolute top-full left-0 right-0 bg-white rounded-xl shadow-2xl border border-blue-100 mt-2 z-50 text-left max-h-72 overflow-y-auto">
-          <div onclick="window.location='chart.html?symbol=BTC'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50"><strong class="text-blue-700">BTC</strong><span class="text-xs text-slate-400 ml-2">Bitcoin</span></div>
-          <div onclick="window.location='chart.html?symbol=ETH'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50"><strong class="text-blue-700">ETH</strong><span class="text-xs text-slate-400 ml-2">Ethereum</span></div>
-          <div onclick="window.location='chart.html?symbol=SOL'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50"><strong class="text-blue-700">SOL</strong><span class="text-xs text-slate-400 ml-2">Solana</span></div>
-          <div onclick="window.location='chart.html?symbol=TSLA'" class="px-5 py-3 hover:bg-blue-50 cursor-pointer"><strong class="text-blue-700">TSLA</strong><span class="text-xs text-slate-400 ml-2">Tesla</span></div>
+        <button onclick="toggleMenu()" id="searchBtn" class="w-full h-14 px-6 rounded-2xl border-2 border-white/40 text-lg shadow-inner bg-white/90 text-blue-900 text-left font-medium transition-all focus:outline-none hover:bg-white focus:bg-white">Przeglądarka <i class="fa-solid fa-caret-down ml-2 text-blue-500"></i></button>
+
+        <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 bg-white rounded-2xl shadow-2xl border border-blue-100 mt-3 z-50 overflow-hidden">
+          <div class="flex gap-1 p-2 bg-blue-50/60 border-b border-blue-100 overflow-x-auto">
+            <button onclick="setTab('akcje')" id="tab-akcje" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white whitespace-nowrap shadow-sm">Akcje</button>
+            <button onclick="setTab('indeksy')" id="tab-indeksy" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 hover:bg-blue-50 whitespace-nowrap">Indeksy</button>
+            <button onclick="setTab('forex')" id="tab-forex" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 hover:bg-blue-50 whitespace-nowrap">Forex</button>
+            <button onclick="setTab('surowce')" id="tab-surowce" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 hover:bg-blue-50 whitespace-nowrap">Surowce</button>
+            <button onclick="setTab('krypto')" id="tab-krypto" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 hover:bg-blue-50 whitespace-nowrap">Krypto</button>
+            <button onclick="setTab('etf')" id="tab-etf" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 hover:bg-blue-50 whitespace-nowrap">ETF</button>
+          </div>
+          <div class="p-3 max-h-[70vh] overflow-y-auto" id="tabContent">
+            <div id="panel-akcje" class="tab-panel grid grid-cols-3 gap-2">
+              <a href="chart.html?symbol=AAPL" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>AAPL</strong><span class="block text-xs text-slate-400">Apple</span></a>
+              <a href="chart.html?symbol=MSFT" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>MSFT</strong><span class="block text-xs text-slate-400">Microsoft</span></a>
+              <a href="chart.html?symbol=NVDA" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>NVDA</strong><span class="block text-xs text-slate-400">NVIDIA</span></a>
+              <a href="chart.html?symbol=AMZN" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>AMZN</strong><span class="block text-xs text-slate-400">Amazon</span></a>
+              <a href="chart.html?symbol=GOOGL" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>GOOGL</strong><span class="block text-xs text-slate-400">Alphabet</span></a>
+              <a href="chart.html?symbol=META" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>META</strong><span class="block text-xs text-slate-400">Meta</span></a>
+              <a href="chart.html?symbol=TSLA" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>TSLA</strong><span class="block text-xs text-slate-400">Tesla</span></a>
+              <a href="chart.html?symbol=TSM" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>TSM</strong><span class="block text-xs text-slate-400">TSMC</span></a>
+              <a href="chart.html?symbol=AMD" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>AMD</strong><span class="block text-xs text-slate-400">AMD</span></a>
+              <a href="chart.html?symbol=INTC" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>INTC</strong><span class="block text-xs text-slate-400">Intel</span></a>
+              <a href="chart.html?symbol=ORCL" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>ORCL</strong><span class="block text-xs text-slate-400">Oracle</span></a>
+              <a href="chart.html?symbol=PEP" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>PEP</strong><span class="block text-xs text-slate-400">Pepsi</span></a>
+              <a href="chart.html?symbol=KO" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>KO</strong><span class="block text-xs text-slate-400">Coca-Cola</span></a>
+              <a href="chart.html?symbol=JNJ" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>JNJ</strong><span class="block text-xs text-slate-400">Johnson</span></a>
+              <a href="chart.html?symbol=PFE" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>PFE</strong><span class="block text-xs text-slate-400">Pfizer</span></a>
+              <a href="chart.html?symbol=DIS" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>DIS</strong><span class="block text-xs text-slate-400">Disney</span></a>
+              <a href="chart.html?symbol=NFLX" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>NFLX</strong><span class="block text-xs text-slate-400">Netflix</span></a>
+              <a href="chart.html?symbol=V" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>V</strong><span class="block text-xs text-slate-400">Visa</span></a>
+              <a href="chart.html?symbol=MA" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition"><strong>MA</strong><span class="block text-xs text-slate-400">Mastercard</span></a>
+            </div>
+            <div id="panel-indeksy" class="tab-panel hidden grid grid-cols-3 gap-2">
+              <a href="chart.html?symbol=SPX" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>SPX</strong><span class="block text-xs text-slate-400">S&P 500</span></a>
+              <a href="chart.html?symbol=NDX" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>NDX</strong><span class="block text-xs text-slate-400">Nasdaq</span></a>
+              <a href="chart.html?symbol=DJI" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>DJI</strong><span class="block text-xs text-slate-400">Dow Jones</span></a>
+              <a href="chart.html?symbol=WIG" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>WIG</strong><span class="block text-xs text-slate-400">WIG20</span></a>
+              <a href="chart.html?symbol=DAX" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>DAX</strong><span class="block text-xs text-slate-400">DAX</span></a>
+              <a href="chart.html?symbol=FTSE" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>FTSE</strong><span class="block text-xs text-slate-400">FTSE 100</span></a>
+              <a href="chart.html?symbol=NIKKEI" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>NIKKEI</strong><span class="block text-xs text-slate-400">Nikkei 225</span></a>
+              <a href="chart.html?symbol=HSI" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>HSI</strong><span class="block text-xs text-slate-400">Hang Seng</span></a>
+            </div>
+            <div id="panel-forex" class="tab-panel hidden grid grid-cols-3 gap-2">
+              <a href="chart.html?symbol=EURPLN" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>EUR/PLN</strong><span class="block text-xs text-slate-400">Euro/Złoty</span></a>
+              <a href="chart.html?symbol=USDPLN" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>USD/PLN</strong><span class="block text-xs text-slate-400">Dolar/Złoty</span></a>
+              <a href="chart.html?symbol=GBPPLN" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>GBP/PLN</strong><span class="block text-xs text-slate-400">Funt/Złoty</span></a>
+              <a href="chart.html?symbol=CHFPLN" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>CHF/PLN</strong><span class="block text-xs text-slate-400">Frank/Złoty</span></a>
+              <a href="chart.html?symbol=EURUSD" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>EUR/USD</strong><span class="block text-xs text-slate-400">Euro/Dolar</span></a>
+              <a href="chart.html?symbol=USDJPY" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>USD/JPY</strong><span class="block text-xs text-slate-400">Dolar/Jen</span></a>
+            </div>
+            <div id="panel-surowce" class="tab-panel hidden grid grid-cols-3 gap-2">
+              <a href="chart.html?symbol=CL" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>CL</strong><span class="block text-xs text-slate-400">Crude Oil</span></a>
+              <a href="chart.html?symbol=NG" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>NG</strong><span class="block text-xs text-slate-400">Natural Gas</span></a>
+              <a href="chart.html?symbol=GC" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>GC</strong><span class="block text-xs text-slate-400">Gold</span></a>
+              <a href="chart.html?symbol=HG" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>HG</strong><span class="block text-xs text-slate-400">Copper</span></a>
+              <a href="chart.html?symbol=SI" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>SI</strong><span class="block text-xs text-slate-400">Silver</span></a>
+              <a href="chart.html?symbol=PL" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>PL</strong><span class="block text-xs text-slate-400">Platinum</span></a>
+            </div>
+            <div id="panel-krypto" class="tab-panel hidden grid grid-cols-3 gap-2">
+              <a href="chart.html?symbol=BTC" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>BTC</strong><span class="block text-xs text-slate-400">Bitcoin</span></a>
+              <a href="chart.html?symbol=ETH" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>ETH</strong><span class="block text-xs text-slate-400">Ethereum</span></a>
+              <a href="chart.html?symbol=SOL" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>SOL</strong><span class="block text-xs text-slate-400">Solana</span></a>
+              <a href="chart.html?symbol=BNB" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>BNB</strong><span class="block text-xs text-slate-400">BNB</span></a>
+              <a href="chart.html?symbol=XRP" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>XRP</strong><span class="block text-xs text-slate-400">Ripple</span></a>
+              <a href="chart.html?symbol=DOGE" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>DOGE</strong><span class="block text-xs text-slate-400">Dogecoin</span></a>
+            </div>
+            <div id="panel-etf" class="tab-panel hidden grid grid-cols-3 gap-2">
+              <a href="chart.html?symbol=SPY" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>SPY</strong><span class="block text-xs text-slate-400">S&P 500 ETF</span></a>
+              <a href="chart.html?symbol=QQQ" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>QQQ</strong><span class="block text-xs text-slate-400">Nasdaq ETF</span></a>
+              <a href="chart.html?symbol=IWM" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>IWM</strong><span class="block text-xs text-slate-400">Russell 2000</span></a>
+              <a href="chart.html?symbol=GLD" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>GLD</strong><span class="block text-xs text-slate-400">Gold ETF</span></a>
+              <a href="chart.html?symbol=USO" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>USO</strong><span class="block text-xs text-slate-400">Oil ETF</span></a>
+              <a href="chart.html?symbol=VNQ" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100"><strong>VNQ</strong><span class="block text-xs text-slate-400">Real Estate</span></a>
+            </div>
+          </div>
+          <div class="p-3 border-t border-blue-100 bg-blue-50/30">
+            <input type="text" id="searchInput" oninput="filterSearch(this.value)" placeholder="Wyszukaj ticker..." class="w-full h-10 px-4 rounded-xl border border-blue-200 text-sm focus:outline-none focus:border-blue-600 bg-white shadow-sm">
+          </div>
         </div>
       </div>
     </div>
@@ -153,6 +226,32 @@
     new Chart(document.getElementById('cryptoChart'), { type: 'doughnut', data: { labels: ['BTC','ETH','Inne'], datasets:[{ data:[59.39,10.55,30.05], backgroundColor:['#1a73e8','#34a853','#1e1e1e'], borderColor:'#121212', borderWidth:2 }] }, options: { plugins:{legend:{position:'bottom', labels:{color:'#94a3b8'}}} } });
     new Chart(document.getElementById('forexChart'), { type:'line', data: { labels:['1D','2D','3D','4D','5D'], datasets:[{ label:'EUR/PLN', data:[4.29,4.30,4.28,4.27,4.2945], borderColor:'#34a853', backgroundColor:'rgba(52,168,83,0.15)', tension:0.4, fill:true, pointBackgroundColor:'#10b981'}] }, options: { plugins:{legend:{display:false}} } });
     function setTime(t) { alert('Wybrano okres: '+t); }
+    function toggleMenu() {
+      const d = document.getElementById('searchDropdown');
+      d.classList.toggle('hidden');
+    }
+    function setTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => { b.className = 'tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 hover:bg-blue-50 whitespace-nowrap'; });
+      document.getElementById('tab-'+name).className = 'tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white whitespace-nowrap shadow-sm';
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('panel-'+name).classList.remove('hidden');
+      document.getElementById('searchInput').value = '';
+      filterSearch('');
+    }
+    function filterSearch(q) {
+      const val = q.toLowerCase();
+      document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.querySelectorAll('a').forEach(link => {
+          const text = link.innerText.toLowerCase();
+          link.style.display = text.includes(val) ? '' : 'none';
+        });
+      });
+    }
+    document.addEventListener('click', function(e) {
+      const btn = document.getElementById('searchBtn');
+      const dropdown = document.getElementById('searchDropdown');
+      if (!btn.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
+    });
   </script>
 </body>
 </html>
