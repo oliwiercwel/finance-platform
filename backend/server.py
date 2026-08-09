@@ -4,7 +4,8 @@ import urllib.parse
 import os
 import sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from datetime import datetime
+from datetime import datetime, timedelta
+import calendar as cal_module
 
 # Lista popularnych symboli
 ALL_SYMBOLS = [
@@ -25,6 +26,166 @@ ALL_SYMBOLS = [
     # 🛢️ Towary
     'GC=F', 'SI=F', 'CL=F', 'NG=F'
 ]
+
+# ============================================================
+# KALENDARZ EKONOMICZNY - TŁUMACZENIA I WYJAŚNIENIA (PL)
+# ============================================================
+EVENT_TRANSLATIONS = {
+    'FOMC Rate Decision': {
+        'pl': 'Decyzja FED o stopach procentowych',
+        'impact': 'high',
+        'explanation': 'FED (amerykańska banka centralna) ustala stopy procentowe USD. Podwyżka stóp = droższy kredyt, silniejszy USD, zazwyczaj spadki na giełdach. Obniżka = tańszy kredyt, słabszy USD, zazwyczaj wzrosty na giełdach.'
+    },
+    'CPI YoY': {
+        'pl': 'Inflacja CPI (rocznie)',
+        'impact': 'high',
+        'explanation': 'Główna miara inflacji w USA. Jeśli wynik jest wyższy niż prognozy = ryzyko, że FED podniesie stopy procentowe = negatywne dla akcji, pozytywne dla USD. Niższy wynik = dobre dla giełd.'
+    },
+    'Core CPI YoY': {
+        'pl': 'Inflacja CPI Core (rocznie, bez energii i żywności)',
+        'impact': 'high',
+        'explanation': 'Inflacja bez易变的 składników (energia, żywność). Lepszy wskaźnik trendu inflacyjnego. Ważniejszy dla FED niż zwykły CPI.'
+    },
+    'Non-Farm Payrolls': {
+        'pl': 'NFP - Zmiana zatrudnienia (sektor nierolny)',
+        'impact': 'high',
+        'explanation': 'Liczba nowych miejsc pracy w USA (bez rolnictwa). Silny rynek pracy = FED może utrzymać/podnieść stopy = negatywne dla giełd, pozytywne dla USD. Słaby wynik = dobre dla akcji.'
+    },
+    'Unemployment Rate': {
+        'pl': 'Stopa bezrobocia',
+        'impact': 'high',
+        'explanation': 'Procent bezrobotnych w USA. Rosnące bezrobocie = słabsza gospodarka = FED może obniżyć stopy = dobre dla giełd. Malejące = gorący rynek pracy = ryzyko podwyżek stóp.'
+    },
+    'GDP QoQ': {
+        'pl': 'PKB (kwartał do kwartału)',
+        'impact': 'high',
+        'explanation': 'Tempo wzrostu gospodarki USA. Wysoki PKB = silna gospodarka = pozytywne dla akcji, ale może sprawić, że FED utrzyma wysokie stopy. Niski/ujemny = recesja = negatywne.'
+    },
+    'Retail Sales MoM': {
+        'pl': 'Sprzedaż detaliczna (miesiąc do miesiąca)',
+        'impact': 'medium',
+        'explanation': 'Wydatki konsumentów (70% PKB USA). Rosnąca sprzedaż = silny konsument = dobre dla giełd. Spadająca = obawy o recesję.'
+    },
+    'PPI YoY': {
+        'pl': 'Inflacja producentów PPI (rocznie)',
+        'impact': 'medium',
+        'explanation': 'Ceny na poziomie producenta (przed detalem). Wiodący wskaźnik inflacji CPI. Wysoki PPI = przyszła wyższa inflacja konsumencka = ryzyko podwyżek stóp.'
+    },
+    'ISM Manufacturing PMI': {
+        'pl': 'PMI Przemysłowe ISM',
+        'impact': 'medium',
+        'explanation': 'Wskaźnik menedżerów zakupów w przemyśle. >50 = ekspansja (pozytywne), <50 = kontrakcja (negatywne). Poniżej 45 = ryzyko recesji.'
+    },
+    'ISM Services PMI': {
+        'pl': 'PMI Usług ISM',
+        'impact': 'medium',
+        'explanation': 'PMI dla sektora usług (większa część gospodarki USA). >50 = wzrost, <50 = spadek. Ważniejszy niż PMI przemysłowe.'
+    },
+    'Durable Goods Orders': {
+        'pl': 'Zamówienia dóbr trwałego użytku',
+        'impact': 'medium',
+        'explanation': 'Zamówienia na dobra trwałe (samochody, maszyny). Wskaźnik inwestycji firm. Rosnące = optymizm firm = dobre dla giełd.'
+    },
+    'Building Permits': {
+        'pl': 'Pozwolenia na budowę',
+        'impact': 'low',
+        'explanation': 'Liczba nowych pozwolen na budowę domów. Wiodący wskaźnik rynku nieruchomości. Więcej pozwolen = optymizm deweloperów.'
+    },
+    'Housing Starts': {
+        'pl': 'Rozpoczęcia budowy domów',
+        'impact': 'low',
+        'explanation': 'Liczba nowo rozpoczętych budów domów. Silny rynek nieruchomości = dobre dla gospodarki.'
+    },
+    'Consumer Confidence': {
+        'pl': 'Zaufanie konsumentów (Conference Board)',
+        'impact': 'medium',
+        'explanation': 'Sondaż optymizmu gospodarstw domowych. Wysokie = konsumenci chętniej wydają = dobre dla giełd. Niskie = obawy o przyszłość.'
+    },
+    'Michigan Consumer Sentiment': {
+        'pl': 'Sentyment konsumentów (Uniwersytet Michigan)',
+        'impact': 'medium',
+        'explanation': 'Inny wskaźnik zaufania konsumentów. Również zawiera oczekiwania inflacyjne (ważne dla FED).'
+    },
+    'ECB Rate Decision': {
+        'pl': 'Decyzja EZB o stopach procentowych',
+        'impact': 'high',
+        'explanation': 'Europejski Bank Centralny decyduje o stopach w strefie euro. Podwyżka = silniejszy EUR, obniżka = słabszy EUR. Wpływa na giełdy europejskie.'
+    },
+    'ECB Press Conference': {
+        'pl': 'Konferencja prasowa EZB',
+        'impact': 'high',
+        'explanation': 'Prezes EZB (Lagarde) tłumaczy decyzję i daje wskazówki na przyszłość (forward guidance). Rynki reagują na ton: "hawkish" (twardy) = silniejszy EUR, "dovish" (miękki) = słabszy EUR.'
+    },
+    'Eurozone CPI YoY': {
+        'pl': 'Inflacja strefy euro (rocznie)',
+        'impact': 'high',
+        'explanation': 'Główna inflacja w strefie euro. Decyduje o ruchach EZB. Wyższa = ryzyko podwyżek stóp = silniejszy EUR.'
+    },
+    'Eurozone PMI Manufacturing': {
+        'pl': 'PMI Przemysłowe strefy euro',
+        'impact': 'medium',
+        'explanation': 'PMI dla przemysłu strefy euro. >50 = ekspansja. Niemcy (największa gospodarka) mają ogromny wpływ na wynik.'
+    },
+    'BoE Rate Decision': {
+        'pl': 'Decyzja BoE o stopach procentowych',
+        'impact': 'high',
+        'explanation': 'Bank Anglii decyduje o stopach GBP. Podobnie jak FED/EZB - podwyżka = silniejszy GBP, obniżka = słabszy GBP.'
+    },
+    'UK CPI YoY': {
+        'pl': 'Inflacja Wielkiej Brytanii (rocznie)',
+        'impact': 'high',
+        'explanation': 'Inflacja UK. Decyduje o ruchach BoE. Ważna dla GBP i giełdy londyńskiej (FTSE).'
+    },
+    'BoJ Rate Decision': {
+        'pl': 'Decyzja BoJ o stopach procentowych',
+        'impact': 'high',
+        'explanation': 'Bank Japonii decyduje o stopach JPY. Historycznie bliskie zeru/ujemne. Każda zmiana = ogromny wpływ na JPY i carry trade.'
+    },
+    'China PMI Manufacturing': {
+        'pl': 'PMI Przemysłowe Chiny (Caixin/NBS)',
+        'impact': 'medium',
+        'explanation': 'PMI chińskiego przemysłu. Chiny = "fabryka świata". Słabe PMI = obawy o globalny wzrost = negatywne dla surowców i giełd EM.'
+    },
+    'Australia Rate Decision': {
+        'pl': 'Decyzja RBA o stopach procentowych',
+        'impact': 'medium',
+        'explanation': 'Rezerwowy Bank Australii decyduje o stopach AUD. Ważne dla par AUD/USD, surowców (żelazo, węgiel) i giełdy ASX.'
+    },
+    'Canada Rate Decision': {
+        'pl': 'Decyzja BoC o stopach procentowych',
+        'impact': 'medium',
+        'explanation': 'Bank Kanady decyduje o stopach CAD. Silnie skorelowany z FED. Ważny dla USD/CAD i surowców (ropa).'
+    },
+    'New Zealand Rate Decision': {
+        'pl': 'Decyzja RBNZ o stopach procentowych',
+        'impact': 'low',
+        'explanation': 'Rezerwowy Bank Nowej Zelandii. Mały rynek, ale często pierwszy ruchuje stopy (wskazówka dla innych).'
+    },
+    'OPEC+ Meeting': {
+        'pl': 'Spotkanie OPEC+',
+        'impact': 'high',
+        'explanation': 'Krajowe eksportujące ropę decydują o poziomie produkcji. Obniżka produkcji = wyższe ceny ropy = pozytywne dla sektoru energetycznego, negatywne dla inflacji.'
+    },
+    'EIA Crude Oil Inventory': {
+        'pl': 'Zapasy ropy EIA (tygodniowe)',
+        'impact': 'medium',
+        'explanation': 'Tygodniowy raport zapasów ropy w USA. Wzrost zapasów = nadpodaż = niższe ceny. Spadek = deficyt = wyższe ceny.'
+    },
+    'Fed Speakers': {
+        'pl': 'Wystąpienia członków FED',
+        'impact': 'medium',
+        'explanation': 'Członkowie FED (głosujący i niegłosujący) dają wywiady. Ich retoryka (hawkish/dovish) przesuwa rynek obligacji i USD.'
+    },
+    'Treasury Auction': {
+        'pl': 'Aukcje obligacji skarbowych USA',
+        'impact': 'low',
+        'explanation': 'Rząd USA sprzedaje obligacje. Niskie zainteresowanie (wysoka rentowność) = rynek nie chce długu USA = wyższe stopy, silniejszy USD.'
+    }
+}
+
+# Cache dla kalendarza (2 godziny)
+_calendar_cache = {'data': None, 'timestamp': 0}
+CACHE_TTL = 7200  # 2 godziny w sekundach
 
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
 
@@ -248,6 +409,63 @@ def handle_api(handler, path, query_params):
             
             send_json(handler, [])
             return
+
+        # /api/calendar - Kalendarz ekonomiczny z Yahoo Finance + polskie tłumaczenia
+        if path == '/api/calendar':
+            # Sprawdź cache
+            now = datetime.now().timestamp()
+            if _calendar_cache['data'] and (now - _calendar_cache['timestamp']) < CACHE_TTL:
+                send_json(handler, _calendar_cache['data'])
+                return
+            
+            try:
+                # Pobierz z Yahoo Finance Calendar API
+                url = "https://query1.finance.yahoo.com/v1/finance/calendar?region=US&lang=en&corsDomain=finance.yahoo.com"
+                data = fetch_yahoo(url)
+                
+                events = []
+                if data and 'result' in data and data['result']:
+                    for item in data['result']:
+                        # Yahoo zwraca listę dni z eventami
+                        for day in item:
+                            if 'events' in day:
+                                for event in day['events']:
+                                    event_name = event.get('event', '')
+                                    country = event.get('country', '')
+                                    currency = event.get('currency', '')
+                                    
+                                    # Tłumaczenie i wyjaśnienie
+                                    translation = EVENT_TRANSLATIONS.get(event_name, {})
+                                    
+                                    events.append({
+                                        'date': day.get('date', ''),
+                                        'time': event.get('time', ''),
+                                        'event': event_name,
+                                        'event_pl': translation.get('pl', event_name),
+                                        'country': country,
+                                        'currency': currency,
+                                        'actual': event.get('actual'),
+                                        'forecast': event.get('forecast'),
+                                        'previous': event.get('previous'),
+                                        'importance': event.get('importance', 1),
+                                        'impact': translation.get('impact', 'low'),
+                                        'explanation': translation.get('explanation', 'Brak opisu.')
+                                    })
+                
+                # Sortuj po dacie i czasie
+                events.sort(key=lambda x: (x['date'], x['time'] or '00:00'))
+                
+                result = {'events': events, 'updated': datetime.now().isoformat()}
+                
+                # Zapisz do cache
+                _calendar_cache['data'] = result
+                _calendar_cache['timestamp'] = now
+                
+                send_json(handler, result)
+                return
+            except Exception as e:
+                send_json(handler, {'events': [], 'error': str(e), 'updated': datetime.now().isoformat()})
+                return
 
         send_json(handler, {'error': 'Not found'}, 404)
     except Exception as e:

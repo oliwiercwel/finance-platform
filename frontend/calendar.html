@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalendarz Ekonomiczny — FinanceHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@300;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', 'Plus Jakarta Sans', sans-serif; background:#f8f9fa; color:#202124; }
+    .glass { background:rgba(255,255,255,0.85); border:1px solid rgba(26,115,232,0.15); backdrop-filter:blur(20px) saturate(130%); }
+    .glass:hover { border-color:rgba(26,115,232,0.35); box-shadow:0 0 25px rgba(26,115,232,0.08); }
+    .impact-high { background:#fef2f2; border-left:4px solid #ef4444; }
+    .impact-medium { background:#fffbeb; border-left:4px solid #f59e0b; }
+    .impact-low { background:#f0fdf4; border-left:4px solid #22c55e; }
+    .tooltip { position:absolute; z-index:1000; max-width:380px; pointer-events:none; opacity:0; transition:opacity 0.15s; }
+    .tooltip.show { opacity:1; }
+    .calendar-day { min-height:100px; transition:background 0.15s; }
+    .calendar-day:hover { background:rgba(26,115,232,0.05); }
+    .calendar-day.today { background:rgba(26,115,232,0.1); border:2px solid #1a73e8; }
+    .event-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
+    .event-dot.high { background:#ef4444; }
+    .event-dot.medium { background:#f59e0b; }
+    .event-dot.low { background:#22c55e; }
+    @media (max-width: 768px) {
+      .calendar-day { min-height:80px; font-size:12px; }
+      .tooltip { max-width:90vw; left:50% !important; transform:translateX(-50%) !important; top:auto !important; bottom:100% !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 lg:p-8">
+
+  <!-- HEADER -->
+  <header class="max-w-7xl mx-auto mb-8">
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-3xl lg:text-4xl font-black text-slate-900">Kalendarz Ekonomiczny</h1>
+        <p class="text-slate-500 mt-1">Najważniejsze wydarzenia makroekonomiczne z wyjaśnieniami "proste językiem"</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="prevMonth" class="glass px-4 py-2 rounded-xl hover:bg-blue-50 transition"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="monthYear" class="text-xl font-bold text-slate-900 min-w-[180px] text-center"></span>
+        <button id="nextMonth" class="glass px-4 py-2 rounded-xl hover:bg-blue-50 transition"><i class="fa-solid fa-chevron-right"></i></button>
+        <button id="todayBtn" class="glass px-4 py-2 rounded-xl hover:bg-blue-50 transition text-sm font-medium">Dzisiaj</button>
+      </div>
+    </div>
+
+    <!-- LEGENDA -->
+    <div class="glass rounded-2xl p-4 flex flex-wrap gap-6 text-sm">
+      <div class="flex items-center gap-2"><span class="event-dot high"></span><span class="font-medium text-red-600">Wysoki wpływ</span></div>
+      <div class="flex items-center gap-2"><span class="event-dot medium"></span><span class="font-medium text-amber-600">Średni wpływ</span></div>
+      <div class="flex items-center gap-2"><span class="event-dot low"></span><span class="font-medium text-green-600">Niski wpływ</span></div>
+      <div class="flex items-center gap-2 ml-auto text-slate-500"><i class="fa-solid fa-circle-info text-blue-500"></i> Najedź na wydarzenie, by zobaczyć wyjaśnienie</div>
+    </div>
+  </header>
+
+  <!-- KALENDARZ -->
+  <main class="max-w-7xl mx-auto">
+    <div class="glass rounded-3xl overflow-hidden">
+      <!-- NAGŁÓWKI DNI TYGODNIA -->
+      <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50/50">
+        <div class="p-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Pon</div>
+        <div class="p-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Wt</div>
+        <div class="p-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Śr</div>
+        <div class="p-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Czw</div>
+        <div class="p-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Pt</div>
+        <div class="p-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Sob</div>
+        <div class="p-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Ndz</div>
+      </div>
+
+      <!-- DNI KALENDARZA -->
+      <div id="calendarGrid" class="grid grid-cols-7">
+        <!-- Dni generowane przez JS -->
+      </div>
+    </div>
+
+    <!-- TOOLTIP -->
+    <div id="tooltip" class="tooltip glass rounded-2xl p-4 shadow-2xl border border-slate-200">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div>
+          <div id="tooltipEvent" class="font-bold text-slate-900"></div>
+          <div id="tooltipEventPl" class="text-sm text-blue-700 font-medium"></div>
+        </div>
+        <span id="tooltipImpact" class="px-2 py-0.5 rounded-full text-xs font-bold uppercase"></span>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-xs mb-3 text-slate-600">
+        <div><span class="font-medium">Kraj:</span> <span id="tooltipCountry">-</span></div>
+        <div><span class="font-medium">Waluta:</span> <span id="tooltipCurrency">-</span></div>
+        <div><span class="font-medium">Godzina:</span> <span id="tooltipTime">-</span></div>
+      </div>
+      <div class="border-t border-slate-200 pt-3 mb-3">
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          <div class="impact-low p-2 rounded"><span class="font-medium text-green-700">Aktualne</span><br><span id="tooltipActual" class="font-bold">-</span></div>
+          <div class="impact-medium p-2 rounded"><span class="font-medium text-amber-700">Prognoza</span><br><span id="tooltipForecast" class="font-bold">-</span></div>
+          <div class="impact-high p-2 rounded"><span class="font-medium text-red-700">Poprzednie</span><br><span id="tooltipPrevious" class="font-bold">-</span></div>
+        </div>
+      </div>
+      <div class="bg-blue-50 rounded-xl p-3 border border-blue-100">
+        <div class="flex items-center gap-2 text-xs font-medium text-blue-800 mb-1"><i class="fa-solid fa-lightbulb"></i> Co to zmienia na giełdzie?</div>
+        <div id="tooltipExplanation" class="text-sm text-blue-700 leading-relaxed"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ========== STATE ==========
+    let currentDate = new Date();
+    let eventsData = [];
+    let tooltip = document.getElementById('tooltip');
+    let activeDayEl = null;
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadEvents();
+      renderCalendar();
+      setupEventListeners();
+    });
+
+    // ========== LOAD EVENTS ==========
+    async function loadEvents() {
+      try {
+        const resp = await fetch('/api/calendar');
+        const data = await resp.json();
+        eventsData = data.events || [];
+        console.log(`Załadowano ${eventsData.length} wydarzeń z kalendarza`);
+      } catch (e) {
+        console.error('Błąd ładowania kalendarza:', e);
+        eventsData = [];
+      }
+    }
+
+    // ========== RENDER CALENDAR ==========
+    function renderCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      const monthYearEl = document.getElementById('monthYear');
+      
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      // Nazwa miesiąca po polsku
+      const monthNames = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+      monthYearEl.textContent = `${monthNames[month]} ${year}`;
+      
+      // Pierwszy dzień miesiąca (0=ndz, 1=pon... w JS, my chcemy 0=pon)
+      const firstDay = new Date(year, month, 1);
+      let firstDayIndex = firstDay.getDay() - 1; // 0=pon, 6=ndz
+      if (firstDayIndex < 0) firstDayIndex = 6;
+      
+      // Liczba dni w miesiącu
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      // Dzisiaj
+      const today = new Date();
+      const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+      const todayDate = today.getDate();
+      
+      // Poprzedni miesiąc - ile dni
+      const prevMonthDays = new Date(year, month, 0).getDate();
+      
+      grid.innerHTML = '';
+      
+      // Dni z poprzedniego miesiąca (puste lub z eventami)
+      for (let i = firstDayIndex - 1; i >= 0; i--) {
+        const dayNum = prevMonthDays - i;
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+        grid.appendChild(createDayEl(dayNum, dateStr, true, false));
+      }
+      
+      // Dni bieżącego miesiąca
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const isToday = isCurrentMonth && day === todayDate;
+        grid.appendChild(createDayEl(day, dateStr, false, isToday));
+      }
+      
+      // Dni z następnego miesiąca (uzupełnienie do pełnych tygodni)
+      const totalCells = firstDayIndex + daysInMonth;
+      const nextMonthDays = (7 - (totalCells % 7)) % 7;
+      for (let day = 1; day <= nextMonthDays; day++) {
+        const nextMonth = month + 1 === 12 ? 0 : month + 1;
+        const nextYear = month + 1 === 12 ? year + 1 : year;
+        const dateStr = `${nextYear}-${String(nextMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        grid.appendChild(createDayEl(day, dateStr, true, false));
+      }
+    }
+
+    // ========== CREATE DAY ELEMENT ==========
+    function createDayEl(dayNum, dateStr, isOtherMonth, isToday) {
+      const div = document.createElement('div');
+      div.className = `calendar-day p-2 relative ${isOtherMonth ? 'text-slate-300' : 'text-slate-900'} ${isToday ? 'today' : ''}`;
+      div.dataset.date = dateStr;
+      
+      // Numer dnia
+      const daySpan = document.createElement('span');
+      daySpan.className = `block font-medium ${isToday ? 'text-blue-600' : ''}`;
+      daySpan.textContent = dayNum;
+      div.appendChild(daySpan);
+      
+      // Eventy tego dnia
+      const dayEvents = eventsData.filter(e => e.date === dateStr);
+      if (dayEvents.length > 0) {
+        const eventsContainer = document.createElement('div');
+        eventsContainer.className = 'mt-1 space-y-1';
+        
+        dayEvents.slice(0, 4).forEach(event => {
+          const eventEl = document.createElement('div');
+          eventEl.className = `text-[10px] leading-tight truncate cursor-help px-1 py-0.5 rounded ${getImpactClass(event.impact)}`;
+          eventEl.innerHTML = `<span class="event-dot ${event.impact}"></span>${event.event_pl}`;
+          eventEl.dataset.event = JSON.stringify(event);
+          
+          // Hover tooltip
+          eventEl.addEventListener('mouseenter', (e) => showTooltip(e, event));
+          eventEl.addEventListener('mouseleave', hideTooltip);
+          eventEl.addEventListener('mousemove', (e) => positionTooltip(e));
+          
+          eventsContainer.appendChild(eventEl);
+        });
+        
+        if (dayEvents.length > 4) {
+          const moreEl = document.createElement('div');
+          moreEl.className = 'text-[10px] text-slate-400 text-center';
+          moreEl.textContent = `+${dayEvents.length - 4} więcej`;
+          eventsContainer.appendChild(moreEl);
+        }
+        
+        div.appendChild(eventsContainer);
+      }
+      
+      return div;
+    }
+
+    function getImpactClass(impact) {
+      return impact === 'high' ? 'impact-high' : impact === 'medium' ? 'impact-medium' : 'impact-low';
+    }
+
+    // ========== TOOLTIP ==========
+    function showTooltip(e, event) {
+      document.getElementById('tooltipEvent').textContent = event.event;
+      document.getElementById('tooltipEventPl').textContent = event.event_pl;
+      document.getElementById('tooltipCountry').textContent = event.country || '-';
+      document.getElementById('tooltipCurrency').textContent = event.currency || '-';
+      document.getElementById('tooltipTime').textContent = event.time || 'Cały dzień';
+      document.getElementById('tooltipActual').textContent = event.actual !== null && event.actual !== undefined ? event.actual : '—';
+      document.getElementById('tooltipForecast').textContent = event.forecast !== null && event.forecast !== undefined ? event.forecast : '—';
+      document.getElementById('tooltipPrevious').textContent = event.previous !== null && event.previous !== undefined ? event.previous : '—';
+      document.getElementById('tooltipExplanation').textContent = event.explanation || 'Brak opisu.';
+      
+      const impactEl = document.getElementById('tooltipImpact');
+      impactEl.textContent = event.impact === 'high' ? 'Wysoki wpływ' : event.impact === 'medium' ? 'Średni wpływ' : 'Niski wpływ';
+      impactEl.className = `px-2 py-0.5 rounded-full text-xs font-bold uppercase ${event.impact === 'high' ? 'bg-red-100 text-red-700' : event.impact === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`;
+      
+      tooltip.classList.add('show');
+      positionTooltip(e);
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove('show');
+    }
+
+    function positionTooltip(e) {
+      const rect = tooltip.getBoundingClientRect();
+      let left = e.clientX + 15;
+      let top = e.clientY - rect.height - 15;
+      
+      // Nie wychodź poza ekran
+      if (left + rect.width > window.innerWidth) {
+        left = e.clientX - rect.width - 15;
+      }
+      if (top < 0) {
+        top = e.clientY + 15;
+      }
+      
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+    }
+
+    // ========== EVENT LISTENERS ==========
+    function setupEventListeners() {
+      document.getElementById('prevMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+      });
+      
+      document.getElementById('nextMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+      });
+      
+      document.getElementById('todayBtn').addEventListener('click', () => {
+        currentDate = new Date();
+        renderCalendar();
+      });
+    }
+  </script>
+</body>
+</html>
