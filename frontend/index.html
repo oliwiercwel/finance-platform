@@ -359,7 +359,7 @@
       }
       container.innerHTML = '<div class="text-center text-slate-400 py-4">Wyszukiwanie Yahoo Finance...</div>';
       try {
-        const resp = await fetch('https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(v) + '&quotesCount=20&newsCount=0');
+        const resp = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(v) + '&quotesCount=20&newsCount=0'));
         const data = await resp.json();
         container.innerHTML = '';
         const grid = document.createElement('div');
