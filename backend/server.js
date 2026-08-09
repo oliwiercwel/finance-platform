@@ -833,9 +833,30 @@ Dla KAŻDEGO wskaźnika, który podajesz, DODAJ wyjaśnienie "dla żółtodzioba
 - Ostrzegaj o ryzyku utraty kapitału
 - Nie gwarantuj zwrotów`;
 
+// Funkcja z retry logic dla obsługi rate limiting Yahoo Finance
+async function fetchWithRetry(fn, maxRetries = 3, baseDelay = 1000) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            const isRateLimit = error.message?.includes('Too Many Requests') || 
+                               error.message?.includes('429') ||
+                               error.message?.includes('rate limit');
+            
+            if (isRateLimit && attempt < maxRetries) {
+                const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+                console.log(`[BUFFET AI] Rate limit hit, retry ${attempt + 1}/${maxRetries} in ${Math.round(delay)}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
+            throw error;
+        }
+    }
+}
+
 // Funkcja pobierania danych fundamentalnych z Yahoo Finance
 async function fetchFundamentals(symbol) {
-    try {
+    return fetchWithRetry(async () => {
         const quote = await yahooFinance.quote(symbol);
         if (!quote) return null;
         
@@ -848,15 +869,12 @@ async function fetchFundamentals(symbol) {
         }
         
         return { quote, summary };
-    } catch (error) {
-        console.error('Błąd pobierania fundamentals:', error);
-        return null;
-    }
+    });
 }
 
 // Funkcja pobierania historii cen (dla wskaźników technicznych)
 async function fetchPriceHistory(symbol, period = '1y') {
-    try {
+    return fetchWithRetry(async () => {
         const periodMap = {
             '1d': { period1: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], interval: '1m' },
             '1w': { period1: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], interval: '1h' },
@@ -877,10 +895,7 @@ async function fetchPriceHistory(symbol, period = '1y') {
             close: item.close,
             volume: item.volume
         })).filter(item => item.close !== null);
-    } catch (error) {
-        console.error('Błąd pobierania historii:', error);
-        return [];
-    }
+    });
 }
 
 // Obliczanie wskaźników technicznych
@@ -1354,7 +1369,18 @@ app.post('/api/buffet-ai/analyze', async (req, res) => {
         
     } catch (error) {
         console.error('[BUFFET AI] Błąd:', error);
-        res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+        
+        // Lepsze komunikaty błędów
+        let errorMessage = error.message;
+        if (error.message?.includes('Too Many Requests') || error.message?.includes('429')) {
+            errorMessage = 'Yahoo Finance tymczasowo blokuje zapytania (zbyt wiele requestów). Spróbuj za chwilę.';
+        } else if (error.message?.includes('Failed to fetch') || error.message?.includes('network')) {
+            errorMessage = 'Problem z połączeniem do Yahoo Finance. Sprawdź połączenie internetowe.';
+        } else if (error.message?.includes('Nie znaleziono danych')) {
+            errorMessage = `Nie znaleziono danych dla ${cleanSymbol}. Sprawdź czy ticker jest poprawny (np. NVDA, AAPL, CDR.WA).`;
+        }
+        
+        res.write(`data: ${JSON.stringify({ error: errorMessage })}\n\n`);
         res.end();
     }
 });
