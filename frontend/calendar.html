@@ -96,6 +96,10 @@
           <div class="impact-high p-2 rounded"><span class="font-medium text-red-700">Poprzednie</span><br><span id="tooltipPrevious" class="font-bold">-</span></div>
         </div>
       </div>
+      <div class="bg-amber-50 rounded-xl p-3 border border-amber-100">
+        <div class="flex items-center gap-2 text-xs font-medium text-amber-800 mb-1"><i class="fa-solid fa-chart-line"></i> Wpływ na rynek:</div>
+        <div id="tooltipMarketImpact" class="text-sm text-amber-700 leading-relaxed whitespace-pre-wrap"></div>
+      </div>
     </div>
   </main>
 
@@ -240,6 +244,7 @@
       document.getElementById('tooltipActual').textContent = event.actual !== null && event.actual !== undefined ? event.actual : '—';
       document.getElementById('tooltipForecast').textContent = event.forecast !== null && event.forecast !== undefined ? event.forecast : '—';
       document.getElementById('tooltipPrevious').textContent = event.previous !== null && event.previous !== undefined ? event.previous : '—';
+      document.getElementById('tooltipMarketImpact').textContent = event.market_impact || 'Brak danych.';
       
       const impactEl = document.getElementById('tooltipImpact');
       impactEl.textContent = event.impact === 'high' ? 'Wysoki wpływ' : event.impact === 'medium' ? 'Średni wpływ' : 'Niski wpływ';

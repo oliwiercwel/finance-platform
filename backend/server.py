@@ -28,158 +28,158 @@ ALL_SYMBOLS = [
 ]
 
 # ============================================================
-# KALENDARZ EKONOMICZNY - TŁUMACZENIA I WYJAŚNIENIA (PL)
+# KALENDARZ EKONOMICZNY - TŁUMACZENIA + WPŁYW NA RYNKI (PL)
 # ============================================================
 EVENT_TRANSLATIONS = {
     'FOMC Rate Decision': {
         'pl': 'Decyzja FED o stopach procentowych',
         'impact': 'high',
-        'explanation': 'FED (amerykańska banka centralna) ustala stopy procentowe USD. Podwyżka stóp = droższy kredyt, silniejszy USD, zazwyczaj spadki na giełdach. Obniżka = tańszy kredyt, słabszy USD, zazwyczaj wzrosty na giełdach.'
+        'market_impact': 'Podwyżka: 📈 USD/PLN ↑, 📉 WIG20 ↓, 📉 S&P500 ↓, 📈 Rentowność obligacji US ↑ | Obniżka: odwrotnie'
     },
     'CPI YoY': {
         'pl': 'Inflacja CPI (rocznie)',
         'impact': 'high',
-        'explanation': 'Główna miara inflacji w USA. Jeśli wynik jest wyższy niż prognozy = ryzyko, że FED podniesie stopy procentowe = negatywne dla akcji, pozytywne dla USD. Niższy wynik = dobre dla giełd.'
+        'market_impact': 'Wynik > prognozy: 📈 USD/PLN ↑, 📉 WIG20 ↓, 📉 S&P500 ↓ (ryzyko podwyżek FED) | Wynik < prognozy: odwrotnie'
     },
     'Core CPI YoY': {
         'pl': 'Inflacja CPI Core (rocznie, bez energii i żywności)',
         'impact': 'high',
-        'explanation': 'Inflacja bez易变的 składników (energia, żywność). Lepszy wskaźnik trendu inflacyjnego. Ważniejszy dla FED niż zwykły CPI.'
+        'market_impact': 'Kluczowy dla FED. Wyższy = 📈 USD ↑, 📉 Akcje ↓ | Niższy = 📉 USD, 📈 Akcje'
     },
     'Non-Farm Payrolls': {
         'pl': 'NFP - Zmiana zatrudnienia (sektor nierolny)',
         'impact': 'high',
-        'explanation': 'Liczba nowych miejsc pracy w USA (bez rolnictwa). Silny rynek pracy = FED może utrzymać/podnieść stopy = negatywne dla giełd, pozytywne dla USD. Słaby wynik = dobre dla akcji.'
+        'market_impact': 'Silny (>200k): 📈 USD/PLN ↑, 📉 WIG20 ↓, 📉 S&P500 ↓ (FED trzyma wysokie stopy) | Słaby: 📉 USD, 📈 Akcje'
     },
     'Unemployment Rate': {
         'pl': 'Stopa bezrobocia',
         'impact': 'high',
-        'explanation': 'Procent bezrobotnych w USA. Rosnące bezrobocie = słabsza gospodarka = FED może obniżyć stopy = dobre dla giełd. Malejące = gorący rynek pracy = ryzyko podwyżek stóp.'
+        'market_impact': 'Rosnąca: 📉 USD, 📈 Akcje (FED może obniżyć stopy) | Malejąca: 📈 USD, 📉 Akcje'
     },
     'GDP QoQ': {
         'pl': 'PKB (kwartał do kwartału)',
         'impact': 'high',
-        'explanation': 'Tempo wzrostu gospodarki USA. Wysoki PKB = silna gospodarka = pozytywne dla akcji, ale może sprawić, że FED utrzyma wysokie stopy. Niski/ujemny = recesja = negatywne.'
+        'market_impact': 'Wysoki (>3%): 📈 Akcje USA, 📈 USD (silna gospodarka) | Niski/ujemny: 📉 Akcje, 📉 USD (recesja)'
     },
     'Retail Sales MoM': {
         'pl': 'Sprzedaż detaliczna (miesiąc do miesiąca)',
         'impact': 'medium',
-        'explanation': 'Wydatki konsumentów (70% PKB USA). Rosnąca sprzedaż = silny konsument = dobre dla giełd. Spadająca = obawy o recesję.'
+        'market_impact': 'Rosnąca: 📈 S&P500, 📈 USD (silny konsument) | Spadająca: 📉 Akcje, obawy o recesję'
     },
     'PPI YoY': {
         'pl': 'Inflacja producentów PPI (rocznie)',
         'impact': 'medium',
-        'explanation': 'Ceny na poziomie producenta (przed detalem). Wiodący wskaźnik inflacji CPI. Wysoki PPI = przyszła wyższa inflacja konsumencka = ryzyko podwyżek stóp.'
+        'market_impact': 'Wysoki: 📈 USD ↑, 📉 Akcje (przyszła wyższa CPI) | Niski: 📉 USD, 📈 Akcje'
     },
     'ISM Manufacturing PMI': {
         'pl': 'PMI Przemysłowe ISM',
         'impact': 'medium',
-        'explanation': 'Wskaźnik menedżerów zakupów w przemyśle. >50 = ekspansja (pozytywne), <50 = kontrakcja (negatywne). Poniżej 45 = ryzyko recesji.'
+        'market_impact': '>50: 📈 S&P500, 📈 USD (ekspansja) | <50: 📉 Akcje, 📉 USD (kontrakcja) | <45: 📉📉 Ryzyko recesji'
     },
     'ISM Services PMI': {
         'pl': 'PMI Usług ISM',
         'impact': 'medium',
-        'explanation': 'PMI dla sektora usług (większa część gospodarki USA). >50 = wzrost, <50 = spadek. Ważniejszy niż PMI przemysłowe.'
+        'market_impact': '>50: 📈 S&P500 (usługi = 80% PKB USA) | <50: 📉 Akcje, 📉 USD'
     },
     'Durable Goods Orders': {
         'pl': 'Zamówienia dóbr trwałego użytku',
         'impact': 'medium',
-        'explanation': 'Zamówienia na dobra trwałe (samochody, maszyny). Wskaźnik inwestycji firm. Rosnące = optymizm firm = dobre dla giełd.'
+        'market_impact': 'Rosnące: 📈 Akcje przemysłowe, 📈 USD (inwestycje firm) | Spadające: 📉 Akcje'
     },
     'Building Permits': {
         'pl': 'Pozwolenia na budowę',
         'impact': 'low',
-        'explanation': 'Liczba nowych pozwolen na budowę domów. Wiodący wskaźnik rynku nieruchomości. Więcej pozwolen = optymizm deweloperów.'
+        'market_impact': 'Więcej: 📈 Akcje deweloperskie, 📈 USD (zdrowy rynek nieruchomości)'
     },
     'Housing Starts': {
         'pl': 'Rozpoczęcia budowy domów',
         'impact': 'low',
-        'explanation': 'Liczba nowo rozpoczętych budów domów. Silny rynek nieruchomości = dobre dla gospodarki.'
+        'market_impact': 'Więcej: 📈 S&P500, 📈 USD | Mniej: 📉 Akcje budowlane'
     },
     'Consumer Confidence': {
         'pl': 'Zaufanie konsumentów (Conference Board)',
         'impact': 'medium',
-        'explanation': 'Sondaż optymizmu gospodarstw domowych. Wysokie = konsumenci chętniej wydają = dobre dla giełd. Niskie = obawy o przyszłość.'
+        'market_impact': 'Wysokie: 📈 S&P500, 📈 USD (konsumenci wydają) | Niskie: 📉 Akcje, obawy o recesję'
     },
     'Michigan Consumer Sentiment': {
         'pl': 'Sentyment konsumentów (Uniwersytet Michigan)',
         'impact': 'medium',
-        'explanation': 'Inny wskaźnik zaufania konsumentów. Również zawiera oczekiwania inflacyjne (ważne dla FED).'
+        'market_impact': 'Wysokie: 📈 S&P500, 📈 USD | Niskie: 📉 Akcje. Zawiera oczekiwania inflacyjne (ważne dla FED)'
     },
     'ECB Rate Decision': {
         'pl': 'Decyzja EZB o stopach procentowych',
         'impact': 'high',
-        'explanation': 'Europejski Bank Centralny decyduje o stopach w strefie euro. Podwyżka = silniejszy EUR, obniżka = słabszy EUR. Wpływa na giełdy europejskie.'
+        'market_impact': 'Podwyżka: 📈 EUR/PLN ↑, 📈 WIG20 (sektor bankowy) ↑, 📉 EUR/USD ↓ | Obniżka: 📉 EUR/PLN, 📉 Banki'
     },
     'ECB Press Conference': {
         'pl': 'Konferencja prasowa EZB',
         'impact': 'high',
-        'explanation': 'Prezes EZB (Lagarde) tłumaczy decyzję i daje wskazówki na przyszłość (forward guidance). Rynki reagują na ton: "hawkish" (twardy) = silniejszy EUR, "dovish" (miękki) = słabszy EUR.'
+        'market_impact': 'Hawkish (twardy ton): 📈 EUR/PLN ↑, 📈 Banki EU | Dovish (miękki): 📉 EUR/PLN, 📉 Banki'
     },
     'Eurozone CPI YoY': {
         'pl': 'Inflacja strefy euro (rocznie)',
         'impact': 'high',
-        'explanation': 'Główna inflacja w strefie euro. Decyduje o ruchach EZB. Wyższa = ryzyko podwyżek stóp = silniejszy EUR.'
+        'market_impact': 'Wysoka: 📈 EUR/PLN ↑, 📈 Rentowność obligacji DE ↑, ryzyko podwyżek EZB | Niska: 📉 EUR'
     },
     'Eurozone PMI Manufacturing': {
         'pl': 'PMI Przemysłowe strefy euro',
         'impact': 'medium',
-        'explanation': 'PMI dla przemysłu strefy euro. >50 = ekspansja. Niemcy (największa gospodarka) mają ogromny wpływ na wynik.'
+        'market_impact': '>50: 📈 DAX, 📈 EUR/PLN (Niemcy = lokomotywa) | <50: 📉 Giełdy EU, 📉 EUR'
     },
     'BoE Rate Decision': {
         'pl': 'Decyzja BoE o stopach procentowych',
         'impact': 'high',
-        'explanation': 'Bank Anglii decyduje o stopach GBP. Podobnie jak FED/EZB - podwyżka = silniejszy GBP, obniżka = słabszy GBP.'
+        'market_impact': 'Podwyżka: 📈 GBP/PLN ↑, 📈 FTSE100 (banki) | Obniżka: 📉 GBP/PLN, 📉 Giełda Londynu'
     },
     'UK CPI YoY': {
         'pl': 'Inflacja Wielkiej Brytanii (rocznie)',
         'impact': 'high',
-        'explanation': 'Inflacja UK. Decyduje o ruchach BoE. Ważna dla GBP i giełdy londyńskiej (FTSE).'
+        'market_impact': 'Wysoka: 📈 GBP/PLN ↑, ryzyko podwyżek BoE | Niska: 📉 GBP'
     },
     'BoJ Rate Decision': {
         'pl': 'Decyzja BoJ o stopach procentowych',
         'impact': 'high',
-        'explanation': 'Bank Japonii decyduje o stopach JPY. Historycznie bliskie zeru/ujemne. Każda zmiana = ogromny wpływ na JPY i carry trade.'
+        'market_impact': 'Podwyżka (rzadkie): 📈 JPY/PLN ↑, 📉 Nikkei225 (carry trade unwind) | Status quo: neutralne'
     },
     'China PMI Manufacturing': {
         'pl': 'PMI Przemysłowe Chiny (Caixin/NBS)',
         'impact': 'medium',
-        'explanation': 'PMI chińskiego przemysłu. Chiny = "fabryka świata". Słabe PMI = obawy o globalny wzrost = negatywne dla surowców i giełd EM.'
+        'market_impact': '>50: 📈 Surowce (miedź, żelazo) ↑, 📈 Giełdy EM | <50: 📉 Surowce, 📉 AUD, 📉 Giełdy Azji'
     },
     'Australia Rate Decision': {
         'pl': 'Decyzja RBA o stopach procentowych',
         'impact': 'medium',
-        'explanation': 'Rezerwowy Bank Australii decyduje o stopach AUD. Ważne dla par AUD/USD, surowców (żelazo, węgiel) i giełdy ASX.'
+        'market_impact': 'Podwyżka: 📈 AUD/PLN ↑, 📈 ASX200 (banki) | Obniżka: 📉 AUD, 📉 Surowce'
     },
     'Canada Rate Decision': {
         'pl': 'Decyzja BoC o stopach procentowych',
         'impact': 'medium',
-        'explanation': 'Bank Kanady decyduje o stopach CAD. Silnie skorelowany z FED. Ważny dla USD/CAD i surowców (ropa).'
+        'market_impact': 'Podwyżka: 📈 CAD/PLN ↑, 📈 TSX (banki, energia) | Obniżka: 📉 CAD, 📉 Ropa'
     },
     'New Zealand Rate Decision': {
         'pl': 'Decyzja RBNZ o stopach procentowych',
         'impact': 'low',
-        'explanation': 'Rezerwowy Bank Nowej Zelandii. Mały rynek, ale często pierwszy ruchuje stopy (wskazówka dla innych).'
+        'market_impact': 'Często pierwszy ruchuje stopy. Podwyżka: 📈 NZD | Obniżka: 📉 NZD (wskazówka dla FED/EZB)'
     },
     'OPEC+ Meeting': {
         'pl': 'Spotkanie OPEC+',
         'impact': 'high',
-        'explanation': 'Krajowe eksportujące ropę decydują o poziomie produkcji. Obniżka produkcji = wyższe ceny ropy = pozytywne dla sektoru energetycznego, negatywne dla inflacji.'
+        'market_impact': 'Obniżka produkcji: 📈 Ropa (CL) ↑, 📈 Akcje energetyczne, 📈 Inflacja ↑ | Zwiększenie: 📉 Ropa, 📉 Energetyka'
     },
     'EIA Crude Oil Inventory': {
         'pl': 'Zapasy ropy EIA (tygodniowe)',
         'impact': 'medium',
-        'explanation': 'Tygodniowy raport zapasów ropy w USA. Wzrost zapasów = nadpodaż = niższe ceny. Spadek = deficyt = wyższe ceny.'
+        'market_impact': 'Wzrost zapasów: 📉 Ropa (CL) ↓, 📉 Akcje energetyczne | Spadek: 📈 Ropa ↑, 📈 Energetyka'
     },
     'Fed Speakers': {
         'pl': 'Wystąpienia członków FED',
         'impact': 'medium',
-        'explanation': 'Członkowie FED (głosujący i niegłosujący) dają wywiady. Ich retoryka (hawkish/dovish) przesuwa rynek obligacji i USD.'
+        'market_impact': 'Hawkish: 📈 USD/PLN ↑, 📉 S&P500, 📈 Rentowność 10Y US ↑ | Dovish: 📉 USD, 📈 Akcje'
     },
     'Treasury Auction': {
         'pl': 'Aukcje obligacji skarbowych USA',
         'impact': 'low',
-        'explanation': 'Rząd USA sprzedaje obligacje. Niskie zainteresowanie (wysoka rentowność) = rynek nie chce długu USA = wyższe stopy, silniejszy USD.'
+        'market_impact': 'Słaby popyt (wysoka rentowność): 📈 USD, 📉 Akcje, 📈 Rentowność 10Y ↑ | Silny popyt: odwrotnie'
     }
 }
 
@@ -242,7 +242,8 @@ def generate_sample_calendar_events():
                 'forecast': None,
                 'previous': None,
                 'importance': 3 if ev['impact'] == 'high' else 2 if ev['impact'] == 'medium' else 1,
-                'impact': ev['impact']
+                'impact': ev['impact'],
+                'market_impact': translation.get('market_impact', 'Brak danych.')
             })
     
     return events
@@ -498,7 +499,7 @@ def handle_api(handler, path, query_params):
                                     country = event.get('country', '')
                                     currency = event.get('currency', '')
                                     
-                                    # Tłumaczenie i wyjaśnienie
+                                    # Tłumaczenie i wpływ na rynek
                                     translation = EVENT_TRANSLATIONS.get(event_name, {})
                                     
                                     events.append({
@@ -512,7 +513,8 @@ def handle_api(handler, path, query_params):
                                         'forecast': event.get('forecast'),
                                         'previous': event.get('previous'),
                                         'importance': event.get('importance', 1),
-                                        'impact': translation.get('impact', 'low')
+                                        'impact': translation.get('impact', 'low'),
+                                        'market_impact': translation.get('market_impact', 'Brak danych.')
                                     })
                 
                 # FALLBACK: Jeśli Yahoo nie zwróciło danych, wygeneruj przykładowe na najbliższe 30 dni
