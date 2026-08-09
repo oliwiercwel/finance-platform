@@ -264,6 +264,7 @@
     <a href="#" class="glass p-3 rounded-2xl text-slate-400 hover:text-red-400 transition"><i class="fa-solid fa-layer-group"></i></a>
   </aside>
 
+<script src="../data/tickers.json" id="tickersData" type="application/json"></script>
   <script>
     document.getElementById('tabContent').setAttribute('data-original', document.getElementById('tabContent').innerHTML);
     new Chart(document.getElementById('inflationChart'), { type: 'bar', data: { labels: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip'], datasets:[{ label:'Inflacja %', data:[3.2,3.8,4.1,4.6,4.9,5.1,5.2], backgroundColor:'#1a73e8', borderRadius:8 }] }, options: { plugins:{legend:{display:false}} } });
@@ -346,28 +347,39 @@
       {s:'KC',n:'Coffee',c:'surowce'},{s:'CT',n:'Cotton',c:'surowce'},
       {s:'SB',n:'Sugar',c:'surowce'}
     ];
-    function liveSearch(val) {
-      const v = val.toLowerCase();
+    async function liveSearch(val) {
+      const v = val.trim();
       document.getElementById('tabButtons').style.display = v.length > 0 ? 'none' : 'flex';
       const container = document.getElementById('tabContent');
-      container.innerHTML = '';
       if (v.length === 0) {
         document.getElementById('tabButtons').style.display = 'flex';
         container.innerHTML = document.getElementById('tabContent').getAttribute('data-original') || '';
         setTab('akcje');
         return;
       }
-      const matches = allSymbols.filter(item => item.s.toLowerCase().includes(v) || item.n.toLowerCase().includes(v));
-      const grid = document.createElement('div');
-      grid.className = 'grid grid-cols-3 gap-2';
-      matches.forEach(item => {
-        const a = document.createElement('a');
-        a.href = 'chart.html?symbol=' + item.s;
-        a.className = 'block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition';
-        a.innerHTML = '<strong>' + item.s + '</strong><span class="block text-xs text-slate-400">' + item.n + '</span>';
-        grid.appendChild(a);
-      });
-      container.appendChild(grid);
+      container.innerHTML = '<div class="text-center text-slate-400 py-4">Wyszukiwanie Yahoo Finance...</div>';
+      try {
+        const resp = await fetch('https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(v) + '&quotesCount=20&newsCount=0');
+        const data = await resp.json();
+        container.innerHTML = '';
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-3 gap-2';
+        if (data.quotes && data.quotes.length) {
+          data.quotes.forEach(q => {
+            if (!q.symbol) return;
+            const a = document.createElement('a');
+            a.href = 'chart.html?symbol=' + q.symbol;
+            a.className = 'block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition';
+            a.innerHTML = '<strong>' + q.symbol + '</strong><span class="block text-xs text-slate-400">' + (q.longname || q.shortname || q.exchange || '') + '</span>';
+            grid.appendChild(a);
+          });
+        } else {
+          grid.innerHTML = '<div class="col-span-3 text-center text-slate-400">Brak wyników w Yahoo Finance</div>';
+        }
+        container.appendChild(grid);
+      } catch (e) {
+        container.innerHTML = '<div class="text-center text-red-400 py-4">Błąd połączenia z Yahoo</div>';
+      }
     }
     document.addEventListener('click', function(e) {
       const btn = document.getElementById('searchBtn');
