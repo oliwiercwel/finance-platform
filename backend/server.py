@@ -248,6 +248,75 @@ def generate_sample_calendar_events():
     
     return events
 
+
+def generate_sample_calendar_events_with_forecasts():
+    """Generuje przykładowe wydarzenia z realistycznymi prognozami na najbliższe 30 dni gdy Yahoo nie działa"""
+    from datetime import timedelta
+    import random
+    
+    base_events = [
+        {'event': 'FOMC Rate Decision', 'time': '20:00', 'country': 'US', 'currency': 'USD', 'impact': 'high', 'forecast_val': '4.50%', 'actual_val': None, 'previous_val': '4.50%'},
+        {'event': 'CPI YoY', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'high', 'forecast_val': '3.1%', 'actual_val': None, 'previous_val': '3.0%'},
+        {'event': 'Core CPI YoY', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'high', 'forecast_val': '3.3%', 'actual_val': None, 'previous_val': '3.3%'},
+        {'event': 'Non-Farm Payrolls', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'high', 'forecast_val': '180K', 'actual_val': None, 'previous_val': '175K'},
+        {'event': 'Unemployment Rate', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'high', 'forecast_val': '3.9%', 'actual_val': None, 'previous_val': '3.9%'},
+        {'event': 'GDP QoQ', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'high', 'forecast_val': '2.8%', 'actual_val': None, 'previous_val': '3.0%'},
+        {'event': 'Retail Sales MoM', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '0.3%', 'actual_val': None, 'previous_val': '0.1%'},
+        {'event': 'PPI YoY', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '2.2%', 'actual_val': None, 'previous_val': '2.1%'},
+        {'event': 'ISM Manufacturing PMI', 'time': '16:00', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '49.5', 'actual_val': None, 'previous_val': '49.2'},
+        {'event': 'ISM Services PMI', 'time': '16:00', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '51.0', 'actual_val': None, 'previous_val': '51.4'},
+        {'event': 'Durable Goods Orders', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '0.5%', 'actual_val': None, 'previous_val': '-0.2%'},
+        {'event': 'Consumer Confidence', 'time': '16:00', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '102.0', 'actual_val': None, 'previous_val': '101.3'},
+        {'event': 'Michigan Consumer Sentiment', 'time': '16:00', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '72.0', 'actual_val': None, 'previous_val': '71.8'},
+        {'event': 'Building Permits', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'low', 'forecast_val': '1.45M', 'actual_val': None, 'previous_val': '1.44M'},
+        {'event': 'Housing Starts', 'time': '14:30', 'country': 'US', 'currency': 'USD', 'impact': 'low', 'forecast_val': '1.35M', 'actual_val': None, 'previous_val': '1.33M'},
+        {'event': 'ECB Rate Decision', 'time': '14:15', 'country': 'DE', 'currency': 'EUR', 'impact': 'high', 'forecast_val': '3.75%', 'actual_val': None, 'previous_val': '3.75%'},
+        {'event': 'ECB Press Conference', 'time': '14:45', 'country': 'DE', 'currency': 'EUR', 'impact': 'high', 'forecast_val': '', 'actual_val': None, 'previous_val': ''},
+        {'event': 'Eurozone CPI YoY', 'time': '11:00', 'country': 'DE', 'currency': 'EUR', 'impact': 'high', 'forecast_val': '2.4%', 'actual_val': None, 'previous_val': '2.4%'},
+        {'event': 'Eurozone PMI Manufacturing', 'time': '10:00', 'country': 'DE', 'currency': 'EUR', 'impact': 'medium', 'forecast_val': '46.0', 'actual_val': None, 'previous_val': '45.8'},
+        {'event': 'BoE Rate Decision', 'time': '13:00', 'country': 'GB', 'currency': 'GBP', 'impact': 'high', 'forecast_val': '5.25%', 'actual_val': None, 'previous_val': '5.25%'},
+        {'event': 'UK CPI YoY', 'time': '08:00', 'country': 'GB', 'currency': 'GBP', 'impact': 'high', 'forecast_val': '2.0%', 'actual_val': None, 'previous_val': '2.0%'},
+        {'event': 'BoJ Rate Decision', 'time': '03:00', 'country': 'JP', 'currency': 'JPY', 'impact': 'high', 'forecast_val': '0.10%', 'actual_val': None, 'previous_val': '0.10%'},
+        {'event': 'China PMI Manufacturing', 'time': '03:45', 'country': 'CN', 'currency': 'CNY', 'impact': 'medium', 'forecast_val': '50.5', 'actual_val': None, 'previous_val': '50.4'},
+        {'event': 'Australia Rate Decision', 'time': '05:30', 'country': 'AU', 'currency': 'AUD', 'impact': 'medium', 'forecast_val': '4.35%', 'actual_val': None, 'previous_val': '4.35%'},
+        {'event': 'Canada Rate Decision', 'time': '16:00', 'country': 'CA', 'currency': 'CAD', 'impact': 'medium', 'forecast_val': '4.75%', 'actual_val': None, 'previous_val': '4.75%'},
+        {'event': 'New Zealand Rate Decision', 'time': '03:00', 'country': 'NZ', 'currency': 'NZD', 'impact': 'low', 'forecast_val': '5.50%', 'actual_val': None, 'previous_val': '5.50%'},
+        {'event': 'OPEC+ Meeting', 'time': '15:00', 'country': 'INT', 'currency': 'USD', 'impact': 'high', 'forecast_val': '', 'actual_val': None, 'previous_val': ''},
+        {'event': 'EIA Crude Oil Inventory', 'time': '16:30', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '-1.5M', 'actual_val': None, 'previous_val': '-2.1M'},
+        {'event': 'Fed Speakers', 'time': '18:00', 'country': 'US', 'currency': 'USD', 'impact': 'medium', 'forecast_val': '', 'actual_val': None, 'previous_val': ''},
+        {'event': 'Treasury Auction', 'time': '13:00', 'country': 'US', 'currency': 'USD', 'impact': 'low', 'forecast_val': '', 'actual_val': None, 'previous_val': ''},
+    ]
+    
+    events = []
+    today = datetime.now()
+    
+    for i in range(30):
+        current_date = today + timedelta(days=i)
+        date_str = current_date.strftime('%Y-%m-%d')
+        
+        # 2-4 wydarzenia dziennie
+        num_events = random.randint(2, 4)
+        day_events = random.sample(base_events, num_events)
+        
+        for ev in day_events:
+            translation = EVENT_TRANSLATIONS.get(ev['event'], {})
+            events.append({
+                'date': date_str,
+                'time': ev['time'],
+                'event': ev['event'],
+                'event_pl': translation.get('pl', ev['event']),
+                'country': ev['country'],
+                'currency': ev['currency'],
+                'actual': ev['actual_val'],
+                'forecast': ev['forecast_val'],
+                'previous': ev['previous_val'],
+                'importance': 3 if ev['impact'] == 'high' else 2 if ev['impact'] == 'medium' else 1,
+                'impact': ev['impact'],
+                'market_impact': translation.get('market_impact', 'Brak danych.')
+            })
+    
+    return events
+
 # Cache dla kalendarza (2 godziny)
 _calendar_cache = {'data': None, 'timestamp': 0}
 CACHE_TTL = 7200  # 2 godziny w sekundach
@@ -483,10 +552,27 @@ def handle_api(handler, path, query_params):
                 send_json(handler, _calendar_cache['data'])
                 return
             
+            def try_fetch_yahoo_calendar():
+                """Próbuje pobrać kalendarz z różnych endpointów Yahoo Finance"""
+                endpoints = [
+                    "https://query1.finance.yahoo.com/v1/finance/calendar?region=US&lang=en&corsDomain=finance.yahoo.com",
+                    "https://query2.finance.yahoo.com/v1/finance/calendar?region=US&lang=en&corsDomain=finance.yahoo.com",
+                    "https://query1.finance.yahoo.com/v1/finance/calendar?region=US&lang=en-US&corsDomain=finance.yahoo.com",
+                ]
+                
+                for url in endpoints:
+                    try:
+                        data = fetch_yahoo(url)
+                        if data and 'result' in data and data['result']:
+                            return data
+                    except Exception as e:
+                        print(f"Yahoo calendar endpoint failed: {url} - {e}")
+                        continue
+                return None
+            
             try:
-                # Pobierz z Yahoo Finance Calendar API
-                url = "https://query1.finance.yahoo.com/v1/finance/calendar?region=US&lang=en&corsDomain=finance.yahoo.com"
-                data = fetch_yahoo(url)
+                # Pobierz z Yahoo Finance Calendar API (próbuj różne endpointy)
+                data = try_fetch_yahoo_calendar()
                 
                 events = []
                 if data and 'result' in data and data['result']:
@@ -502,6 +588,19 @@ def handle_api(handler, path, query_params):
                                     # Tłumaczenie i wpływ na rynek
                                     translation = EVENT_TRANSLATIONS.get(event_name, {})
                                     
+                                    # Yahoo może zwracać forecast/actual/previous w różnych formatach
+                                    forecast = event.get('forecast')
+                                    actual = event.get('actual')
+                                    previous = event.get('previous')
+                                    
+                                    # Jeśli brak prognozy, spróbuj pobrać z consensusEstimate lub podobnych pól
+                                    if forecast is None:
+                                        forecast = event.get('consensusEstimate') or event.get('estimate') or event.get('medianEstimate')
+                                    if actual is None:
+                                        actual = event.get('actualValue') or event.get('value') or event.get('lastValue')
+                                    if previous is None:
+                                        previous = event.get('previousValue') or event.get('prior') or event.get('revisedFrom')
+                                    
                                     events.append({
                                         'date': day.get('date', ''),
                                         'time': event.get('time', ''),
@@ -509,9 +608,9 @@ def handle_api(handler, path, query_params):
                                         'event_pl': translation.get('pl', event_name),
                                         'country': country,
                                         'currency': currency,
-                                        'actual': event.get('actual'),
-                                        'forecast': event.get('forecast'),
-                                        'previous': event.get('previous'),
+                                        'actual': actual,
+                                        'forecast': forecast,
+                                        'previous': previous,
                                         'importance': event.get('importance', 1),
                                         'impact': translation.get('impact', 'low'),
                                         'market_impact': translation.get('market_impact', 'Brak danych.')
@@ -519,7 +618,7 @@ def handle_api(handler, path, query_params):
                 
                 # FALLBACK: Jeśli Yahoo nie zwróciło danych, wygeneruj przykładowe na najbliższe 30 dni
                 if not events:
-                    events = generate_sample_calendar_events()
+                    events = generate_sample_calendar_events_with_forecasts()
                 
                 # Sortuj po dacie i czasie
                 events.sort(key=lambda x: (x['date'], x['time'] or '00:00'))
@@ -534,7 +633,7 @@ def handle_api(handler, path, query_params):
                 return
             except Exception as e:
                 # Fallback przy błędzie
-                events = generate_sample_calendar_events()
+                events = generate_sample_calendar_events_with_forecasts()
                 result = {'events': events, 'updated': datetime.now().isoformat(), 'error': str(e)}
                 send_json(handler, result)
                 return

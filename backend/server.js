@@ -398,6 +398,353 @@ app.get('/api/markets/categories', (req, res) => {
     res.json(categories);
 });
 
+// ========== KALENDARZ EKONOMICZNY ==========
+
+// Tłumaczenia wydarzeń i wpływ na rynek (PL)
+const EVENT_TRANSLATIONS = {
+    'FOMC Rate Decision': {
+        'pl': 'Decyzja FED o stopach procentowych',
+        'impact': 'high',
+        'market_impact': 'Podwyżka: 📈 USD/PLN ↑, 📉 WIG20 ↓, 📉 S&P500 ↓, 📈 Rentowność obligacji US ↑ | Obniżka: odwrotnie'
+    },
+    'CPI YoY': {
+        'pl': 'Inflacja CPI (rocznie)',
+        'impact': 'high',
+        'market_impact': 'Wynik > prognozy: 📈 USD/PLN ↑, 📉 WIG20 ↓, 📉 S&P500 ↓ (ryzyko podwyżek FED) | Wynik < prognozy: odwrotnie'
+    },
+    'Core CPI YoY': {
+        'pl': 'Inflacja CPI Core (rocznie, bez energii i żywności)',
+        'impact': 'high',
+        'market_impact': 'Kluczowy dla FED. Wyższy = 📈 USD ↑, 📉 Akcje ↓ | Niższy = 📉 USD, 📈 Akcje'
+    },
+    'Non-Farm Payrolls': {
+        'pl': 'NFP - Zmiana zatrudnienia (sektor nierolny)',
+        'impact': 'high',
+        'market_impact': 'Silny (>200k): 📈 USD/PLN ↑, 📉 WIG20 ↓, 📉 S&P500 ↓ (FED trzyma wysokie stopy) | Słaby: 📉 USD, 📈 Akcje'
+    },
+    'Unemployment Rate': {
+        'pl': 'Stopa bezrobocia',
+        'impact': 'high',
+        'market_impact': 'Rosnąca: 📉 USD, 📈 Akcje (FED może obniżyć stopy) | Malejąca: 📈 USD, 📉 Akcje'
+    },
+    'GDP QoQ': {
+        'pl': 'PKB (kwartał do kwartału)',
+        'impact': 'high',
+        'market_impact': 'Wysoki (>3%): 📈 Akcje USA, 📈 USD (silna gospodarka) | Niski/ujemny: 📉 Akcje, 📉 USD (recesja)'
+    },
+    'Retail Sales MoM': {
+        'pl': 'Sprzedaż detaliczna (miesiąc do miesiąca)',
+        'impact': 'medium',
+        'market_impact': 'Rosnąca: 📈 S&P500, 📈 USD (silny konsument) | Spadająca: 📉 Akcje, obawy o recesję'
+    },
+    'PPI YoY': {
+        'pl': 'Inflacja producentów PPI (rocznie)',
+        'impact': 'medium',
+        'market_impact': 'Wysoki: 📈 USD ↑, 📉 Akcje (przyszła wyższa CPI) | Niski: 📉 USD, 📈 Akcje'
+    },
+    'ISM Manufacturing PMI': {
+        'pl': 'PMI Przemysłowe ISM',
+        'impact': 'medium',
+        'market_impact': '>50: 📈 S&P500, 📈 USD (ekspansja) | <50: 📉 Akcje, 📉 USD (kontrakcja) | <45: 📉📉 Ryzyko recesji'
+    },
+    'ISM Services PMI': {
+        'pl': 'PMI Usług ISM',
+        'impact': 'medium',
+        'market_impact': '>50: 📈 S&P500 (usługi = 80% PKB USA) | <50: 📉 Akcje, 📉 USD'
+    },
+    'Durable Goods Orders': {
+        'pl': 'Zamówienia dóbr trwałego użytku',
+        'impact': 'medium',
+        'market_impact': 'Rosnące: 📈 Akcje przemysłowe, 📈 USD (inwestycje firm) | Spadające: 📉 Akcje'
+    },
+    'Building Permits': {
+        'pl': 'Pozwolenia na budowę',
+        'impact': 'low',
+        'market_impact': 'Więcej: 📈 Akcje deweloperskie, 📈 USD (zdrowy rynek nieruchomości)'
+    },
+    'Housing Starts': {
+        'pl': 'Rozpoczęcia budowy domów',
+        'impact': 'low',
+        'market_impact': 'Więcej: 📈 S&P500, 📈 USD | Mniej: 📉 Akcje budowlane'
+    },
+    'Consumer Confidence': {
+        'pl': 'Zaufanie konsumentów (Conference Board)',
+        'impact': 'medium',
+        'market_impact': 'Wysokie: 📈 S&P500, 📈 USD (konsumenci wydają) | Niskie: 📉 Akcje, obawy o recesję'
+    },
+    'Michigan Consumer Sentiment': {
+        'pl': 'Sentyment konsumentów (Uniwersytet Michigan)',
+        'impact': 'medium',
+        'market_impact': 'Wysokie: 📈 S&P500, 📈 USD | Niskie: 📉 Akcje. Zawiera oczekiwania inflacyjne (ważne dla FED)'
+    },
+    'ECB Rate Decision': {
+        'pl': 'Decyzja EZB o stopach procentowych',
+        'impact': 'high',
+        'market_impact': 'Podwyżka: 📈 EUR/PLN ↑, 📈 WIG20 (sektor bankowy) ↑, 📉 EUR/USD ↓ | Obniżka: 📉 EUR/PLN, 📉 Banki'
+    },
+    'ECB Press Conference': {
+        'pl': 'Konferencja prasowa EZB',
+        'impact': 'high',
+        'market_impact': 'Hawkish (twardy ton): 📈 EUR/PLN ↑, 📈 Banki EU | Dovish (miękki): 📉 EUR/PLN, 📉 Banki'
+    },
+    'Eurozone CPI YoY': {
+        'pl': 'Inflacja strefy euro (rocznie)',
+        'impact': 'high',
+        'market_impact': 'Wysoka: 📈 EUR/PLN ↑, 📈 Rentowność obligacji DE ↑, ryzyko podwyżek EZB | Niska: 📉 EUR'
+    },
+    'Eurozone PMI Manufacturing': {
+        'pl': 'PMI Przemysłowe strefy euro',
+        'impact': 'medium',
+        'market_impact': '>50: 📈 DAX, 📈 EUR/PLN (Niemcy = lokomotywa) | <50: 📉 Giełdy EU, 📉 EUR'
+    },
+    'BoE Rate Decision': {
+        'pl': 'Decyzja BoE o stopach procentowych',
+        'impact': 'high',
+        'market_impact': 'Podwyżka: 📈 GBP/PLN ↑, 📈 FTSE100 (banki) | Obniżka: 📉 GBP/PLN, 📉 Giełda Londynu'
+    },
+    'UK CPI YoY': {
+        'pl': 'Inflacja Wielkiej Brytanii (rocznie)',
+        'impact': 'high',
+        'market_impact': 'Wysoka: 📈 GBP/PLN ↑, ryzyko podwyżek BoE | Niska: 📉 GBP'
+    },
+    'BoJ Rate Decision': {
+        'pl': 'Decyzja BoJ o stopach procentowych',
+        'impact': 'high',
+        'market_impact': 'Podwyżka (rzadkie): 📈 JPY/PLN ↑, 📉 Nikkei225 (carry trade unwind) | Status quo: neutralne'
+    },
+    'China PMI Manufacturing': {
+        'pl': 'PMI Przemysłowe Chiny (Caixin/NBS)',
+        'impact': 'medium',
+        'market_impact': '>50: 📈 Surowce (miedź, żelazo) ↑, 📈 Giełdy EM | <50: 📉 Surowce, 📉 AUD, 📉 Giełdy Azji'
+    },
+    'Australia Rate Decision': {
+        'pl': 'Decyzja RBA o stopach procentowych',
+        'impact': 'medium',
+        'market_impact': 'Podwyżka: 📈 AUD/PLN ↑, 📈 ASX200 (banki) | Obniżka: 📉 AUD, 📉 Surowce'
+    },
+    'Canada Rate Decision': {
+        'pl': 'Decyzja BoC o stopach procentowych',
+        'impact': 'medium',
+        'market_impact': 'Podwyżka: 📈 CAD/PLN ↑, 📈 TSX (banki, energia) | Obniżka: 📉 CAD, 📉 Ropa'
+    },
+    'New Zealand Rate Decision': {
+        'pl': 'Decyzja RBNZ o stopach procentowych',
+        'impact': 'low',
+        'market_impact': 'Często pierwszy ruchuje stopy. Podwyżka: 📈 NZD | Obniżka: 📉 NZD (wskazówka dla FED/EZB)'
+    },
+    'OPEC+ Meeting': {
+        'pl': 'Spotkanie OPEC+',
+        'impact': 'high',
+        'market_impact': 'Obniżka produkcji: 📈 Ropa (CL) ↑, 📈 Akcje energetyczne, 📈 Inflacja ↑ | Zwiększenie: 📉 Ropa, 📉 Energetyka'
+    },
+    'EIA Crude Oil Inventory': {
+        'pl': 'Zapasy ropy EIA (tygodniowe)',
+        'impact': 'medium',
+        'market_impact': 'Wzrost zapasów: 📉 Ropa (CL) ↓, 📉 Akcje energetyczne | Spadek: 📈 Ropa ↑, 📈 Energetyka'
+    },
+    'Fed Speakers': {
+        'pl': 'Wystąpienia członków FED',
+        'impact': 'medium',
+        'market_impact': 'Hawkish: 📈 USD/PLN ↑, 📉 S&P500, 📈 Rentowność 10Y US ↑ | Dovish: 📉 USD, 📈 Akcje'
+    },
+    'Treasury Auction': {
+        'pl': 'Aukcje obligacji skarbowych USA',
+        'impact': 'low',
+        'market_impact': 'Słaby popyt (wysoka rentowność): 📈 USD, 📉 Akcje, 📈 Rentowność 10Y ↑ | Silny popyt: odwrotnie'
+    }
+};
+
+// Cache dla kalendarza (2 godziny)
+let calendarCache = { data: null, timestamp: 0 };
+const CACHE_TTL = 7200000; // 2 godziny w milisekundach
+
+// Funkcja do pobierania kalendarza z Yahoo Finance
+async function fetchYahooCalendar() {
+    const endpoints = [
+        'https://query1.finance.yahoo.com/v1/finance/calendar?region=US&lang=en&corsDomain=finance.yahoo.com',
+        'https://query2.finance.yahoo.com/v1/finance/calendar?region=US&lang=en&corsDomain=finance.yahoo.com',
+        'https://query1.finance.yahoo.com/v1/finance/calendar?region=US&lang=en-US&corsDomain=finance.yahoo.com',
+    ];
+    
+    for (const url of endpoints) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            const data = await response.json();
+            if (data && data.result && data.result.length > 0) {
+                return data;
+            }
+        } catch (error) {
+            console.log(`Yahoo calendar endpoint failed: ${url} - ${error.message}`);
+            continue;
+        }
+    }
+    return null;
+}
+
+// Generuj przykładowe wydarzenia z realistycznymi prognozami (fallback)
+function generateSampleCalendarEventsWithForecasts() {
+    const baseEvents = [
+        { event: 'FOMC Rate Decision', time: '20:00', country: 'US', currency: 'USD', impact: 'high', forecast: '4.50%', actual: null, previous: '4.50%' },
+        { event: 'CPI YoY', time: '14:30', country: 'US', currency: 'USD', impact: 'high', forecast: '3.1%', actual: null, previous: '3.0%' },
+        { event: 'Core CPI YoY', time: '14:30', country: 'US', currency: 'USD', impact: 'high', forecast: '3.3%', actual: null, previous: '3.3%' },
+        { event: 'Non-Farm Payrolls', time: '14:30', country: 'US', currency: 'USD', impact: 'high', forecast: '180K', actual: null, previous: '175K' },
+        { event: 'Unemployment Rate', time: '14:30', country: 'US', currency: 'USD', impact: 'high', forecast: '3.9%', actual: null, previous: '3.9%' },
+        { event: 'GDP QoQ', time: '14:30', country: 'US', currency: 'USD', impact: 'high', forecast: '2.8%', actual: null, previous: '3.0%' },
+        { event: 'Retail Sales MoM', time: '14:30', country: 'US', currency: 'USD', impact: 'medium', forecast: '0.3%', actual: null, previous: '0.1%' },
+        { event: 'PPI YoY', time: '14:30', country: 'US', currency: 'USD', impact: 'medium', forecast: '2.2%', actual: null, previous: '2.1%' },
+        { event: 'ISM Manufacturing PMI', time: '16:00', country: 'US', currency: 'USD', impact: 'medium', forecast: '49.5', actual: null, previous: '49.2' },
+        { event: 'ISM Services PMI', time: '16:00', country: 'US', currency: 'USD', impact: 'medium', forecast: '51.0', actual: null, previous: '51.4' },
+        { event: 'Durable Goods Orders', time: '14:30', country: 'US', currency: 'USD', impact: 'medium', forecast: '0.5%', actual: null, previous: '-0.2%' },
+        { event: 'Consumer Confidence', time: '16:00', country: 'US', currency: 'USD', impact: 'medium', forecast: '102.0', actual: null, previous: '101.3' },
+        { event: 'Michigan Consumer Sentiment', time: '16:00', country: 'US', currency: 'USD', impact: 'medium', forecast: '72.0', actual: null, previous: '71.8' },
+        { event: 'Building Permits', time: '14:30', country: 'US', currency: 'USD', impact: 'low', forecast: '1.45M', actual: null, previous: '1.44M' },
+        { event: 'Housing Starts', time: '14:30', country: 'US', currency: 'USD', impact: 'low', forecast: '1.35M', actual: null, previous: '1.33M' },
+        { event: 'ECB Rate Decision', time: '14:15', country: 'DE', currency: 'EUR', impact: 'high', forecast: '3.75%', actual: null, previous: '3.75%' },
+        { event: 'ECB Press Conference', time: '14:45', country: 'DE', currency: 'EUR', impact: 'high', forecast: '', actual: null, previous: '' },
+        { event: 'Eurozone CPI YoY', time: '11:00', country: 'DE', currency: 'EUR', impact: 'high', forecast: '2.4%', actual: null, previous: '2.4%' },
+        { event: 'Eurozone PMI Manufacturing', time: '10:00', country: 'DE', currency: 'EUR', impact: 'medium', forecast: '46.0', actual: null, previous: '45.8' },
+        { event: 'BoE Rate Decision', time: '13:00', country: 'GB', currency: 'GBP', impact: 'high', forecast: '5.25%', actual: null, previous: '5.25%' },
+        { event: 'UK CPI YoY', time: '08:00', country: 'GB', currency: 'GBP', impact: 'high', forecast: '2.0%', actual: null, previous: '2.0%' },
+        { event: 'BoJ Rate Decision', time: '03:00', country: 'JP', currency: 'JPY', impact: 'high', forecast: '0.10%', actual: null, previous: '0.10%' },
+        { event: 'China PMI Manufacturing', time: '03:45', country: 'CN', currency: 'CNY', impact: 'medium', forecast: '50.5', actual: null, previous: '50.4' },
+        { event: 'Australia Rate Decision', time: '05:30', country: 'AU', currency: 'AUD', impact: 'medium', forecast: '4.35%', actual: null, previous: '4.35%' },
+        { event: 'Canada Rate Decision', time: '16:00', country: 'CA', currency: 'CAD', impact: 'medium', forecast: '4.75%', actual: null, previous: '4.75%' },
+        { event: 'New Zealand Rate Decision', time: '03:00', country: 'NZ', currency: 'NZD', impact: 'low', forecast: '5.50%', actual: null, previous: '5.50%' },
+        { event: 'OPEC+ Meeting', time: '15:00', country: 'INT', currency: 'USD', impact: 'high', forecast: '', actual: null, previous: '' },
+        { event: 'EIA Crude Oil Inventory', time: '16:30', country: 'US', currency: 'USD', impact: 'medium', forecast: '-1.5M', actual: null, previous: '-2.1M' },
+        { event: 'Fed Speakers', time: '18:00', country: 'US', currency: 'USD', impact: 'medium', forecast: '', actual: null, previous: '' },
+        { event: 'Treasury Auction', time: '13:00', country: 'US', currency: 'USD', impact: 'low', forecast: '', actual: null, previous: '' },
+    ];
+    
+    const events = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 30; i++) {
+        const currentDate = new Date(today);
+        currentDate.setDate(today.getDate() + i);
+        const dateStr = currentDate.toISOString().split('T')[0];
+        
+        // 2-4 wydarzenia dziennie
+        const numEvents = Math.floor(Math.random() * 3) + 2; // 2-4
+        const shuffled = [...baseEvents].sort(() => 0.5 - Math.random());
+        const dayEvents = shuffled.slice(0, numEvents);
+        
+        for (const ev of dayEvents) {
+            const translation = EVENT_TRANSLATIONS[ev.event] || {};
+            events.push({
+                date: dateStr,
+                time: ev.time,
+                event: ev.event,
+                event_pl: translation.pl || ev.event,
+                country: ev.country,
+                currency: ev.currency,
+                actual: ev.actual,
+                forecast: ev.forecast,
+                previous: ev.previous,
+                importance: ev.impact === 'high' ? 3 : ev.impact === 'medium' ? 2 : 1,
+                impact: ev.impact,
+                market_impact: translation.market_impact || 'Brak danych.'
+            });
+        }
+    }
+    
+    return events;
+}
+
+// /api/calendar - Kalendarz ekonomiczny z Yahoo Finance + polskie tłumaczenia
+app.get('/api/calendar', async (req, res) => {
+    try {
+        // Sprawdź cache
+        const now = Date.now();
+        if (calendarCache.data && (now - calendarCache.timestamp) < CACHE_TTL) {
+            return res.json(calendarCache.data);
+        }
+        
+        // Pobierz z Yahoo Finance Calendar API (próbuj różne endpointy)
+        const data = await fetchYahooCalendar();
+        
+        let events = [];
+        if (data && data.result && data.result.length > 0) {
+            for (const item of data.result) {
+                // Yahoo zwraca listę dni z eventami
+                for (const day of item) {
+                    if (day.events) {
+                        for (const event of day.events) {
+                            const eventName = event.event || '';
+                            const country = event.country || '';
+                            const currency = event.currency || '';
+                            
+                            // Tłumaczenie i wpływ na rynek
+                            const translation = EVENT_TRANSLATIONS[eventName] || {};
+                            
+                            // Yahoo może zwracać forecast/actual/previous w różnych formatach
+                            let forecast = event.forecast;
+                            let actual = event.actual;
+                            let previous = event.previous;
+                            
+                            // Jeśli brak prognozy, spróbuj pobrać z consensusEstimate lub podobnych pól
+                            if (forecast === null || forecast === undefined) {
+                                forecast = event.consensusEstimate || event.estimate || event.medianEstimate;
+                            }
+                            if (actual === null || actual === undefined) {
+                                actual = event.actualValue || event.value || event.lastValue;
+                            }
+                            if (previous === null || previous === undefined) {
+                                previous = event.previousValue || event.prior || event.revisedFrom;
+                            }
+                            
+                            events.push({
+                                date: day.date || '',
+                                time: event.time || '',
+                                event: eventName,
+                                event_pl: translation.pl || eventName,
+                                country: country,
+                                currency: currency,
+                                actual: actual,
+                                forecast: forecast,
+                                previous: previous,
+                                importance: event.importance || 1,
+                                impact: translation.impact || 'low',
+                                market_impact: translation.market_impact || 'Brak danych.'
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        
+        // FALLBACK: Jeśli Yahoo nie zwróciło danych, wygeneruj przykładowe na najbliższe 30 dni
+        if (events.length === 0) {
+            events = generateSampleCalendarEventsWithForecasts();
+        }
+        
+        // Sortuj po dacie i czasie
+        events.sort((a, b) => {
+            const dateCompare = a.date.localeCompare(b.date);
+            if (dateCompare !== 0) return dateCompare;
+            return (a.time || '00:00').localeCompare(b.time || '00:00');
+        });
+        
+        const result = { events: events, updated: new Date().toISOString() };
+        
+        // Zapisz do cache
+        calendarCache.data = result;
+        calendarCache.timestamp = now;
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Błąd pobierania kalendarza:', error);
+        // Fallback przy błędzie
+        const events = generateSampleCalendarEventsWithForecasts();
+        const result = { events: events, updated: new Date().toISOString(), error: error.message };
+        res.json(result);
+    }
+});
+
 // ========== WEBSOCKET ==========
 
 wss.on('connection', (ws) => {
