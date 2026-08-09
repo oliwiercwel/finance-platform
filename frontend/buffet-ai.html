@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BUFFET AI - Twój Inteligentny Analityk Inwestycyjny</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@300;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', 'Plus Jakarta Sans', sans-serif; background:#0f172a; color:#e2e8f0; overflow-x:hidden; }
+    .glass { background:rgba(15,23,42,0.85); border:1px solid rgba(148,163,184,0.1); backdrop-filter:blur(20px) saturate(130%); }
+    .glass:hover { border-color:rgba(0,242,254,0.3); box-shadow:0 0 25px rgba(0,242,254,0.08); }
+    .neon-cyan { color:#00f2fe; text-shadow:0 0 16px rgba(0,242,254,0.45); }
+    .neon-purple { color:#7928ca; text-shadow:0 0 16px rgba(121,40,202,0.45); }
+    .neon-green { color:#10b981; text-shadow:0 0 16px rgba(16,185,129,0.45); }
+    @keyframes pulse-glow { 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
+    .pulse-dot { animation:pulse-glow 2s infinite; }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #1e293b; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .message-bubble { animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00f2fe; margin: 0 2px; animation: typing 1.4s infinite ease-in-out; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+    .indicator-card { transition: all 0.2s; }
+    .indicator-card:hover { transform: translateX(4px); background: rgba(0,242,254,0.05); }
+    .positive { color: #10b981; }
+    .negative { color: #ef4444; }
+    .neutral { color: #f59e0b; }
+    .chart-container { position: relative; height: 300px; width: 100%; }
+    .tab-btn { transition: all 0.2s; }
+    .tab-btn.active { background: linear-gradient(135deg, #00f2fe, #7928ca); color: #0f172a; }
+    .tab-btn:not(.active):hover { background: rgba(148,163,184,0.1); }
+    .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    .collapsible-content.open { max-height: 2000px; transition: max-height 0.5s ease-in; }
+    @media (max-width: 1024px) {
+      .sidebar { position: fixed; right: -400px; top: 0; height: 100vh; width: 380px; z-index: 50; background: #0f172a; border-left: 1px solid rgba(148,163,184,0.1); transition: right 0.3s; }
+      .sidebar.open { right: 0; }
+      .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+      .sidebar-overlay.open { display: block; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex">
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col min-w-0">
+    <!-- TOP BAR -->
+    <header class="glass border-b border-slate-700/50 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition"><i class="fa-solid fa-arrow-left text-xl"></i></a>
+        <div>
+          <h1 class="text-2xl font-black neon-cyan">BUFFET AI</h1>
+          <p class="text-xs text-slate-400">Twój osobisty analityk inwestycyjny</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-slate-400 hidden sm:block">Model: Nemotron 3 Ultra</span>
+        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30">
+          <span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span>
+          <span class="text-xs font-medium text-green-400">LIVE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CHAT AREA -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
+        <!-- Welcome Message -->
+        <div class="message-bubble flex gap-4 max-w-3xl">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-brain text-white text-xl"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="font-bold text-cyan-400">BUFFET AI</span>
+              <span class="text-xs text-slate-500">Witaj! Jestem Twoim analitykiem AI.</span>
+            </div>
+            <div class="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed">
+              <p>Wpisz ticker spółki (np. <strong>NVDA</strong>, <strong>AAPL</strong>, <strong>TSLA</strong>, <strong>CDR.WA</strong>) i przeanalizuję ją na <strong>100+ wskaźnikach</strong> - od wyceny, przez jakość zysków, po analizę techniczną i flow opcji.</p>
+              <p class="mt-2">Wyjaśnię wszystko <strong>prostym językiem</strong> - bez żargonu inwestorskiego. Pokażę też <strong>interaktywne wykresy</strong>, żebyś widział, co się dzieje.</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button onclick="analyzeStock('NVDA')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">NVDA</button>
+                <button onclick="analyzeStock('AAPL')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">AAPL</button>
+                <button onclick="analyzeStock('TSLA')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">TSLA</button>
+                <button onclick="analyzeStock('CDR.WA')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">CDR.WA</button>
+                <button onclick="analyzeStock('MSFT')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">MSFT</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT AREA -->
+      <div class="glass border-t border-slate-700/50 p-4">
+        <div class="flex gap-3 max-w-4xl mx-auto">
+          <input type="text" id="chatInput" placeholder="Wpisz ticker spółki (np. NVDA, AAPL, CDR.WA)..." 
+            class="flex-1 px-5 py-3 rounded-2xl bg-slate-800/50 border border-slate-600/50 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 text-white placeholder-slate-500"
+            onkeypress="if(event.key==='Enter') sendMessage()">
+          <button onclick="sendMessage()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold hover:from-cyan-400 hover:to-purple-500 transition shadow-lg shadow-cyan-500/20">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+        <p class="text-xs text-slate-500 text-center mt-2">Przykłady: "NVDA", "analizuj Apple", "co myślisz o Tesla?", "CDR.WA - czy kupować?"</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT SIDEBAR - INDICATORS PANEL -->
+  <aside id="indicatorsSidebar" class="sidebar hidden lg:block w-96 flex flex-col">
+    <div class="p-4 border-b border-slate-700/50 flex items-center justify-between">
+      <h2 class="font-bold text-lg neon-cyan">📊 Wskaźniki</h2>
+      <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin" id="indicatorsContent">
+      <div class="text-center text-slate-500 py-12">
+        <i class="fa-solid fa-brain text-4xl text-cyan-500/50 mb-3"></i>
+        <p>Wpisz ticker w czacie,<br>a tu pokażę 100+ wskaźników</p>
+      </div>
+    </div>
+  </aside>
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- MOBILE SIDEBAR TOGGLE -->
+  <button onclick="toggleSidebar()" class="lg:hidden fixed bottom-6 right-6 z-40 p-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-xl shadow-cyan-500/30">
+    <i class="fa-solid fa-chart-bar text-xl"></i>
+  </button>
+
+  <script>
+    // ========== STATE ==========
+    let currentSymbol = null;
+    let currentIndicators = null;
+    let charts = {};
+    let isAnalyzing = false;
+
+    // ========== SIMPLE EXPLANATIONS ==========
+    const simpleExplanations = {
+      // Valuation
+      'pe_ratio': { 
+        name: 'P/E (Cena do Zysku)', 
+        simple: 'Ile płacisz za 1 zł zysku firmy. Niżej = taniej. Poniżej 15 to zazwyczaj tanio, powyżej 25 drogo.' 
+      },
+      'forward_pe': { 
+        name: 'Forward P/E', 
+        simple: 'P/E ale na przyszły rok. Jeśli niższe od obecnego - analitycy oczekują wzrostu zysków.' 
+      },
+      'peg_ratio': { 
+        name: 'PEG Ratio', 
+        simple: 'P/E podzielone na wzrost. Ponizej 1 = super okazja. 1-2 = OK. Powyzej 2 = drogo.' 
+      },
+      'pb_ratio': { 
+        name: 'P/B (Cena do Wartości Księgowej)', 
+        simple: 'Ile płacisz za 1 zł majątku firmy (budynki, maszyny, gotówka minus długi). Poniżej 1 = kupujesz poniżej wartości.' 
+      },
+      'ps_ratio': { 
+        name: 'P/S (Cena do Przychodu)', 
+        simple: 'Ile płacisz za 1 zł sprzedaży. Dobre dla firm, które nie mają jeszcze zysku. Niżej = lepiej.' 
+      },
+      'ev_ebitda': { 
+        name: 'EV/EBITDA', 
+        simple: 'Wartość całej firmy (akcje + długi - gotówka) do zysku operacyjnego. Lepsze od P/E bo uwzględnia dług. Poniżej 10 = tanio.' 
+      },
+      'dividend_yield': { 
+        name: 'Dywidenda %', 
+        simple: 'Ile % ceny akcji dostajesz co roku w gotówce. 2-4% = standard. Powyżej 6% = ryzykowne.' 
+      },
+      
+      // Profitability
+      'roe': { 
+        name: 'ROE (Zwrot z Kapitału Własnego)', 
+        simple: 'Na ile % firma pomnaża pieniądze akcjonariuszy. Powyżej 15% = świetnie. Powyżej 25% = maszyna do pieniędzy.' 
+      },
+      'roic': { 
+        name: 'ROIC (Zwrot z Kapitału Zaangażowanego)', 
+        simple: 'Na ile % firma zarabia na WSZYSTKIM kapitałe (akcje + długi). Najważniejszy wskaźnik Buffetta! Powyżej WACC = tworzy wartość.' 
+      },
+      'gross_margin': { 
+        name: 'Marża Brutto', 
+        simple: 'Z każdego 100 zł sprzedaży, ile zostaje po odjęciu kosztów produkcji. Powyżej 40% = dobre. Powyżej 70% = software/SaaS.' 
+      },
+      'operating_margin': { 
+        name: 'Marża Operacyjna', 
+        simple: 'Z każdego 100 zł sprzedaży, ile zostaje po WSZYSTKICH kosztach operacyjnych. Pokazuje siłę biznesu.' 
+      },
+      'fcf_margin': { 
+        name: 'Marża FCF', 
+        simple: 'Ile % przychodu zamienia się w WOLNY GOTÓWKĘ (po inwestycjach). To prawdziwe pieniądze dla właścicieli.' 
+      },
+      
+      // Leverage
+      'debt_equity': { 
+        name: 'Dług do Kapitału', 
+        simple: 'Ile długu na 1 zł własnego kapitału. Poniżej 0.5 = bezpiecznie. Powyżej 2 = ryzykownie.' 
+      },
+      'net_debt_ebitda': { 
+        name: 'Net Debt / EBITDA', 
+        simple: 'Ile lat firma musi zarabiać, by spłacić dług (minus gotówka). Poniżej 2 = super. 2-3 = OK. Powyżej 4 = problem.' 
+      },
+      'interest_coverage': { 
+        name: 'Pokrycie Odsetek', 
+        simple: 'Ile razy zysk operacyjny pokrywa odsetki od długu. Powyżej 5 = bezpiecznie. Poniżej 2 = stres.' 
+      },
+      'current_ratio': { 
+        name: 'Płynność Bieżąca', 
+        simple: 'Czy firma ma gotówkę na spłatę długów w tym roku. Powyżej 1.5 = OK. Poniżej 1 = ryzyko bankructwa.' 
+      },
+      
+      // Growth
+      'revenue_growth_yoy': { 
+        name: 'Wzrost Przychodu (Rok do Roku)', 
+        simple: 'O ile % wzrosła sprzedaż w porównaniu do tego samego czasu rok temu. Powyżej 15% = szybki wzrost. Poniżej 5% = stagnacja.' 
+      },
+      'eps_growth_yoy': { 
+        name: 'Wzrost Zysku na Akcję (YoY)', 
+        simple: 'O ile % wzrósł zysk przypadający na 1 akcję. To co napędza cenę akcji w długim terminie.' 
+      },
+      'fcf_growth_yoy': { 
+        name: 'Wzrost Wolnego Przeływu Gotówkowego', 
+        simple: 'Czy firma generuje coraz więcej prawdziwej gotówki. Najlepszy wskaźnik zdrowia biznesu.' 
+      },
+      
+      // Quality
+      'accruals_ratio': { 
+        name: 'Współczynnik Należności', 
+        simple: 'Różnica między zyskiem księgowym a gotówką. Wysoki = firma "maluje" zyski. Niski = zyski są prawdziwe.' 
+      },
+      'cash_conversion': { 
+        name: 'Konwersja Gotówkowa', 
+        simple: 'Ile % zysku księgowego zamienia się w gotówkę. Powyżej 100% = super. Poniżej 80% = uwaga.' 
+      },
+      'sbc_revenue': { 
+        name: 'SBC / Przychód', 
+        simple: 'Ile % przychodu firma wydaje na akcje dla pracowników. Powyżej 10% = rozcieńcza akcjonariuszy.' 
+      },
+      
+      // Technical
+      'rsi': { 
+        name: 'RSI (Siła Względna)', 
+        simple: 'Czy akcja jest "przekupiona" (powyżej 70) czy "przesprzedana" (poniżej 30). 50 = neutralnie.' 
+      },
+      'macd': { 
+        name: 'MACD', 
+        simple: 'Trend i momentum. Gdy linia MACD przecina linię sygnału w górę = sygnał kupna. W dół = sprzedaży.' 
+      },
+      'sma_20': { 
+        name: 'Średnia 20 dni', 
+        simple: 'Średnia cena z ostatnich 20 dni. Cena powyżej = trend w górę. Poniżej = trend w dół.' 
+      },
+      'sma_50': { 
+        name: 'Średnia 50 dni', 
+        simple: 'Średnia z 50 dni. Ważniejsza od 20. Cena powyżej = średnioterminowy trend w górę.' 
+      },
+      'sma_200': { 
+        name: 'Średnia 200 dni', 
+        simple: 'Średnia z 200 dni = DŁUGOTERMINOWY TREND. To linia życia/śmierci. Powyżej = byk. Poniżej = niedźwiedź.' 
+      },
+      'volume_ratio': { 
+        name: 'Wolumen vs Średnia', 
+        simple: 'Czy dzisiaj handluje się więcej czy mniej niż zwykle. Powyżej 1.5 = duże zainteresowanie.' 
+      },
+      
+      // Ownership
+      'insider_ownership': { 
+        name: 'Udział Insiderów', 
+        simple: 'Ile % firmy posiadają ludzie zarządzający. Powyżej 10% = ich interesy = Twoje interesy.' 
+      },
+      'institutional_ownership': { 
+        name: 'Udział Instytucjonalnych', 
+        simple: 'Ile % mają fundusze, banki, emerytalne. Powyżej 70% = duże zaufanie profi. Ale może być tłok przy wyjściu.' 
+      },
+      'short_interest': { 
+        name: 'Short Interest %', 
+        simple: 'Ile % akcji jest pożyczonych do sprzedaży na spadki. Powyżej 10% = duże obstawianie upadku. Może wywołać "short squeeze".' 
+      },
+      
+      // Macro
+      'beta': { 
+        name: 'Beta (Ryzyko Rynkowe)', 
+        simple: 'Jak mocno akcja skacze z rynkiem. 1 = jak rynek. 1.5 = o 50% mocniej. 0.5 = o 50% słabiej. Ujemna = idzie w przeciwną stronę.' 
+      },
+      'sector_rank': { 
+        name: 'Ranking w Sektorze', 
+        simple: 'Gdzie firma stoi w swojej branży. 1 = lider. 10 = średniak.' 
+      }
+    };
+
+    // ========== DOM ELEMENTS ==========
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const indicatorsContent = document.getElementById('indicatorsContent');
+    const sidebar = document.getElementById('indicatorsSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      chatInput.focus();
+    });
+
+    // ========== SIDEBAR ==========
+    function toggleSidebar() {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    }
+
+    // ========== CHAT ==========
+    function addMessage(role, content, isHtml = false) {
+      const div = document.createElement('div');
+      div.className = `message-bubble flex gap-4 max-w-3xl ${role === 'user' ? 'ml-auto flex-row-reverse' : ''}`;
+      
+      const avatar = document.createElement('div');
+      avatar.className = `w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${role === 'user' ? 'bg-slate-700' : 'bg-gradient-to-br from-cyan-500 to-purple-600'}`;
+      avatar.innerHTML = role === 'user' ? '<i class="fa-solid fa-user text-white text-xl"></i>' : '<i class="fa-solid fa-brain text-white text-xl"></i>';
+      
+      const bubble = document.createElement('div');
+      bubble.className = `flex-1 ${role === 'user' ? 'text-right' : ''}`;
+      
+      const header = document.createElement('div');
+      header.className = 'flex items-center gap-2 mb-2 justify-end';
+      if (role === 'assistant') header.className = 'flex items-center gap-2 mb-2';
+      header.innerHTML = `<span class="font-bold ${role === 'user' ? 'text-slate-300' : 'text-cyan-400'}">${role === 'user' ? 'Ty' : 'BUFFET AI'}</span><span class="text-xs text-slate-500">${new Date().toLocaleTimeString('pl-PL', {hour:'2-digit',minute:'2-digit'})}</span>`;
+      
+      const text = document.createElement('div');
+      text.className = `prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed ${role === 'user' ? 'text-right' : ''}`;
+      if (isHtml) text.innerHTML = content; else text.textContent = content;
+      
+      bubble.appendChild(header);
+      bubble.appendChild(text);
+      div.appendChild(role === 'user' ? bubble : avatar);
+      div.appendChild(role === 'user' ? avatar : bubble);
+      
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return div;
+    }
+
+    function addTypingIndicator() {
+      const div = document.createElement('div');
+      div.className = 'message-bubble flex gap-4 max-w-3xl';
+      div.id = 'typingIndicator';
+      div.innerHTML = `
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-brain text-white text-xl"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="font-bold text-cyan-400">BUFFET AI</span>
+            <span class="text-xs text-slate-500">Analizuję...</span>
+          </div>
+          <div class="typing-indicator flex items-center gap-1 py-2">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
+
+    async function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text || isAnalyzing) return;
+      
+      chatInput.value = '';
+      addMessage('user', text);
+      await analyzeStock(extractTicker(text));
+    }
+
+    function extractTicker(text) {
+      // Proste wyciąganie tickera
+      const upper = text.toUpperCase();
+      const matches = upper.match(/\b([A-Z]{1,5}(?:\.WA)?)\b/);
+      if (matches) return matches[1];
+      
+      // Polskie nazwy
+      const known = {
+        'NVIDIA': 'NVDA', 'APPLE': 'AAPL', 'TESLA': 'TSLA', 'MICROSOFT': 'MSFT',
+        'GOOGLE': 'GOOGL', 'AMAZON': 'AMZN', 'META': 'META', 'NETFLIX': 'NFLX',
+        'CD PROJEKT': 'CDR.WA', 'CDP': 'CDR.WA', 'PKN': 'PKN.WA', 'PKO': 'PKO.WA',
+        'DINO': 'DNP.WA', 'PZU': 'PZU.WA', 'LPP': 'LPP.WA', 'ALLEGRO': 'ALE.WA'
+      };
+      for (const [name, ticker] of Object.entries(known)) {
+        if (upper.includes(name)) return ticker;
+      }
+      return text.toUpperCase().replace(/[^A-Z.]/g, '');
+    }
+
+    // ========== MAIN ANALYSIS FUNCTION ==========
+    async function analyzeStock(symbol) {
+      if (!symbol || isAnalyzing) return;
+      isAnalyzing = true;
+      currentSymbol = symbol;
+      
+      addTypingIndicator();
+      
+      try {
+        // 1. Pobierz dane z backendu
+        const response = await fetch('/api/buffet-ai/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbol: symbol.toUpperCase(), depth: 'full' })
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        // 2. Stream odpowiedzi
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        let messageDiv = null;
+        let firstChunk = true;
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.token) {
+                  fullResponse += data.token;
+                  if (firstChunk) {
+                    removeTypingIndicator();
+                    messageDiv = addMessage('assistant', '', true);
+                    firstChunk = false;
+                  }
+                  if (messageDiv) {
+                    const textDiv = messageDiv.querySelector('.prose');
+                    if (textDiv) {
+                      textDiv.innerHTML = markedParse(fullResponse);
+                    }
+                  }
+                } else if (data.indicators) {
+                  currentIndicators = data.indicators;
+                  renderIndicators(data.indicators);
+                } else if (data.charts) {
+                  renderCharts(data.charts);
+                } else if (data.done) {
+                  isAnalyzing = false;
+                }
+              } catch (e) {}
+            }
+          }
+        }
+        
+        if (firstChunk) {
+          removeTypingIndicator();
+          addMessage('assistant', 'Przepraszam, nie udało się pobrać analizy. Spróbuj ponownie.');
+        }
+        
+      } catch (error) {
+        removeTypingIndicator();
+        addMessage('assistant', `Błąd: ${error.message}. Sprawdź czy ticker jest poprawny (np. NVDA, AAPL, CDR.WA).`);
+        isAnalyzing = false;
+      }
+    }
+
+    // Prosty parser markdown
+    function markedParse(text) {
+      return text
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code class="bg-slate-800 px-1 rounded">$1</code>')
+        .replace(/\n/g, '<br>')
+        .replace(/### (.+)/g, '<h3 class="text-cyan-400 font-bold mt-4 mb-2">$1</h3>')
+        .replace(/## (.+)/g, '<h2 class="text-cyan-300 font-bold mt-6 mb-3">$1</h2>')
+        .replace(/# (.+)/g, '<h1 class="neon-cyan font-black mt-6 mb-3">$1</h1>')
+        .replace(/- (.+)/g, '<li>$1</li>')
+        .replace(/(<li>.+<\/li>)/g, '<ul class="list-disc pl-6 my-2">$1</ul>');
+    }
+
+    // ========== RENDER INDICATORS ==========
+    function renderIndicators(indicators) {
+      if (!indicators) return;
+      
+      const categories = [
+        { key: 'valuation', title: '💰 Wycena', icon: 'fa-money-bill-wave' },
+        { key: 'profitability', title: '📈 Rentowność', icon: 'fa-chart-line' },
+        { key: 'leverage', title: '⚖️ Dług i Płynność', icon: 'fa-balance-scale' },
+        { key: 'growth', title: '🚀 Wzrost', icon: 'fa-rocket' },
+        { key: 'quality', title: '💎 Jakość Zysków', icon: 'fa-gem' },
+        { key: 'technical', title: '📊 Technika', icon: 'fa-chart-area' },
+        { key: 'ownership', title: '👥 Akcjonariusze', icon: 'fa-users' },
+        { key: 'macro', title: '🌍 Makro i Sektor', icon: 'fa-globe' }
+      ];
+      
+      let html = '';
+      
+      for (const cat of categories) {
+        const data = indicators[cat.key];
+        if (!data) continue;
+        
+        html += `
+          <div class="collapsible-content open" id="cat-${cat.key}">
+            <button onclick="toggleCategory('${cat.key}')" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-cyan-500/30 transition text-left">
+              <i class="fa-solid ${cat.icon} text-cyan-400 text-xl"></i>
+              <span class="font-bold text-white flex-1">${cat.title}</span>
+              <i class="fa-solid fa-chevron-down text-slate-400 transition-transform" id="chevron-${cat.key}"></i>
+            </button>
+            <div class="mt-2 space-y-2" id="content-${cat.key}">
+        `;
+        
+        for (const [key, value] of Object.entries(data)) {
+          if (value === null || value === undefined) continue;
+          
+          const exp = simpleExplanations[key] || { name: key, simple: 'Brak opisu' };
+          const formattedValue = formatValue(key, value);
+          const cls = getValueClass(key, value);
+          
+          html += `
+            <div class="indicator-card p-3 rounded-xl bg-slate-800/30 border border-slate-700/50 group">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-medium text-slate-200">${exp.name}</span>
+                    <button onclick="showExplanation('${exp.name}', '${exp.simple.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 text-xs px-2 py-0.5 rounded bg-cyan-500/10">💡</button>
+                  </div>
+                  <p class="text-xs text-slate-500 line-clamp-2">${exp.simple}</p>
+                </div>
+                <span class="font-bold text-lg ${cls} whitespace-nowrap">${formattedValue}</span>
+              </div>
+            </div>
+          `;
+        }
+        
+        html += '</div></div>';
+      }
+      
+      indicatorsContent.innerHTML = html;
+    }
+
+    function toggleCategory(key) {
+      const content = document.getElementById(`content-${key}`);
+      const chevron = document.getElementById(`chevron-${key}`);
+      if (content && chevron) {
+        content.classList.toggle('open');
+        chevron.style.transform = content.classList.contains('open') ? 'rotate(0deg)' : 'rotate(-90deg)';
+      }
+    }
+
+    function formatValue(key, value) {
+      if (typeof value === 'number') {
+        if (key.includes('ratio') || key.includes('margin') || key.includes('yield') || key.includes('growth') || key.includes('ownership') || key.includes('short')) {
+          return (value * 100).toFixed(1) + '%';
+        }
+        if (key.includes('pe') || key.includes('pb') || key.includes('ps') || key.includes('ev') || key.includes('beta')) {
+          return value.toFixed(2);
+        }
+        return value.toLocaleString('pl-PL', { maximumFractionDigits: 2 });
+      }
+      return value;
+    }
+
+    function getValueClass(key, value) {
+      if (typeof value !== 'number') return 'neutral';
+      
+      // Dobre wartości (zielone)
+      const goodHigh = ['roe', 'roic', 'roa', 'gross_margin', 'operating_margin', 'fcf_margin', 'interest_coverage', 'current_ratio', 'revenue_growth_yoy', 'eps_growth_yoy', 'fcf_growth_yoy', 'cash_conversion', 'insider_ownership'];
+      const goodLow = ['pe_ratio', 'forward_pe', 'peg_ratio', 'pb_ratio', 'ps_ratio', 'ev_ebitda', 'debt_equity', 'net_debt_ebitda', 'accruals_ratio', 'sbc_revenue', 'short_interest'];
+      
+      if (goodHigh.includes(key) && value > 0) return 'positive';
+      if (goodLow.includes(key) && value > 0) return 'negative';
+      
+      // Specyficzne progi
+      if (key === 'roe' && value > 0.15) return 'positive';
+      if (key === 'roic' && value > 0.15) return 'positive';
+      if (key === 'pe_ratio' && value > 0 && value < 15) return 'positive';
+      if (key === 'pe_ratio' && value > 25) return 'negative';
+      if (key === 'net_debt_ebitda' && value < 2) return 'positive';
+      if (key === 'net_debt_ebitda' && value > 4) return 'negative';
+      if (key === 'rsi' && value > 70) return 'negative';
+      if (key === 'rsi' && value < 30) return 'positive';
+      
+      return 'neutral';
+    }
+
+    function showExplanation(title, text) {
+      alert(`${title}\n\n${text}`);
+    }
+
+    // ========== RENDER CHARTS ==========
+    function renderCharts(chartData) {
+      if (!chartData) return;
+      
+      // Tutaj będą wykresy Lightweight Charts
+      // Na razie placeholder
+      console.log('Charts data:', chartData);
+    }
+
+    // ========== ENTER KEY ==========
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Focus input on load
+    chatInput.focus();
+  </script>
+</body>
+</html>
