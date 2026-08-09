@@ -291,31 +291,48 @@
         });
       });
     }
+    const allSymbols = [
+      {s:'AAPL',n:'Apple',c:'akcje'},{s:'MSFT',n:'Microsoft',c:'akcje'},{s:'NVDA',n:'NVIDIA',c:'akcje'},
+      {s:'AMZN',n:'Amazon',c:'akcje'},{s:'GOOGL',n:'Alphabet',c:'akcje'},{s:'META',n:'Meta',c:'akcje'},
+      {s:'TSLA',n:'Tesla',c:'akcje'},{s:'TSM',n:'TSMC',c:'akcje'},{s:'AMD',n:'AMD',c:'akcje'},
+      {s:'INTC',n:'Intel',c:'akcje'},{s:'ORCL',n:'Oracle',c:'akcje'},{s:'PEP',n:'Pepsi',c:'akcje'},
+      {s:'KO',n:'Coca-Cola',c:'akcje'},{s:'JNJ',n:'Johnson',c:'akcje'},{s:'PFE',n:'Pfizer',c:'akcje'},
+      {s:'DIS',n:'Disney',c:'akcje'},{s:'NFLX',n:'Netflix',c:'akcje'},{s:'V',n:'Visa',c:'akcje'},
+      {s:'MA',n:'Mastercard',c:'akcje'},
+      {s:'SPX',n:'S&P 500',c:'indeksy'},{s:'NDX',n:'Nasdaq',c:'indeksy'},{s:'DJI',n:'Dow Jones',c:'indeksy'},
+      {s:'WIG',n:'WIG20',c:'indeksy'},{s:'DAX',n:'DAX',c:'indeksy'},{s:'FTSE',n:'FTSE 100',c:'indeksy'},
+      {s:'NIKKEI',n:'Nikkei 225',c:'indeksy'},{s:'HSI',n:'Hang Seng',c:'indeksy'},
+      {s:'EURPLN',n:'Euro/Złoty',c:'forex'},{s:'USDPLN',n:'Dolar/Złoty',c:'forex'},{s:'GBPPLN',n:'Funt/Złoty',c:'forex'},
+      {s:'CHFPLN',n:'Frank/Złoty',c:'forex'},{s:'EURUSD',n:'Euro/Dolar',c:'forex'},{s:'USDJPY',n:'Dolar/Jen',c:'forex'},
+      {s:'CL',n:'Crude Oil',c:'surowce'},{s:'NG',n:'Natural Gas',c:'surowce'},{s:'GC',n:'Gold',c:'surowce'},
+      {s:'HG',n:'Copper',c:'surowce'},{s:'SI',n:'Silver',c:'surowce'},{s:'PL',n:'Platinum',c:'surowce'},
+      {s:'BTC',n:'Bitcoin',c:'krypto'},{s:'ETH',n:'Ethereum',c:'krypto'},{s:'SOL',n:'Solana',c:'krypto'},
+      {s:'BNB',n:'BNB',c:'krypto'},{s:'XRP',n:'Ripple',c:'krypto'},{s:'DOGE',n:'Dogecoin',c:'krypto'},
+      {s:'SPY',n:'S&P 500 ETF',c:'etf'},{s:'QQQ',n:'Nasdaq ETF',c:'etf'},{s:'IWM',n:'Russell 2000',c:'etf'},
+      {s:'GLD',n:'Gold ETF',c:'etf'},{s:'USO',n:'Oil ETF',c:'etf'},{s:'VNQ',n:'Real Estate',c:'etf'}
+    ];
     function liveSearch(val) {
       const v = val.toLowerCase();
-      // Gather links from original content before clearing
-      const originalHTML = document.getElementById('tabContent').getAttribute('data-original') || '';
       document.getElementById('tabButtons').style.display = v.length > 0 ? 'none' : 'flex';
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = originalHTML;
-      const allLinks = [];
-      tempDiv.querySelectorAll('a').forEach(a => {
-        const txt = a.innerText.toLowerCase();
-        if (txt.includes(v)) allLinks.push(a);
-      });
       const container = document.getElementById('tabContent');
       container.innerHTML = '';
       if (v.length === 0) {
         document.getElementById('tabButtons').style.display = 'flex';
-        container.innerHTML = originalHTML;
+        container.innerHTML = document.getElementById('tabContent').getAttribute('data-original') || '';
         setTab('akcje');
         return;
-      } else {
-        const grid = document.createElement('div');
-        grid.className = 'grid grid-cols-3 gap-2';
-        allLinks.forEach(link => grid.appendChild(link.cloneNode(true)));
-        container.appendChild(grid);
       }
+      const matches = allSymbols.filter(item => item.s.toLowerCase().includes(v) || item.n.toLowerCase().includes(v));
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-3 gap-2';
+      matches.forEach(item => {
+        const a = document.createElement('a');
+        a.href = 'chart.html?symbol=' + item.s;
+        a.className = 'block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition';
+        a.innerHTML = '<strong>' + item.s + '</strong><span class="block text-xs text-slate-400">' + item.n + '</span>';
+        grid.appendChild(a);
+      });
+      container.appendChild(grid);
     }
     document.addEventListener('click', function(e) {
       const btn = document.getElementById('searchBtn');
