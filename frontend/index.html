@@ -24,7 +24,7 @@
 <body class="min-h-screen p-6 lg:p-10">
 
   <!-- BANER NA GÓRĘ -->
-  <section class="w-full bg-gradient-to-r from-blue-700 to-blue-500 rounded-2xl p-6 mb-6 shadow-xl relative overflow-hidden">
+  <section class="w-full bg-gradient-to-r from-blue-700 to-blue-500 rounded-2xl p-6 mb-6 shadow-xl relative">
     <div class="absolute top-0 right-0 opacity-10 text-[12rem] leading-none translate-x-10 -translate-y-10"><i class="fa-solid fa-chart-line"></i></div>
     <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
       <div class="flex items-center gap-4">
@@ -34,7 +34,7 @@
           <p class="text-sm text-blue-100">Profesjonalny Dashboard Inwestycyjny</p>
         </div>
       </div>
-      <div class="w-full lg:w-auto lg:min-w-[32rem] relative">
+      <div class="w-full lg:w-auto lg:min-w-[32rem] relative z-50" style="position:relative; z-index:60;">
         <button onclick="toggleMenu()" id="searchBtn" class="w-full h-14 px-6 rounded-2xl border-2 border-white/40 text-lg shadow-inner bg-white/90 text-blue-900 text-left font-medium transition-all focus:outline-none hover:bg-white focus:bg-white">Wyszukiwarka <i class="fa-solid fa-caret-down ml-2 text-blue-500"></i></button>
 
         <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 bg-white rounded-2xl shadow-2xl border border-blue-100 mt-3 z-50 overflow-hidden" style="z-index:9999;">
