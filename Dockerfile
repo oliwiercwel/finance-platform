@@ -3,18 +3,19 @@ FROM node:18-slim
 # Set working directory
 WORKDIR /app
 
-# Copy backend files
-COPY backend/package*.json ./
-RUN npm install --production
+# Copy backend files to backend subdirectory
+COPY backend/package*.json ./backend/
+RUN cd backend && npm install --production
 
 # Copy backend source
-COPY backend/ ./
+COPY backend/ ./backend/
 
-# Copy frontend files
+# Copy frontend files to frontend subdirectory (sibling of backend)
 COPY frontend/ ./frontend/
 
 # Expose port
 EXPOSE 3000
 
-# Run server
+# Run server from backend directory
+WORKDIR /app/backend
 CMD ["node", "server.js"]
