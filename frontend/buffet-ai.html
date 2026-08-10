@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@300;500;700;900&display=swap" rel="stylesheet">
   <style>
@@ -45,6 +46,48 @@
       .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
       .sidebar-overlay.open { display: block; }
     }
+    
+    @media (max-width: 768px) {
+      .chat-input-container { padding: 0.75rem; }
+      #chatInput { font-size: 16px; }
+      .message-bubble { max-width: 100%; }
+      .prose { font-size: 0.875rem; }
+      .indicator-card { padding: 0.75rem; }
+      .chart-container { height: 250px; }
+      header { padding: 1rem; }
+      header h1 { font-size: 1.5rem; }
+      header p { display: none; }
+    }
+    
+    @media (max-width: 640px) {
+      .sidebar { width: 100%; right: -100%; }
+      .sidebar.open { right: 0; }
+      .grid-cols-2 { grid-template-columns: 1fr; }
+      .flex-wrap > * { flex: 1 1 100%; }
+    }
+    
+    .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-wrapper table { min-width: 600px; }
+    
+    .lwc-chart { width: 100%; height: 100%; }
+    .lwc-chart canvas { display: block; }
+    
+    .prose h1 { @apply neon-cyan font-black mt-6 mb-3 text-xl; }
+    .prose h2 { @apply text-cyan-300 font-bold mt-6 mb-3 text-lg; }
+    .prose h3 { @apply text-cyan-400 font-bold mt-4 mb-2 text-base; }
+    .prose strong { @apply text-white; }
+    .prose code { @apply bg-slate-800 px-1.5 py-0.5 rounded text-cyan-300 text-sm font-mono; }
+    .prose pre { @apply bg-slate-900/50 p-4 rounded-xl overflow-x-auto my-4 border border-slate-700; }
+    .prose pre code { @apply bg-transparent p-0 text-slate-200; }
+    .prose ul { @apply list-disc pl-6 my-3 space-y-1; }
+    .prose ol { @apply list-decimal pl-6 my-3 space-y-1; }
+    .prose li { @apply text-slate-300; }
+    .prose blockquote { @apply border-l-4 border-cyan-500/50 pl-4 italic text-slate-400 my-4; }
+    .prose a { @apply text-cyan-400 hover:text-cyan-300 underline; }
+    .prose table { @apply w-full border-collapse my-4 text-sm; }
+    .prose th, .prose td { @apply border border-slate-700 px-3 py-2; }
+    .prose th { @apply bg-slate-800/50 font-bold text-cyan-300; }
+    .prose tr:nth-child(even) { @apply bg-slate-800/30; }
   </style>
 </head>
 <body class="min-h-screen flex">
@@ -97,8 +140,11 @@
         </div>
       </div>
 
+      <!-- CHARTS CONTAINER -->
+      <div id="chartsContainer" class="px-6 pb-6 hidden scrollbar-thin"></div>
+
       <!-- INPUT AREA -->
-      <div class="glass border-t border-slate-700/50 p-4">
+      <div class="glass border-t border-slate-700/50 p-4 chat-input-container">
         <div class="flex gap-3 max-w-4xl mx-auto">
           <input type="text" id="chatInput" placeholder="Wpisz ticker spółki (np. NVDA, AAPL, CDR.WA)..." 
             class="flex-1 px-5 py-3 rounded-2xl bg-slate-800/50 border border-slate-600/50 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 text-white placeholder-slate-500"
@@ -430,28 +476,16 @@
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6));
+                console.log('[DEBUG] SSE:', Object.keys(data));
                 if (data.token) {
                   fullResponse += data.token;
-                  if (firstChunk) {
-                    removeTypingIndicator();
-                    messageDiv = addMessage('assistant', '', true);
-                    firstChunk = false;
-                  }
-                  if (messageDiv) {
-                    const textDiv = messageDiv.querySelector('.prose');
-                    if (textDiv) {
-                      textDiv.innerHTML = markedParse(fullResponse);
-                    }
-                  }
-                } else if (data.indicators) {
-                  currentIndicators = data.indicators;
-                  renderIndicators(data.indicators);
-                } else if (data.charts) {
-                  renderCharts(data.charts);
-                } else if (data.done) {
-                  isAnalyzing = false;
-                }
-              } catch (e) {}
+                  if (firstChunk) { removeTypingIndicator(); messageDiv = addMessage('assistant', '', true); firstChunk = false; }
+                  if (messageDiv) messageDiv.querySelector('.prose').innerHTML = markedParse(fullResponse);
+                } else if (data.indicators) { console.log('[DEBUG] indicators keys:', Object.keys(data.indicators)); currentIndicators = data.indicators; renderIndicators(data.indicators); }
+                else if (data.charts) { console.log('[DEBUG] charts keys:', Object.keys(data.charts)); renderCharts(data.charts); document.getElementById('chartsContainer')?.classList.remove('hidden'); }
+                else if (data.done) isAnalyzing = false;
+                else if (data.error) { removeTypingIndicator(); addMessage('assistant', `Błąd: ${data.error}`); isAnalyzing = false; }
+              } catch (e) { console.error('[DEBUG] Parse error:', e); }
             }
           }
         }
@@ -468,8 +502,17 @@
       }
     }
 
-    // Prosty parser markdown
+    // ========== MARKDOWN PARSER (marked.js) ==========
     function markedParse(text) {
+      if (typeof marked !== 'undefined') {
+        return marked.parse(text, { 
+          gfm: true, 
+          breaks: true,
+          headerIds: false,
+          mangle: false
+        });
+      }
+      // Fallback jeśli marked nie załadował się
       return text
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -591,13 +634,174 @@
       alert(`${title}\n\n${text}`);
     }
 
-    // ========== RENDER CHARTS ==========
+    // ========== RENDER CHARTS (Lightweight Charts) ==========
     function renderCharts(chartData) {
       if (!chartData) return;
       
-      // Tutaj będą wykresy Lightweight Charts
-      // Na razie placeholder
-      console.log('Charts data:', chartData);
+      // Usuń stare wykresy
+      Object.values(charts).forEach(chart => {
+        if (chart && chart.remove) chart.remove();
+      });
+      charts = {};
+      
+      const container = document.getElementById('chartsContainer');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      // Wykres ceny z SMA
+      if (chartData.price_history && chartData.price_history.length > 0) {
+        createPriceChart(container, chartData);
+      }
+      
+      // Wykres RSI
+      if (chartData.rsi && chartData.rsi.length > 0) {
+        createRSIChart(container, chartData);
+      }
+      
+      // Wykres wolumenu
+      if (chartData.price_history && chartData.price_history.length > 0) {
+        createVolumeChart(container, chartData);
+      }
+    }
+
+    function createPriceChart(container, data) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mb-6';
+      wrapper.innerHTML = `
+        <h3 class="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-chart-line"></i> Cena z średnimi kroczącymi (SMA 20/50/200)
+        </h3>
+        <div class="chart-container lwc-chart" id="priceChart"></div>
+      `;
+      container.appendChild(wrapper);
+      
+      const chart = LightweightCharts.createChart(document.getElementById('priceChart'), {
+        layout: { background: { color: '#0f172a' }, textColor: '#94a3b8' },
+        grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+        timeScale: { timeVisible: true, secondsVisible: false, borderColor: '#334155' },
+        rightPriceScale: { borderColor: '#334155', scaleMargins: { top: 0.1, bottom: 0.1 } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
+        handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true, pinch: true }
+      });
+      
+      // Cena - świece
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: '#10b981', downColor: '#ef4444',
+        wickUpColor: '#10b981', wickDownColor: '#ef4444',
+        borderVisible: false
+      });
+      
+      const candleData = data.price_history.map(d => ({
+        time: d.time, // backend już zwraca sekundy
+        open: d.open, high: d.high, low: d.low, close: d.close
+      }));
+      candleSeries.setData(candleData);
+      
+      // SMA 20
+      if (data.sma20 && data.sma20.length > 0) {
+        const sma20Series = chart.addLineSeries({ color: '#00f2fe', lineWidth: 1.5, title: 'SMA 20' });
+        sma20Series.setData(data.sma20.map(d => ({ time: d.time, value: d.value })));
+      }
+      
+      // SMA 50
+      if (data.sma50 && data.sma50.length > 0) {
+        const sma50Series = chart.addLineSeries({ color: '#7928ca', lineWidth: 1.5, title: 'SMA 50' });
+        sma50Series.setData(data.sma50.map(d => ({ time: d.time, value: d.value })));
+      }
+      
+      // SMA 200
+      if (data.sma200 && data.sma200.length > 0) {
+        const sma200Series = chart.addLineSeries({ color: '#f59e0b', lineWidth: 2, title: 'SMA 200' });
+        sma200Series.setData(data.sma200.map(d => ({ time: d.time, value: d.value })));
+      }
+      
+      charts.price = chart;
+      
+      // Resize handler
+      const resizeObserver = new ResizeObserver(() => {
+        chart.applyOptions({ width: wrapper.clientWidth, height: 300 });
+      });
+      resizeObserver.observe(wrapper);
+    }
+
+    function createRSIChart(container, data) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mb-6';
+      wrapper.innerHTML = `
+        <h3 class="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-wave-square"></i> RSI (14) - Siła Względna
+        </h3>
+        <div class="chart-container lwc-chart" id="rsiChart" style="height: 150px;"></div>
+      `;
+      container.appendChild(wrapper);
+      
+      const chart = LightweightCharts.createChart(document.getElementById('rsiChart'), {
+        layout: { background: { color: '#0f172a' }, textColor: '#94a3b8' },
+        grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+        timeScale: { timeVisible: true, secondsVisible: false, borderColor: '#334155', visible: false },
+        rightPriceScale: { borderColor: '#334155', scaleMargins: { top: 0.1, bottom: 0.1 }, minValue: 0, maxValue: 100 },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true },
+        handleScale: { mouseWheel: false, pinch: false }
+      });
+      
+      const rsiSeries = chart.addLineSeries({ color: '#00f2fe', lineWidth: 2, title: 'RSI' });
+      rsiSeries.setData(data.rsi.map(d => ({ time: d.time, value: d.value })));
+      
+      // Linie 30 i 70
+      chart.addLineSeries({ color: '#10b981', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Przesprzedane (30)' }).setData([
+        { time: data.rsi[0].time, value: 30 },
+        { time: data.rsi[data.rsi.length - 1].time, value: 30 }
+      ]);
+      chart.addLineSeries({ color: '#ef4444', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Przekupione (70)' }).setData([
+        { time: data.rsi[0].time, value: 70 },
+        { time: data.rsi[data.rsi.length - 1].time, value: 70 }
+      ]);
+      chart.addLineSeries({ color: '#94a3b8', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Neutralne (50)' }).setData([
+        { time: data.rsi[0].time, value: 50 },
+        { time: data.rsi[data.rsi.length - 1].time, value: 50 }
+      ]);
+      
+      charts.rsi = chart;
+    }
+
+    function createVolumeChart(container, data) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mb-6';
+      wrapper.innerHTML = `
+        <h3 class="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-chart-column"></i> Wolumen
+        </h3>
+        <div class="chart-container lwc-chart" id="volumeChart" style="height: 120px;"></div>
+      `;
+      container.appendChild(wrapper);
+      
+      const chart = LightweightCharts.createChart(document.getElementById('volumeChart'), {
+        layout: { background: { color: '#0f172a' }, textColor: '#94a3b8' },
+        grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+        timeScale: { timeVisible: true, secondsVisible: false, borderColor: '#334155', visible: false },
+        rightPriceScale: { borderColor: '#334155', visible: false },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true },
+        handleScale: { mouseWheel: false, pinch: false }
+      });
+      
+      const volumeSeries = chart.addHistogramSeries({
+        color: '#00f2fe',
+        priceFormat: { type: 'volume' },
+        priceScaleId: ''
+      });
+      
+      const volumeData = data.price_history.map(d => ({
+        time: d.time,
+        value: d.volume,
+        color: d.close >= d.open ? '#10b981' : '#ef4444'
+      }));
+      volumeSeries.setData(volumeData);
+      
+      charts.volume = chart;
     }
 
     // ========== ENTER KEY ==========

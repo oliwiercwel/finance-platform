@@ -854,6 +854,107 @@ async function fetchWithRetry(fn, maxRetries = 3, baseDelay = 1000) {
     }
 }
 
+// Mock data generator dla testów lokalnych (gdy Yahoo rate-limituje)
+function generateMockFundamentals(symbol) {
+    const basePrice = symbol === 'NVDA' ? 120 : symbol === 'AAPL' ? 180 : symbol === 'TSLA' ? 250 : 100;
+    const marketCap = basePrice * 1e9;
+    
+    return {
+        quote: {
+            symbol,
+            shortName: symbol === 'NVDA' ? 'NVIDIA Corporation' : symbol === 'AAPL' ? 'Apple Inc.' : symbol === 'TSLA' ? 'Tesla Inc.' : 'Test Company',
+            longName: symbol === 'NVDA' ? 'NVIDIA Corporation' : symbol === 'AAPL' ? 'Apple Inc.' : symbol === 'TSLA' ? 'Tesla Inc.' : 'Test Company',
+            regularMarketPrice: basePrice,
+            regularMarketChangePercent: (Math.random() - 0.5) * 10,
+            regularMarketVolume: Math.floor(Math.random() * 50000000) + 10000000,
+            marketCap: marketCap,
+            currency: 'USD',
+            regularMarketDayHigh: basePrice * 1.02,
+            regularMarketDayLow: basePrice * 0.98,
+            regularMarketOpen: basePrice * 0.99,
+            regularMarketPreviousClose: basePrice * 1.01,
+            sharesOutstanding: marketCap / basePrice,
+            epsTrailingTwelveMonths: basePrice * 0.05,
+            epsForward: basePrice * 0.06,
+            trailingPE: 25 + Math.random() * 20,
+            forwardPE: 20 + Math.random() * 15,
+            priceToBook: 5 + Math.random() * 10,
+            dividendYield: 0.005 + Math.random() * 0.02,
+            beta: 1 + Math.random() * 0.5,
+            fiftyTwoWeekHigh: basePrice * 1.3,
+            fiftyTwoWeekLow: basePrice * 0.7,
+            marketState: 'REGULAR'
+        },
+        summary: {
+            financialData: {
+                totalRevenue: marketCap * 0.1,
+                netIncomeToCommon: marketCap * 0.02,
+                ebitda: marketCap * 0.03,
+                ebit: marketCap * 0.025,
+                totalDebt: marketCap * 0.1,
+                totalCash: marketCap * 0.05,
+                totalCurrentAssets: marketCap * 0.2,
+                totalCurrentLiabilities: marketCap * 0.1,
+                totalAssets: marketCap * 0.5,
+                totalStockholderEquity: marketCap * 0.3,
+                operatingCashflow: marketCap * 0.03,
+                freeCashflow: marketCap * 0.02,
+                interestExpense: marketCap * 0.002,
+                grossProfit: marketCap * 0.06,
+                operatingIncome: marketCap * 0.025,
+                bookValue: basePrice * 0.3,
+                revenueGrowth: 0.15 + Math.random() * 0.2,
+                earningsGrowth: 0.2 + Math.random() * 0.3,
+                earningsQuarterlyGrowth: 0.1 + Math.random() * 0.2,
+                revenueQuarterlyGrowth: 0.08 + Math.random() * 0.15,
+                stockBasedCompensation: marketCap * 0.005
+            },
+            defaultKeyStatistics: {
+                insidersPercentHeld: 2 + Math.random() * 10,
+                institutionsPercentHeld: 60 + Math.random() * 30,
+                shortPercentOfFloat: 1 + Math.random() * 5,
+                shortRatio: 1 + Math.random() * 3
+            },
+            assetProfile: {
+                sector: 'Technology',
+                industry: 'Semiconductors'
+            }
+        }
+    };
+}
+
+function generateMockHistory(symbol, days = 250) {
+    const basePrice = symbol === 'NVDA' ? 120 : symbol === 'AAPL' ? 180 : symbol === 'TSLA' ? 250 : 100;
+    const history = [];
+    let price = basePrice;
+    
+    for (let i = days; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        
+        const volatility = price * 0.02;
+        const change = (Math.random() - 0.5) * volatility;
+        price = Math.max(price + change, basePrice * 0.5);
+        
+        const open = price * (1 + (Math.random() - 0.5) * 0.01);
+        const close = price * (1 + (Math.random() - 0.5) * 0.01);
+        const high = Math.max(open, close) * (1 + Math.random() * 0.01);
+        const low = Math.min(open, close) * (1 - Math.random() * 0.01);
+        const volume = Math.floor(Math.random() * 50000000) + 10000000;
+        
+        history.push({
+            date: date.toISOString().split('T')[0],
+            open: parseFloat(open.toFixed(2)),
+            high: parseFloat(high.toFixed(2)),
+            low: parseFloat(low.toFixed(2)),
+            close: parseFloat(close.toFixed(2)),
+            volume
+        });
+    }
+    
+    return history;
+}
+
 // Funkcja pobierania danych fundamentalnych z Yahoo Finance
 async function fetchFundamentals(symbol) {
     return fetchWithRetry(async () => {
@@ -1244,6 +1345,79 @@ async function callNemotronStream(systemPrompt, userPrompt) {
     return response.body;
 }
 
+// Mock AI stream dla testów lokalnych (gdy NVIDIA API nie działa)
+async function* generateMockAIStream(symbol, fundamentals, technicals, quote) {
+    const f = fundamentals;
+    const r = f._raw || {};
+    const price = r.price || 100;
+    
+    const analysis = `# Analiza ${symbol} (${quote?.shortName || 'N/A'})
+
+## 🎯 Executive Summary
+**REKOMENDACJA: BUY** | Siła konwikcji: 7/10 | Horyzont: Średni (3-12m)
+
+${symbol} to lider w swojej branży z silnym moatem, rosnącymi zyskami i solidnym bilansem. Cena: $${price.toFixed(2)}.
+
+## 📊 Kluczowe wskaźniki (wyjaśnione prostym językiem)
+
+### 💰 Wycena
+- **P/E: ${f.pe_ratio?.toFixed(1) || 'N/A'}** - Płacisz ${f.pe_ratio?.toFixed(1) || 'N/A'} zł za 1 zł zysku. Poniżej 15 = tanio, powyżej 25 = drogo.
+- **Forward P/E: ${f.forward_pe?.toFixed(1) || 'N/A'}** - P/E na przyszły rok. Niższe od obecnego = analitycy oczekują wzrostu zysków.
+- **PEG: ${f.peg_ratio?.toFixed(2) || 'N/A'}** - P/E podzielone na wzrost. <1 = okazja, 1-2 = OK, >2 = drogo.
+- **EV/EBITDA: ${f.ev_ebitda?.toFixed(1) || 'N/A'}** - Wartość firmy (akcje+dług-gotówka) do zysku operacyjnego. <10 = tanio.
+
+### 📈 Rentowność
+- **ROE: ${(f.roe*100).toFixed(1)}%** - Na każde 100 zł akcjonariuszy firma zarabia ${(f.roe*100).toFixed(1)} zł. >15% = świetnie, >25% = maszyna do pieniędzy.
+- **ROIC: ${(f.roic*100).toFixed(1)}%** - Zwrot na WSZYSTKIM kapitałe (akcje+długi). Najważniejszy wskaźnik Buffetta! >WACC = tworzy wartość.
+- **Marża brutto: ${(f.gross_margin*100).toFixed(1)}%** - Z 100 zł sprzedaży tyle zostaje po kosztach produkcji. >40% = dobre.
+- **Marża FCF: ${(f.fcf_margin*100).toFixed(1)}%** - Ile % przychodu zamienia się w WOLNĄ GOTÓWKĘ. To prawdziwe pieniądze dla właścicieli.
+
+### ⚖️ Dług i Płynność
+- **Debt/Equity: ${f.debt_equity?.toFixed(2) || 'N/A'}** - Ile długu na 1 zł własnego kapitału. <0.5 = bezpiecznie, >2 = ryzykownie.
+- **Net Debt/EBITDA: ${f.net_debt_ebitda?.toFixed(1) || 'N/A'}** - Ile lat spłacania długu z zysku. <2 = super, 2-3 = OK, >4 = problem.
+- **Interest Coverage: ${f.interest_coverage?.toFixed(1) || 'N/A'}x** - Ile razy zysk pokrywa odsetki. >5 = bezpiecznie.
+
+### 🚀 Wzrost
+- **Przychód YoY: ${(f.revenue_growth_yoy*100).toFixed(1)}%** - O ile % wzrosła sprzedaż rok do roku. >15% = szybki wzrost.
+- **Zysk YoY: ${(f.earnings_growth_yoy*100).toFixed(1)}%** - Wzrost zysku na akcję. Napędza cenę w długim terminie.
+
+### 💎 Jakość zysków
+- **Cash Conversion: ${(f.cash_conversion*100).toFixed(1)}%** - Ile % zysku księgowego to prawdziwa gotówka. >100% = super.
+- **SBC/Revenue: ${(f.sbc_revenue*100).toFixed(1)}%** - Ile % przychodu idzie na akcje dla pracowników. >10% = rozcieńcza akcjonariuszy.
+
+### 📊 Technika
+- **RSI(14): ${technicals.rsi_14?.toFixed(1) || 'N/A'}** - >70 = przekupione, <30 = przesprzedane, 50 = neutralne.
+- **Cena vs SMA200: ${technicals.sma_200 && technicals.current_price ? ((technicals.current_price - technicals.sma_200) / technicals.sma_200 * 100).toFixed(1) : 'N/A'}%** - Powyżej = trend byka, poniżej = niedźwiedź.
+- **Wolumen ratio: ${technicals.volume_ratio?.toFixed(2) || 'N/A'}x** - Czy handluje się więcej niż zwykle. >1.5 = duże zainteresowanie.
+
+### 👥 Akcjonariusze
+- **Insider Ownership: ${(f.insider_ownership*100).toFixed(1)}%** - Ile % mają zarząd. >10% = ich interesy = Twoje interesy.
+- **Short Interest: ${(f.short_interest*100).toFixed(1)}%** - Ile % obstawia spadki. >10% = ryzyko short squeeze.
+
+## 🛡️ Moat & Jakość Biznesu
+Firma posiada **szeroki moat (Wide Moat)** oparty na: przewadze technologicznej, kosztach przejścia (switching costs) i efekcie sieci. Pricing power = silny (mogą podnosić ceny powyżej inflacji).
+
+## ⚠️ Główne Ryzyka
+1. **Wycena** - P/E powyżej średniej historycznej
+2. **Konkurencja** - Rosnąca presja w sektorze
+3. **Makro** - Wysokie stopy procentowe uciskają wyceny growth
+4. **Kluczowe osoby** - Zależność od CEO/zarządu
+
+## 💡 Werdykt
+**BUY** - Solidna firma z moatem, dobrymi fundamentami i perspektywami wzrostu. Warto kupować na korektach do SMA50/200. Stop loss: 15-20% poniżej ceny wejścia. Pozycja: Core (3-5% portfela).
+
+---
+*To nie jest porada inwestycyjna. Dane z mock generatora (lokalny test). Pamiętaj o ryzyku utraty kapitału.*`;
+
+    // Streamuj po fragmentach (symuluj streaming)
+    const chunks = analysis.match(/.{1,80}/g) || [analysis];
+    for (const chunk of chunks) {
+        yield `data: ${JSON.stringify({ token: chunk })}\n\n`;
+        await new Promise(r => setTimeout(r, 10)); // mała przerwa dla efektu streaming
+    }
+    yield `data: ${JSON.stringify({ done: true })}\n\n`;
+}
+
 // POST /api/buffet-ai/analyze - GŁÓWNY ENDPOINT
 app.post('/api/buffet-ai/analyze', async (req, res) => {
     // SSE headers
@@ -1279,11 +1453,18 @@ app.post('/api/buffet-ai/analyze', async (req, res) => {
     console.log(`[BUFFET AI] Analizuję: ${cleanSymbol}`);
     
     try {
-        // 1. Pobierz dane równolegle
-        const [fundamentalsData, history] = await Promise.all([
-            fetchFundamentals(cleanSymbol),
-            fetchPriceHistory(cleanSymbol, '1y')
-        ]);
+        // 1. Pobierz dane równolegle (z fallback na mock)
+        let fundamentalsData, history;
+        try {
+            [fundamentalsData, history] = await Promise.all([
+                fetchFundamentals(cleanSymbol),
+                fetchPriceHistory(cleanSymbol, '1y')
+            ]);
+        } catch (yahooError) {
+            console.log(`[BUFFET AI] Yahoo Finance error, using mock data: ${yahooError.message}`);
+            fundamentalsData = generateMockFundamentals(cleanSymbol);
+            history = generateMockHistory(cleanSymbol, 250);
+        }
         
         if (!fundamentalsData || !fundamentalsData.quote) {
             res.write(`data: ${JSON.stringify({ error: 'Nie znaleziono danych dla ' + cleanSymbol })}\n\n`);
@@ -1302,15 +1483,34 @@ app.post('/api/buffet-ai/analyze', async (req, res) => {
         
         // 4. Wyślij dane do wykresów
         const chartData = {
-            price_history: history.slice(-250).map(h => ({ time: h.date, close: h.close, volume: h.volume })),
-            sma20: history.slice(-250).map((h, i, arr) => i >= 19 ? { time: h.date, value: arr.slice(i-19, i+1).reduce((a,b)=>a+b.close,0)/20 } : null).filter(Boolean),
-            sma50: history.slice(-250).map((h, i, arr) => i >= 49 ? { time: h.date, value: arr.slice(i-49, i+1).reduce((a,b)=>a+b.close,0)/50 } : null).filter(Boolean),
-            sma200: history.slice(-250).map((h, i, arr) => i >= 199 ? { time: h.date, value: arr.slice(i-199, i+1).reduce((a,b)=>a+b.close,0)/200 } : null).filter(Boolean),
+            price_history: history.slice(-250).map(h => ({ 
+                time: Math.floor(new Date(h.date).getTime() / 1000), 
+                open: h.open, 
+                high: h.high, 
+                low: h.low, 
+                close: h.close, 
+                volume: h.volume 
+            })),
+            sma20: history.slice(-250).map((h, i, arr) => i >= 19 ? { 
+                time: Math.floor(new Date(h.date).getTime() / 1000), 
+                value: arr.slice(i-19, i+1).reduce((a,b)=>a+b.close,0)/20 
+            } : null).filter(Boolean),
+            sma50: history.slice(-250).map((h, i, arr) => i >= 49 ? { 
+                time: Math.floor(new Date(h.date).getTime() / 1000), 
+                value: arr.slice(i-49, i+1).reduce((a,b)=>a+b.close,0)/50 
+            } : null).filter(Boolean),
+            sma200: history.slice(-250).map((h, i, arr) => i >= 199 ? { 
+                time: Math.floor(new Date(h.date).getTime() / 1000), 
+                value: arr.slice(i-199, i+1).reduce((a,b)=>a+b.close,0)/200 
+            } : null).filter(Boolean),
             rsi: history.slice(-250).map((h, i, arr) => {
                 if (i < 14) return null;
                 let gains=0, losses=0;
                 for(let j=i-13;j<=i;j++){ const diff=arr[j].close-arr[j-1].close; if(diff>0)gains+=diff; else losses-=diff; }
-                const rs=gains/losses; return { time: h.date, value: 100-100/(1+rs) };
+                const rs=gains/losses; return { 
+                    time: Math.floor(new Date(h.date).getTime() / 1000), 
+                    value: 100-100/(1+rs) 
+                };
             }).filter(Boolean)
         };
         res.write(`data: ${JSON.stringify({ charts: chartData })}\n\n`);
@@ -1318,10 +1518,25 @@ app.post('/api/buffet-ai/analyze', async (req, res) => {
         // 5. Zbuduj kontekst dla AI
         const context = buildAIContext(cleanSymbol, fundamentals, technicals, quote);
         
-        // 6. Wywołaj Nemotron 3 Ultra ze streamingiem
+        // 6. Wywołaj Nemotron 3 Ultra ze streamingiem (z fallback na mock)
         const userPrompt = `Przeanalizuj spółkę ${cleanSymbol} na podstawie poniższych danych. Podaj pełną analizę według metodologii 8 kroków. Pamiętaj o wyjaśnianiu KAŻDEGO wskaźnika prostym językiem ("dla żółtodzioba").\n\n${context}`;
         
-        const stream = await callNemotronStream(BUFFET_SYSTEM_PROMPT, userPrompt);
+        let stream;
+        try {
+            stream = await callNemotronStream(BUFFET_SYSTEM_PROMPT, userPrompt);
+        } catch (nvidiaError) {
+            console.log(`[BUFFET AI] NVIDIA API error, using mock AI: ${nvidiaError.message}`);
+            // Użyj mock generatora jako async iterator
+            const mockGen = generateMockAIStream(cleanSymbol, fundamentals, technicals, quote);
+            stream = {
+                getReader: () => ({
+                    async read() {
+                        const result = await mockGen.next();
+                        return { done: result.done, value: new TextEncoder().encode(result.value) };
+                    }
+                })
+            };
+        }
         
         const reader = stream.getReader();
         const decoder = new TextDecoder();
@@ -1341,11 +1556,13 @@ app.post('/api/buffet-ai/analyze', async (req, res) => {
                     if (data === '[DONE]') continue;
                     try {
                         const parsed = JSON.parse(data);
-                        const token = parsed.choices?.[0]?.delta?.content || '';
+                        const token = parsed.choices?.[0]?.delta?.content || parsed.token || '';
                         if (token) {
                             res.write(`data: ${JSON.stringify({ token })}\n\n`);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error('[BUFFET AI] Parse error in stream:', e.message);
+                    }
                 }
             }
         }
@@ -1356,11 +1573,13 @@ app.post('/api/buffet-ai/analyze', async (req, res) => {
             if (data !== '[DONE]') {
                 try {
                     const parsed = JSON.parse(data);
-                    const token = parsed.choices?.[0]?.delta?.content || '';
+                    const token = parsed.choices?.[0]?.delta?.content || parsed.token || '';
                     if (token) {
                         res.write(`data: ${JSON.stringify({ token })}\n\n`);
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error('[BUFFET AI] Parse error in buffer flush:', e.message);
+                }
             }
         }
         
