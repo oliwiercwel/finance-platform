@@ -140,8 +140,8 @@
         </div>
       </div>
 
-      <!-- CHARTS CONTAINER -->
-      <div id="chartsContainer" class="px-6 pb-6 hidden scrollbar-thin"></div>
+      <!-- CHARTS CONTAINER - REMOVED FROM MAIN AREA, NOW IN SIDEBAR -->
+      <!-- <div id="chartsContainer" class="px-6 pb-6 hidden scrollbar-thin"></div> -->
 
       <!-- INPUT AREA -->
       <div class="glass border-t border-slate-700/50 p-4 chat-input-container">
@@ -161,14 +161,33 @@
   <!-- RIGHT SIDEBAR - INDICATORS PANEL -->
   <aside id="indicatorsSidebar" class="sidebar hidden lg:block w-96 flex flex-col">
     <div class="p-4 border-b border-slate-700/50 flex items-center justify-between">
-      <h2 class="font-bold text-lg neon-cyan">📊 Wskaźniki</h2>
+      <h2 class="font-bold text-lg neon-cyan">📊 Analiza</h2>
       <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin" id="indicatorsContent">
-      <div class="text-center text-slate-500 py-12">
+    <!-- TABS -->
+    <div class="flex border-b border-slate-700/50 px-4" id="sidebarTabs">
+      <button class="tab-btn active px-4 py-2 text-sm font-medium text-slate-300" data-tab="indicators" onclick="switchTab('indicators')">
+        <i class="fa-solid fa-chart-bar mr-1"></i> Wskaźniki
+      </button>
+      <button class="tab-btn px-4 py-2 text-sm font-medium text-slate-300" data-tab="charts" onclick="switchTab('charts')">
+        <i class="fa-solid fa-chart-line mr-1"></i> Wykresy
+      </button>
+    </div>
+    <!-- INDICATORS TAB CONTENT -->
+    <div id="tab-indicators" class="tab-content flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+      <div class="text-center text-slate-500 py-12" id="indicatorsPlaceholder">
         <i class="fa-solid fa-brain text-4xl text-cyan-500/50 mb-3"></i>
         <p>Wpisz ticker w czacie,<br>a tu pokażę 100+ wskaźników</p>
       </div>
+      <div id="indicatorsContent" class="space-y-4"></div>
+    </div>
+    <!-- CHARTS TAB CONTENT -->
+    <div id="tab-charts" class="tab-content hidden flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin">
+      <div class="text-center text-slate-500 py-12" id="chartsPlaceholder">
+        <i class="fa-solid fa-chart-line text-4xl text-cyan-500/50 mb-3"></i>
+        <p>Wykresy pojawią się tutaj<br>po analizie spółki</p>
+      </div>
+      <div id="chartsContainer" class="space-y-6"></div>
     </div>
   </aside>
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -482,7 +501,7 @@
                   if (firstChunk) { removeTypingIndicator(); messageDiv = addMessage('assistant', '', true); firstChunk = false; }
                   if (messageDiv) messageDiv.querySelector('.prose').innerHTML = markedParse(fullResponse);
                 } else if (data.indicators) { console.log('[DEBUG] indicators keys:', Object.keys(data.indicators)); currentIndicators = data.indicators; renderIndicators(data.indicators); }
-                else if (data.charts) { console.log('[DEBUG] charts keys:', Object.keys(data.charts)); renderCharts(data.charts); document.getElementById('chartsContainer')?.classList.remove('hidden'); }
+                else if (data.charts) { console.log('[DEBUG] charts keys:', Object.keys(data.charts)); renderCharts(data.charts); document.getElementById('chartsContainer')?.classList.remove('hidden'); document.getElementById('chartsPlaceholder')?.classList.add('hidden'); document.getElementById('tab-charts')?.classList.remove('hidden'); }
                 else if (data.done) isAnalyzing = false;
                 else if (data.error) { removeTypingIndicator(); addMessage('assistant', `Błąd: ${data.error}`); isAnalyzing = false; }
               } catch (e) { console.error('[DEBUG] Parse error:', e); }
@@ -632,6 +651,18 @@
 
     function showExplanation(title, text) {
       alert(`${title}\n\n${text}`);
+    }
+
+    // ========== TAB SWITCHING ==========
+    function switchTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('#sidebarTabs .tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+      // Show/hide tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('hidden', content.id !== `tab-${tabName}`);
+      });
     }
 
     // ========== RENDER CHARTS (Lightweight Charts) ==========

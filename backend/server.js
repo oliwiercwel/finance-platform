@@ -21,11 +21,12 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Inicjalizacja bazy danych SQLite
-const db = new sqlite3.Database(process.env.DB_PATH || './database/finance.db', (err) => {
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'database', 'finance.db');
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Błąd podczas łączenia z bazą danych:', err);
     } else {
-        console.log('Połączono z bazą danych SQLite');
+        console.log('Połączono z bazą danych SQLite:', dbPath);
     }
 });
 

@@ -1,0 +1,53 @@
+# This is an example configuration file
+# To learn more, see the full config.yaml reference: https://docs.continue.dev/reference
+
+name: Example Config
+version: 1.0.0
+schema: v1
+
+# Define which models can be used
+# https://docs.continue.dev/customization/models
+models:
+  - name: my gpt-5
+    provider: openai
+    model: gpt-5
+    apiKey: YOUR_OPENAI_API_KEY_HERE
+  # NVIDIA - model meta/muse-glimmer-30b (OpenAI-compatible endpoint)
+  # https://build.nvidia.com/meta/muse-glimmer-30b
+  # Bezpieczniej: zamiast wklejać klucz w konfiguracji użyj zmiennej środowiskowej:
+  #   apiKey: ${env.NVIDIA_API_KEY}
+  - name: NVIDIA Muse Glimmer 30B
+    provider: openai
+    model: meta/muse-glimmer-30b
+    apiBase: https://integrate.api.nvidia.com/v1
+    apiKey: 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
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      temperature: 1
+      topP: 0.95
+      maxTokens: 8192
+  - name: qwen2.5-coder 7b
+    provider: ollama
+    model: qwen2.5-coder:7b
+    roles:
+      - apply
+      - autocomplete
+      - chat
+      - edit
+  - name: Claude 4 Sonnet
+    provider: anthropic
+    model: claude-sonnet-4-20250514
+    apiKey: ${{ secrets.ANTHROPIC_API_KEY }}
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 200000
+      maxTokens: 64000
+    capabilities:
+      - tool_use
+      - image_input
