@@ -1,11 +1,11 @@
 services:
   - type: web
     name: finance-platform
-    runtime: python
+    runtime: node
     rootDir: backend
-    buildCommand: "pip install --upgrade pip setuptools<81 wheel && pip install -r requirements.txt"
-    startCommand: "python server.py"
+    buildCommand: "npm install"
+    startCommand: "node server.js"
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.11.9"
+      - key: NODE_VERSION
+        value: "18"
     plan: free
