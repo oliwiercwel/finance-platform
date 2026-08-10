@@ -775,53 +775,165 @@ class FinanceHandler(SimpleHTTPRequestHandler):
                 error_msg = 'Problem z połączeniem do Yahoo Finance. Sprawdź połączenie internetowe.'
             send_error_and_end(error_msg)
     
-    def fetch_quote_yahoo(self, symbol):
-        """Pobierz notowanie z Yahoo Finance"""
-        try:
-            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol)}?range=1d&interval=1d"
-            data = fetch_yahoo(url)
+    def fetch_yahoo_fundamentals(symbol):
+    """Pobierz PEŁNE dane fundamentalne z Yahoo Finance v10/quoteSummary"""
+    try:
+        url = f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{urllib.parse.quote(symbol)}?modules=financialData,defaultKeyStatistics,summaryDetail,price"
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json'
+        })
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return json.loads(response.read().decode('utf-8'))
+    except Exception as e:
+        print(f'[Yahoo Fundamentals] Error: {e}')
+        return None
+
+def fetch_quote_yahoo(self, symbol):
+    """Pobierz notowanie + FUNDAMENTALNE DANE Z YAHOO (realne P/E, PEG, EPS, ROE...)"""
+    try:
+        # 1. Spróbuj pobrać pełne dane fundamentalne z Yahoo v10
+        fundamentals_data = fetch_yahoo_fundamentals(symbol)
+        
+        if fundamentals_data and 'quoteSummary' in fundamentals_data and fundamentals_data['quoteSummary'].get('result'):
+            result = fundamentals_data['quoteSummary']['result'][0]
             
-            if not data or 'chart' not in data or not data['chart']['result']:
-                return None
+            # Wyciągnij wszystkie moduły
+            fin_data = result.get('financialData', {})
+            key_stats = result.get('defaultKeyStatistics', {})
+            summary = result.get('summaryDetail', {})
+            price_data = result.get('price', {})
             
-            result = data['chart']['result'][0]
-            meta = result.get('meta', {})
+            # Helper do wyciągania wartości z formatu Yahoo {'raw': X, 'fmt': 'Y'}
+            def get_val(d, key, default=0):
+                val = d.get(key, {})
+                if isinstance(val, dict):
+                    return val.get('raw', default) or val.get('fmt', default)
+                return val if val is not None else default
             
-            price = meta.get('regularMarketPrice') or 0
-            prev_close = meta.get('chartPreviousClose') or meta.get('previousClose') or price
-            change = ((price - prev_close) / prev_close * 100) if prev_close else 0
+            # Cena i podstawowe dane
+            price = get_val(price_data, 'regularMarketPrice', 0)
+            market_cap = get_val(price_data, 'marketCap', 0)
+            
+            # REALNE DANE FUNDAMENTALNE Z YAHOO:
+            trailing_pe = get_val(summary, 'trailingPE', 0)
+            forward_pe = get_val(summary, 'forwardPE', 0)
+            peg_ratio = get_val(key_stats, 'pegRatio', 0)
+            price_to_book = get_val(summary, 'priceToBook', 0)
+            dividend_yield = get_val(summary, 'dividendYield', 0)
+            beta = get_val(summary, 'beta', 1)
+            
+            eps_trailing = get_val(fin_data, 'currentPrice', 0)  # Yahoo czasem myli pola
+            eps_forward = get_val(fin_data, 'targetHighPrice', 0)
+            
+            # Rentowność i marże
+            profit_margins = get_val(fin_data, 'profitMargins', 0)
+            operating_margins = get_val(fin_data, 'operatingMargins', 0)
+            gross_margins = get_val(fin_data, 'grossMargins', 0)
+            roe = get_val(fin_data, 'returnOnEquity', 0)
+            roa = get_val(fin_data, 'returnOnAssets', 0)
+            
+            # Wzrost
+            revenue_growth = get_val(fin_data, 'revenueGrowth', 0)
+            earnings_growth = get_val(fin_data, 'earningsGrowth', 0)
+            
+            # Dług i płynność
+            debt_to_equity = get_val(key_stats, 'debtToEquity', 0)
+            current_ratio = get_val(fin_data, 'currentRatio', 0)
+            quick_ratio = get_val(fin_data, 'quickRatio', 0)
+            
+            # Cash flow
+            free_cashflow = get_val(fin_data, 'freeCashflow', 0)
+            operating_cashflow = get_val(fin_data, 'operatingCashflow', 0)
+            
+            # Inne
+            shares_outstanding = get_val(key_stats, 'sharesOutstanding', 0)
+            book_value = get_val(key_stats, 'bookValue', 0)
+            enterprise_value = get_val(fin_data, 'enterpriseValue', 0)
+            ebitda = get_val(fin_data, 'ebitda', 0)
+            
+            print(f'[Yahoo] ✅ Pobrano realne dane dla {symbol}: P/E={trailing_pe}, PEG={peg_ratio}, ROE={roe}')
             
             return {
-                'symbol': meta.get('symbol', symbol),
-                'shortName': meta.get('shortName') or symbol,
-                'longName': meta.get('longName') or symbol,
+                'symbol': symbol,
+                'shortName': get_val(price_data, 'shortName', symbol),
+                'longName': get_val(price_data, 'longName', symbol),
                 'regularMarketPrice': price,
-                'regularMarketChangePercent': change,
-                'regularMarketVolume': meta.get('regularMarketVolume') or 0,
-                'marketCap': meta.get('marketCap') or 0,
-                'currency': meta.get('currency') or 'USD',
-                'regularMarketDayHigh': meta.get('regularMarketDayHigh') or 0,
-                'regularMarketDayLow': meta.get('regularMarketDayLow') or 0,
-                'regularMarketOpen': meta.get('regularMarketOpen') or 0,
-                'previousClose': prev_close,
-                'fiftyTwoWeekHigh': meta.get('fiftyTwoWeekHigh') or 0,
-                'fiftyTwoWeekLow': meta.get('fiftyTwoWeekLow') or 0,
-                'marketState': meta.get('marketState') or 'CLOSED',
-                'exchange': meta.get('fullExchangeName') or meta.get('exchangeName') or '',
-                'quoteType': meta.get('instrumentType') or 'EQUITY',
-                'epsTrailingTwelveMonths': meta.get('epsTrailingTwelveMonths') or 0,
-                'epsForward': meta.get('epsForward') or 0,
-                'priceToBook': meta.get('priceToBook') or 0,
-                'trailingPE': meta.get('trailingPE') or 0,
-                'forwardPE': meta.get('forwardPE') or 0,
-                'dividendRate': meta.get('dividendRate') or 0,
-                'dividendYield': meta.get('dividendYield') or 0,
-                'beta': meta.get('beta') or 1,
-                'sharesOutstanding': meta.get('sharesOutstanding') or 0,
+                'marketCap': market_cap,
+                'currency': get_val(price_data, 'currency', 'USD'),
+                
+                # WYCENA - REALNE DANE
+                'trailingPE': trailing_pe,
+                'forwardPE': forward_pe,
+                'pegRatio': peg_ratio,
+                'priceToBook': price_to_book,
+                'dividendYield': dividend_yield,
+                'beta': beta,
+                
+                # RENTOWNOŚĆ
+                'profitMargins': profit_margins,
+                'operatingMargins': operating_margins,
+                'grossMargins': gross_margins,
+                'returnOnEquity': roe,
+                'returnOnAssets': roa,
+                
+                # WZROST
+                'revenueGrowth': revenue_growth,
+                'earningsGrowth': earnings_growth,
+                
+                # DŁUG I PŁYNNOŚĆ
+                'debtToEquity': debt_to_equity,
+                'currentRatio': current_ratio,
+                'quickRatio': quick_ratio,
+                
+                # CASH FLOW
+                'freeCashflow': free_cashflow,
+                'operatingCashflow': operating_cashflow,
+                
+                # INNE
+                'sharesOutstanding': shares_outstanding,
+                'bookValue': book_value,
+                'enterpriseValue': enterprise_value,
+                'ebitda': ebitda,
+                'from_yahoo': True  # Flag że to realne dane
             }
-        except Exception as e:
-            print(f'[BUFFET AI] Yahoo fetch error: {e}')
+        
+        # 2. Fallback do v8 jeśli v10 nie zadziała
+        print(f'[Yahoo] ⚠️ v10 nie zadziałało, fallback do v8 dla {symbol}')
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol)}?range=1d&interval=1d"
+        data = fetch_yahoo(url)
+        
+        if not data or 'chart' not in data or not data['chart']['result']:
             return None
+        
+        result = data['chart']['result'][0]
+        meta = result.get('meta', {})
+        
+        price = meta.get('regularMarketPrice') or 0
+        prev_close = meta.get('chartPreviousClose') or meta.get('previousClose') or price
+        change = ((price - prev_close) / prev_close * 100) if prev_close else 0
+        
+        return {
+            'symbol': meta.get('symbol', symbol),
+            'shortName': meta.get('shortName') or symbol,
+            'longName': meta.get('longName') or symbol,
+            'regularMarketPrice': price,
+            'regularMarketChangePercent': change,
+            'regularMarketVolume': meta.get('regularMarketVolume') or 0,
+            'marketCap': meta.get('marketCap') or 0,
+            'currency': meta.get('currency') or 'USD',
+            'trailingPE': meta.get('trailingPE') or 0,
+            'forwardPE': meta.get('forwardPE') or 0,
+            'priceToBook': meta.get('priceToBook') or 0,
+            'dividendYield': meta.get('dividendYield') or 0,
+            'beta': meta.get('beta') or 1,
+            'sharesOutstanding': meta.get('sharesOutstanding') or 0,
+            'from_yahoo': True
+        }
+        
+    except Exception as e:
+        print(f'[BUFFET AI] Yahoo fetch error: {e}')
+        return None
     
     def generate_mock_fundamentals(self, quote):
         """Generuj mockowe wskaźniki fundamentalne (100+ wskaźników)"""
