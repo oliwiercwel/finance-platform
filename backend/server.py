@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import os
 import sys
+import time
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime, timedelta
 import calendar as cal_module
@@ -688,6 +689,547 @@ class FinanceHandler(SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
     
+    def do_POST(self):
+        """Obsługa POST requests - SSE streaming dla BUFFET AI"""
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        
+        # /api/buffet-ai/analyze - GŁÓWNY ENDPOINT
+        if path == '/api/buffet-ai/analyze':
+            self.handle_buffet_ai_analyze()
+            return
+        
+        send_json(self, {'error': 'Not found'}, 404)
+    
+    def handle_buffet_ai_analyze(self):
+        """Obsługa analizy BUFFET AI z SSE streaming"""
+        import time
+        import threading
+        
+        # Read request body
+        content_length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+        
+        try:
+            request_data = json.loads(body)
+        except json.JSONDecodeError:
+            request_data = {}
+        
+        symbol = request_data.get('symbol', '').upper().strip()
+        depth = request_data.get('depth', 'full')
+        
+        if not symbol:
+            self.send_sse_error('Brak symbolu w żądaniu')
+            return
+        
+        # SSE headers
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/event-stream')
+        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Connection', 'keep-alive')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('X-Accel-Buffering', 'no')
+        self.end_headers()
+        
+        def write_sse(data):
+            """Wyślij SSE event"""
+            try:
+                message = f"data: {json.dumps(data)}\n\n"
+                self.wfile.write(message.encode('utf-8'))
+                self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+        
+        def send_error_and_end(error_msg):
+            write_sse({'error': error_msg})
+            write_sse({'done': True})
+        
+        try:
+            # 1. Pobierz dane fundamentalne (z fallback na mock)
+            quote = self.fetch_quote_yahoo(symbol)
+            if not quote:
+                send_error_and_end(f'Nie znaleziono danych dla {symbol}. Sprawdź czy ticker jest poprawny (np. NVDA, AAPL, CDR.WA).')
+                return
+            
+            # 2. Generuj mock fundamentals (bo Yahoo API nie daje wszystkich danych)
+            fundamentals = self.generate_mock_fundamentals(quote)
+            technicals = self.generate_mock_technicals(symbol)
+            
+            # 3. Wyślij wskaźniki
+            write_sse({'indicators': fundamentals})
+            
+            # 4. Wyślij dane do wykresów
+            chart_data = self.generate_mock_chart_data(symbol)
+            write_sse({'charts': chart_data})
+            
+            # 5. Zbuduj kontekst dla AI i streamuj analizę
+            context = self.build_ai_context(symbol, fundamentals, technicals, quote)
+            self.stream_ai_analysis(write_sse, symbol, context)
+            
+        except Exception as e:
+            print(f'[BUFFET AI] Błąd: {e}')
+            error_msg = str(e)
+            if 'Too Many Requests' in error_msg or '429' in error_msg:
+                error_msg = 'Yahoo Finance tymczasowo blokuje zapytania (zbyt wiele requestów). Spróbuj za chwilę.'
+            elif 'Failed to fetch' in error_msg or 'network' in error_msg.lower():
+                error_msg = 'Problem z połączeniem do Yahoo Finance. Sprawdź połączenie internetowe.'
+            send_error_and_end(error_msg)
+    
+    def fetch_quote_yahoo(self, symbol):
+        """Pobierz notowanie z Yahoo Finance"""
+        try:
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol)}?range=1d&interval=1d"
+            data = fetch_yahoo(url)
+            
+            if not data or 'chart' not in data or not data['chart']['result']:
+                return None
+            
+            result = data['chart']['result'][0]
+            meta = result.get('meta', {})
+            
+            price = meta.get('regularMarketPrice') or 0
+            prev_close = meta.get('chartPreviousClose') or meta.get('previousClose') or price
+            change = ((price - prev_close) / prev_close * 100) if prev_close else 0
+            
+            return {
+                'symbol': meta.get('symbol', symbol),
+                'shortName': meta.get('shortName') or symbol,
+                'longName': meta.get('longName') or symbol,
+                'regularMarketPrice': price,
+                'regularMarketChangePercent': change,
+                'regularMarketVolume': meta.get('regularMarketVolume') or 0,
+                'marketCap': meta.get('marketCap') or 0,
+                'currency': meta.get('currency') or 'USD',
+                'regularMarketDayHigh': meta.get('regularMarketDayHigh') or 0,
+                'regularMarketDayLow': meta.get('regularMarketDayLow') or 0,
+                'regularMarketOpen': meta.get('regularMarketOpen') or 0,
+                'previousClose': prev_close,
+                'fiftyTwoWeekHigh': meta.get('fiftyTwoWeekHigh') or 0,
+                'fiftyTwoWeekLow': meta.get('fiftyTwoWeekLow') or 0,
+                'marketState': meta.get('marketState') or 'CLOSED',
+                'exchange': meta.get('fullExchangeName') or meta.get('exchangeName') or '',
+                'quoteType': meta.get('instrumentType') or 'EQUITY',
+                'epsTrailingTwelveMonths': meta.get('epsTrailingTwelveMonths') or 0,
+                'epsForward': meta.get('epsForward') or 0,
+                'priceToBook': meta.get('priceToBook') or 0,
+                'trailingPE': meta.get('trailingPE') or 0,
+                'forwardPE': meta.get('forwardPE') or 0,
+                'dividendRate': meta.get('dividendRate') or 0,
+                'dividendYield': meta.get('dividendYield') or 0,
+                'beta': meta.get('beta') or 1,
+                'sharesOutstanding': meta.get('sharesOutstanding') or 0,
+            }
+        except Exception as e:
+            print(f'[BUFFET AI] Yahoo fetch error: {e}')
+            return None
+    
+    def generate_mock_fundamentals(self, quote):
+        """Generuj mockowe wskaźniki fundamentalne (100+ wskaźników)"""
+        import random
+        
+        price = quote.get('regularMarketPrice', 100)
+        market_cap = quote.get('marketCap', 1e9)
+        
+        # Bazowe wartości z Yahoo + losowe wariacje dla demo
+        base_revenue = market_cap * random.uniform(0.1, 0.5)
+        base_net_income = base_revenue * random.uniform(0.05, 0.25)
+        base_ebitda = base_net_income * random.uniform(1.5, 3.0)
+        base_total_debt = market_cap * random.uniform(0.1, 0.4)
+        base_total_cash = market_cap * random.uniform(0.05, 0.2)
+        base_total_assets = market_cap * random.uniform(0.8, 2.0)
+        base_total_equity = base_total_assets - base_total_debt
+        base_operating_cashflow = base_net_income * random.uniform(1.0, 1.5)
+        base_free_cashflow = base_operating_cashflow * random.uniform(0.6, 0.9)
+        shares_outstanding = quote.get('sharesOutstanding', market_cap / price if price > 0 else 1e9)
+        eps = quote.get('epsTrailingTwelveMonths', base_net_income / shares_outstanding if shares_outstanding > 0 else 0)
+        forward_eps = quote.get('epsForward', eps * random.uniform(1.05, 1.2))
+        book_value = base_total_equity / shares_outstanding if shares_outstanding > 0 else 0
+        
+        # Oblicz wskaźniki
+        pe_ratio = quote.get('trailingPE', price / eps if eps > 0 else 0)
+        forward_pe = quote.get('forwardPE', price / forward_eps if forward_eps > 0 else 0)
+        pb_ratio = quote.get('priceToBook', price / book_value if book_value > 0 else 0)
+        ps_ratio = market_cap / base_revenue if base_revenue > 0 else 0
+        ev = market_cap + base_total_debt - base_total_cash
+        ev_ebitda = ev / base_ebitda if base_ebitda > 0 else 0
+        ev_revenue = ev / base_revenue if base_revenue > 0 else 0
+        dividend_yield = quote.get('dividendYield', 0)
+        
+        roe = base_net_income / base_total_equity if base_total_equity > 0 else 0
+        roa = base_net_income / base_total_assets if base_total_assets > 0 else 0
+        roic = base_ebitda * 0.79 / (base_total_equity + base_total_debt - base_total_cash) if (base_total_equity + base_total_debt - base_total_cash) > 0 else 0
+        gross_margin = random.uniform(0.3, 0.7)
+        operating_margin = base_ebitda / base_revenue if base_revenue > 0 else 0
+        net_margin = base_net_income / base_revenue if base_revenue > 0 else 0
+        fcf_margin = base_free_cashflow / base_revenue if base_revenue > 0 else 0
+        
+        debt_equity = base_total_debt / base_total_equity if base_total_equity > 0 else 0
+        net_debt = base_total_debt - base_total_cash
+        net_debt_ebitda = net_debt / base_ebitda if base_ebitda > 0 else 0
+        interest_coverage = base_ebitda / (base_total_debt * 0.05) if base_total_debt > 0 else 999
+        current_ratio = random.uniform(1.2, 3.0)
+        
+        revenue_growth = random.uniform(-0.1, 0.3)
+        earnings_growth = random.uniform(-0.15, 0.4)
+        
+        accruals_ratio = random.uniform(-0.05, 0.1)
+        cash_conversion = random.uniform(0.8, 1.3)
+        sbc_revenue = random.uniform(0.01, 0.15)
+        
+        insider_ownership = random.uniform(0.01, 0.25)
+        institutional_ownership = random.uniform(0.3, 0.85)
+        short_interest = random.uniform(0.005, 0.15)
+        beta = quote.get('beta', random.uniform(0.8, 1.5))
+        
+        peg_ratio = forward_pe / (earnings_growth * 100) if forward_pe > 0 and earnings_growth > 0 else 0
+        graham_number = (22.5 * eps * book_value) ** 0.5 if eps > 0 and book_value > 0 else 0
+        price_to_fcf = market_cap / base_free_cashflow if base_free_cashflow > 0 else 0
+        
+        return {
+            'valuation': {
+                'pe_ratio': round(pe_ratio, 2),
+                'forward_pe': round(forward_pe, 2),
+                'peg_ratio': round(peg_ratio, 2),
+                'pb_ratio': round(pb_ratio, 2),
+                'ps_ratio': round(ps_ratio, 2),
+                'ev_ebitda': round(ev_ebitda, 2),
+                'ev_revenue': round(ev_revenue, 2),
+                'ev_ebit': round(ev_ebitda * 1.1, 2),
+                'dividend_yield': round(dividend_yield, 4),
+                'graham_number': round(graham_number, 2),
+                'price_to_fcf': round(price_to_fcf, 2),
+            },
+            'profitability': {
+                'roe': round(roe, 4),
+                'roa': round(roa, 4),
+                'roic': round(roic, 4),
+                'gross_margin': round(gross_margin, 4),
+                'operating_margin': round(operating_margin, 4),
+                'net_margin': round(net_margin, 4),
+                'fcf_margin': round(fcf_margin, 4),
+                'ebitda_margin': round(base_ebitda / base_revenue if base_revenue > 0 else 0, 4),
+            },
+            'leverage': {
+                'debt_equity': round(debt_equity, 2),
+                'net_debt_ebitda': round(net_debt_ebitda, 2),
+                'interest_coverage': round(interest_coverage, 1),
+                'current_ratio': round(current_ratio, 2),
+                'quick_ratio': round(current_ratio * 0.8, 2),
+                'cash_ratio': round(base_total_cash / (base_total_debt * 0.3) if base_total_debt > 0 else 0, 2),
+                'altman_z_score': round(random.uniform(1.5, 5.0), 2),
+            },
+            'growth': {
+                'revenue_growth_yoy': round(revenue_growth, 4),
+                'earnings_growth_yoy': round(earnings_growth, 4),
+                'revenue_growth_qoq': round(revenue_growth * 0.3, 4),
+                'earnings_growth_qoq': round(earnings_growth * 0.3, 4),
+            },
+            'quality': {
+                'accruals_ratio': round(accruals_ratio, 4),
+                'cash_conversion': round(cash_conversion, 4),
+                'sbc_revenue': round(sbc_revenue, 4),
+            },
+            'ownership': {
+                'insider_ownership': round(insider_ownership, 4),
+                'institutional_ownership': round(institutional_ownership, 4),
+                'short_interest': round(short_interest, 4),
+                'short_ratio': round(random.uniform(1, 10), 1),
+            },
+            'macro': {
+                'beta': round(beta, 2),
+            },
+            '_raw': {
+                'price': price,
+                'marketCap': market_cap,
+                'revenue': base_revenue,
+                'netIncome': base_net_income,
+                'ebitda': base_ebitda,
+                'ebit': base_ebitda * 0.9,
+                'totalDebt': base_total_debt,
+                'totalCash': base_total_cash,
+                'totalAssets': base_total_assets,
+                'totalEquity': base_total_equity,
+                'operatingCashFlow': base_operating_cashflow,
+                'freeCashFlow': base_free_cashflow,
+                'sharesOutstanding': shares_outstanding,
+                'eps': eps,
+                'forwardEps': forward_eps,
+                'bookValue': book_value,
+                'dividendRate': quote.get('dividendRate', 0),
+            }
+        }
+    
+    def generate_mock_technicals(self, symbol):
+        """Generuj mockowe wskaźniki techniczne"""
+        import random
+        random.seed(hash(symbol) % 10000)
+        
+        price = random.uniform(50, 500)
+        return {
+            'sma_20': round(price * random.uniform(0.95, 1.05), 2),
+            'sma_50': round(price * random.uniform(0.9, 1.1), 2),
+            'sma_200': round(price * random.uniform(0.8, 1.2), 2),
+            'ema_12': round(price * random.uniform(0.95, 1.05), 2),
+            'ema_26': round(price * random.uniform(0.9, 1.1), 2),
+            'rsi_14': round(random.uniform(30, 70), 1),
+            'macd': {
+                'macd': round(random.uniform(-5, 5), 2),
+                'signal': round(random.uniform(-5, 5), 2),
+                'histogram': round(random.uniform(-2, 2), 2),
+            },
+            'bb': {
+                'upper': round(price * 1.1, 2),
+                'middle': round(price, 2),
+                'lower': round(price * 0.9, 2),
+            },
+            'atr_14': round(price * 0.02, 2),
+            'volume_ratio': round(random.uniform(0.5, 2.0), 2),
+            'current_price': round(price, 2),
+            'price_change_1d': round(random.uniform(-0.05, 0.05), 4),
+            'price_change_1w': round(random.uniform(-0.1, 0.1), 4),
+            'price_change_1m': round(random.uniform(-0.2, 0.2), 4),
+            'price_change_1y': round(random.uniform(-0.3, 0.5), 4),
+        }
+    
+    def generate_mock_chart_data(self, symbol):
+        """Generuj mockowe dane do wykresów"""
+        import random
+        random.seed(hash(symbol) % 10000)
+        
+        base_price = random.uniform(50, 500)
+        now = int(time.time())
+        
+        price_history = []
+        sma20_data = []
+        sma50_data = []
+        sma200_data = []
+        rsi_data = []
+        
+        prices = []
+        for i in range(250):
+            timestamp = now - (249 - i) * 86400
+            change = random.uniform(-0.03, 0.03)
+            if i == 0:
+                close = base_price
+            else:
+                close = prices[-1] * (1 + change)
+            prices.append(close)
+            
+            open_price = close * random.uniform(0.99, 1.01)
+            high = max(open_price, close) * random.uniform(1.0, 1.02)
+            low = min(open_price, close) * random.uniform(0.98, 1.0)
+            volume = random.randint(1000000, 100000000)
+            
+            price_history.append({
+                'time': timestamp,
+                'open': round(open_price, 2),
+                'high': round(high, 2),
+                'low': round(low, 2),
+                'close': round(close, 2),
+                'volume': volume
+            })
+            
+            if i >= 19:
+                sma20 = sum(prices[i-19:i+1]) / 20
+                sma20_data.append({'time': timestamp, 'value': round(sma20, 2)})
+            if i >= 49:
+                sma50 = sum(prices[i-49:i+1]) / 50
+                sma50_data.append({'time': timestamp, 'value': round(sma50, 2)})
+            if i >= 199:
+                sma200 = sum(prices[i-199:i+1]) / 200
+                sma200_data.append({'time': timestamp, 'value': round(sma200, 2)})
+            if i >= 14:
+                gains = sum(max(prices[j] - prices[j-1], 0) for j in range(i-13, i+1))
+                losses = sum(max(prices[j-1] - prices[j], 0) for j in range(i-13, i+1))
+                rs = gains / losses if losses > 0 else 100
+                rsi = 100 - 100 / (1 + rs)
+                rsi_data.append({'time': timestamp, 'value': round(rsi, 1)})
+        
+        return {
+            'price_history': price_history,
+            'sma20': sma20_data,
+            'sma50': sma50_data,
+            'sma200': sma200_data,
+            'rsi': rsi_data
+        }
+    
+    def build_ai_context(self, symbol, fundamentals, technicals, quote):
+        """Zbuduj kontekst dla AI"""
+        f = fundamentals
+        t = technicals
+        r = f['_raw']
+        
+        context = f"ANALIZA SPÓŁKI: {symbol} ({quote.get('shortName', 'N/A')})\n"
+        context += f"Cena: ${r['price']:.2f} | Market Cap: ${r['marketCap']/1e9:.1f}B\n\n"
+        
+        context += "=== WYCENA ===\n"
+        v = f['valuation']
+        context += f"P/E: {v['pe_ratio']:.2f} | Forward P/E: {v['forward_pe']:.2f} | PEG: {v['peg_ratio']:.2f}\n"
+        context += f"P/B: {v['pb_ratio']:.2f} | P/S: {v['ps_ratio']:.2f} | EV/EBITDA: {v['ev_ebitda']:.2f}\n"
+        context += f"EV/Revenue: {v['ev_revenue']:.2f} | Dywidenda: {v['dividend_yield']*100:.2f}%\n"
+        context += f"Graham Number: ${v['graham_number']:.2f} | Price/FCF: {v['price_to_fcf']:.2f}\n\n"
+        
+        context += "=== RENTOWNOSC ===\n"
+        p = f['profitability']
+        context += f"ROE: {p['roe']*100:.1f}% | ROA: {p['roa']*100:.1f}% | ROIC: {p['roic']*100:.1f}%\n"
+        context += f"Gross Margin: {p['gross_margin']*100:.1f}% | Operating Margin: {p['operating_margin']*100:.1f}%\n"
+        context += f"Net Margin: {p['net_margin']*100:.1f}% | FCF Margin: {p['fcf_margin']*100:.1f}%\n\n"
+        
+        context += "=== DLUG I PLYNNOSC ===\n"
+        l = f['leverage']
+        context += f"Debt/Equity: {l['debt_equity']:.2f} | Net Debt/EBITDA: {l['net_debt_ebitda']:.2f}\n"
+        context += f"Interest Coverage: {l['interest_coverage']:.1f}x | Current Ratio: {l['current_ratio']:.2f}\n"
+        context += f"Quick Ratio: {l['quick_ratio']:.2f} | Cash Ratio: {l['cash_ratio']:.2f}\n"
+        context += f"Altman Z-Score: {l['altman_z_score']:.2f}\n\n"
+        
+        context += "=== WZROST ===\n"
+        g = f['growth']
+        context += f"Revenue Growth YoY: {g['revenue_growth_yoy']*100:.1f}% | Earnings Growth YoY: {g['earnings_growth_yoy']*100:.1f}%\n"
+        context += f"Revenue Growth QoQ: {g['revenue_growth_qoq']*100:.1f}% | Earnings Growth QoQ: {g['earnings_growth_qoq']*100:.1f}%\n\n"
+        
+        context += "=== JAKOSC ZYSKOW ===\n"
+        q = f['quality']
+        context += f"Accruals Ratio: {q['accruals_ratio']*100:.1f}% | Cash Conversion: {q['cash_conversion']*100:.1f}%\n"
+        context += f"SBC/Revenue: {q['sbc_revenue']*100:.1f}%\n\n"
+        
+        context += "=== TECHNIKA ===\n"
+        context += f"RSI(14): {t['rsi_14']:.1f} | MACD: {t['macd']['macd']:.2f} | Signal: {t['macd']['signal']:.2f}\n"
+        context += f"SMA20: ${t['sma_20']:.2f} | SMA50: ${t['sma_50']:.2f} | SMA200: ${t['sma_200']:.2f}\n"
+        context += f"BB Upper: ${t['bb']['upper']:.2f} | BB Lower: ${t['bb']['lower']:.2f}\n"
+        context += f"ATR(14): ${t['atr_14']:.2f} | Volume Ratio: {t['volume_ratio']:.2f}x\n"
+        context += f"Price vs SMA200: {((t['current_price'] - t['sma_200']) / t['sma_200'] * 100):.1f}%\n\n"
+        
+        context += "=== AKCJONARIUSZE ===\n"
+        o = f['ownership']
+        context += f"Insider Ownership: {o['insider_ownership']*100:.1f}% | Institutional: {o['institutional_ownership']*100:.1f}%\n"
+        context += f"Short Interest: {o['short_interest']*100:.1f}% | Short Ratio: {o['short_ratio']:.1f} days\n\n"
+        
+        context += "=== MAKRO ===\n"
+        context += f"Beta: {f['macro']['beta']:.2f}\n\n"
+        
+        context += "=== DANE SUROWE ===\n"
+        context += f"Revenue: ${r['revenue']/1e9:.1f}B | Net Income: ${r['netIncome']/1e9:.1f}B | EBITDA: ${r['ebitda']/1e9:.1f}B\n"
+        context += f"Total Debt: ${r['totalDebt']/1e9:.1f}B | Cash: ${r['totalCash']/1e9:.1f}B | FCF: ${r['freeCashFlow']/1e9:.1f}B\n"
+        context += f"EPS: ${r['eps']:.2f} | Forward EPS: ${r['forwardEps']:.2f} | Book Value: ${r['bookValue']:.2f}\n"
+        
+        return context
+    
+    def stream_ai_analysis(self, write_sse, symbol, context):
+        """Streamuj analizę AI (mock - symuluje Nemotron 3 Ultra)"""
+        import time
+        
+        f = json.loads(context.split('\n\n')[1].replace('=== WYCENA ===\n', '').split('\n\n')[0].replace('\n', ', ').replace(': ', '": "').replace(' | ', '", "').replace('=', '": "'))
+        # Uproszczone parsowanie dla demo
+        
+        analysis = self.generate_mock_ai_analysis(symbol, context)
+        
+        # Streamuj po fragmentach
+        chunks = [analysis[i:i+80] for i in range(0, len(analysis), 80)]
+        for chunk in chunks:
+            write_sse({'token': chunk})
+            time.sleep(0.02)  # Mała przerwa dla efektu streaming
+        
+        write_sse({'done': True})
+    
+    def generate_mock_ai_analysis(self, symbol, context):
+        """Generuj mockową analizę AI"""
+        # Wyciągnij kluczowe dane z contextu
+        lines = context.split('\n')
+        price_line = [l for l in lines if l.startswith('Cena:')][0] if any(l.startswith('Cena:') for l in lines) else f'Cena: $100.00 | Market Cap: $100.0B'
+        price = price_line.split('$')[1].split(' ')[0] if '$' in price_line else '100.00'
+        
+        # Znajdź ROE
+        roe_line = [l for l in lines if 'ROE:' in l][0] if any('ROE:' in l for l in lines) else 'ROE: 15.0%'
+        roe = roe_line.split('ROE:')[1].split('%')[0].strip() if 'ROE:' in roe_line else '15.0'
+        
+        # Znajdź P/E
+        pe_line = [l for l in lines if 'P/E:' in l and 'Forward' not in l][0] if any('P/E:' in l and 'Forward' not in l for l in lines) else 'P/E: 20.00'
+        pe = pe_line.split('P/E:')[1].split('|')[0].strip() if 'P/E:' in pe_line else '20.00'
+        
+        # Znajdź Debt/Equity
+        de_line = [l for l in lines if 'Debt/Equity:' in l][0] if any('Debt/Equity:' in l for l in lines) else 'Debt/Equity: 0.50'
+        de = de_line.split('Debt/Equity:')[1].split('|')[0].strip() if 'Debt/Equity:' in de_line else '0.50'
+        
+        # Znajdź RSI
+        rsi_line = [l for l in lines if 'RSI(14):' in l][0] if any('RSI(14):' in l for l in lines) else 'RSI(14): 55.0'
+        rsi = rsi_line.split('RSI(14):')[1].split('|')[0].strip() if 'RSI(14):' in rsi_line else '55.0'
+        
+        # Znajdź Revenue Growth
+        rev_line = [l for l in lines if 'Revenue Growth YoY:' in l][0] if any('Revenue Growth YoY:' in l for l in lines) else 'Revenue Growth YoY: 15.0%'
+        rev_growth = rev_line.split('Revenue Growth YoY:')[1].split('%')[0].strip() if 'Revenue Growth YoY:' in rev_line else '15.0'
+        
+        analysis = f"""# Analiza {symbol}
+
+## 🎯 Executive Summary
+**REKOMENDACJA: BUY** | Siła konwikcji: 7/10 | Horyzont: Średni (3-12m)
+
+{symbol} to solidna firma z dobrymi fundamentami. Cena: ${price}.
+
+## 📊 Kluczowe wskaźniki (wyjaśnione prostym językiem)
+
+### 💰 Wycena
+- **P/E: {pe}** - Płacisz {pe} zł za 1 zł zysku firmy. Poniżej 15 = tanio, powyżej 25 = drogo.
+- **Forward P/E** - P/E na przyszły rok. Niższe od obecnego = analitycy oczekują wzrostu zysków.
+- **PEG** - P/E podzielone na wzrost. <1 = okazja, 1-2 = OK, >2 = drogo.
+- **EV/EBITDA** - Wartość firmy (akcje+dług-gotówka) do zysku operacyjnego. <10 = tanio.
+
+### 📈 Rentowność
+- **ROE: {roe}%** - Na każde 100 zł akcjonariuszy firma zarabia {roe} zł. >15% = świetnie, >25% = maszyna do pieniędzy.
+- **ROIC** - Zwrot na WSZYSTKIM kapitałe (akcje+długi). Najważniejszy wskaźnik Buffetta! >WACC = tworzy wartość.
+- **Marża brutto** - Z 100 zł sprzedaży tyle zostaje po kosztach produkcji. >40% = dobre.
+- **Marża FCF** - Ile % przychodu zamienia się w WOLNĄ GOTÓWKĘ. To prawdziwe pieniądze dla właścicieli.
+
+### ⚖️ Dług i Płynność
+- **Debt/Equity: {de}** - Ile długu na 1 zł własnego kapitału. <0.5 = bezpiecznie, >2 = ryzykownie.
+- **Net Debt/EBITDA** - Ile lat spłacania długu z zysku. <2 = super, 2-3 = OK, >4 = problem.
+- **Interest Coverage** - Ile razy zysk pokrywa odsetki. >5 = bezpiecznie.
+
+### 🚀 Wzrost
+- **Przychód YoY: {rev_growth}%** - O ile % wzrosła sprzedaż rok do roku. >15% = szybki wzrost.
+- **Zysk YoY** - Wzrost zysku na akcję. Napędza cenę w długim terminie.
+
+### 💎 Jakość zysków
+- **Cash Conversion** - Ile % zysku księgowego to prawdziwa gotówka. >100% = super.
+- **SBC/Revenue** - Ile % przychodu idzie na akcje dla pracowników. >10% = rozcieńcza akcjonariuszy.
+
+### 📊 Technika
+- **RSI(14): {rsi}** - >70 = przekupione, <30 = przesprzedane, 50 = neutralne.
+- **Cena vs SMA200** - Powyżej = trend byka, poniżej = niedźwiedź.
+- **Wolumen ratio** - Czy handluje się więcej niż zwykle. >1.5 = duże zainteresowanie.
+
+### 👥 Akcjonariusze
+- **Insider Ownership** - Ile % mają zarząd. >10% = ich interesy = Twoje interesy.
+- **Short Interest** - Ile % obstawia spadki. >10% = ryzyko short squeeze.
+
+## 🛡️ Moat & Jakość Biznesu
+Firma posiada **szeroki moat (Wide Moat)** oparty na: przewadze technologicznej, kosztach przejścia (switching costs) i efekcie sieci. Pricing power = silny (mogą podnosić ceny powyżej inflacji).
+
+## ⚠️ Główne Ryzyka
+1. **Wycena** - P/E powyżej średniej historycznej
+2. **Konkurencja** - Rosnąca presja w sektorze
+3. **Makro** - Wysokie stopy procentowe uciskają wyceny growth
+4. **Kluczowe osoby** - Zależność od CEO/zarządu
+
+## 💡 Werdykt
+**BUY** - Solidna firma z moatem, dobrymi fundamentami i perspektywami wzrostu. Warto kupować na korektach do SMA50/200. Stop loss: 15-20% poniżej ceny wejścia. Pozycja: Core (3-5% portfela).
+
+---
+*To nie jest porada inwestycyjna. Dane z mock generatora (lokalny test). Pamiętaj o ryzyku utraty kapitału.*"""
+        
+        return analysis
+    
+    def send_sse_error(self, error_msg):
+        """Wyślij błąd jako SSE"""
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/event-stream')
+        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Connection', 'keep-alive')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(f"data: {json.dumps({'error': error_msg})}\n\n".encode('utf-8'))
+        self.wfile.write(f"data: {json.dumps({'done': True})}\n\n".encode('utf-8'))
+        self.wfile.flush()
+
     def log_message(self, format, *args):
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {format % args}")
 
