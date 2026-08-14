@@ -983,6 +983,7 @@ async function fetchPriceHistory(symbol, period = '1y') {
             '1m': { period1: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], interval: '1d' },
             '3m': { period1: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], interval: '1d' },
             '1y': { period1: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], interval: '1d' },
+            '2y': { period1: new Date(Date.now() - 730 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], interval: '1d' },
             '5y': { period1: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], interval: '1wk' }
         };
         
@@ -1698,6 +1699,569 @@ cron.schedule('0 0 * * *', () => {
         if (err) console.error('Błąd czyszczenia historii:', err);
         else console.log('Historia wyczyszczona');
     });
+});
+
+// ==================== BUFFETT AI — nowe AI „chłodna analiza techniczna” ====================
+// Zamienione AI powstało na bazie projektu trading-ai (Python/Streamlit) i zostało
+// zaimplementowane jako natywny endpoint Node.js, przy zachowaniu tej samej podstrony buffet-ai.html.
+
+// System prompt „chłodnego analityka” + few-shot (port prompts/system_prompt.py)
+const BUFFETT_FEW_SHOT = [
+  { ticker: 'NVDA', data: '2023-10-20', werdykt_ktory_sie_sprawdzil: 'MA SENS', komentarz: 'Cena powyżej SMA50 i SMA200, RSI14 odbiło z okolic 32, histogram MACD dodatni.' },
+  { ticker: 'SOXL', data: '2022-06-15', werdykt_ktory_sie_sprawdzil: 'NIE MA SENS', komentarz: 'Choć RSI był wyprzedany, cena pozostawała poniżej SMA200 — struktura się nie odwróciła.' },
+  { ticker: 'QQQ', data: '2021-03-05', werdykt_ktory_sie_sprawdzil: 'CZEKAJ', komentarz: 'Sygnały mieszane, brak potwierdzenia wolumenem; rozsądnie było czekać.' },
+  { ticker: 'AMD', data: '2023-06-12', kierunek: 'LONG', werdykt_ktory_sie_sprawdzil: 'MA SENS', komentarz: 'Struktura byka nad SMA200, ADX > 25, MACD dodatni, wolumen potwierdzał ruch.' },
+  { ticker: 'SPY', data: '2021-09-20', kierunek: 'SHORT', werdykt_ktory_sie_sprawdzil: 'NIE MA SENS', komentarz: 'Benchmark w trendzie wzrostowym — krótka pozycja nie miała uzasadnienia technicznego.' },
+  { ticker: 'SOXX', data: '2022-01-10', kierunek: 'LONG', werdykt_ktory_sie_sprawdzil: 'CZEKAJ', komentarz: 'ADX < 20 (konsolidacja), brak potwierdzenia wolumenem — czekanie było właściwe.' }
+];
+
+function buildBuffettSystemPrompt() {
+  const few_shot_block = BUFFETT_FEW_SHOT.map((ex, i) => {
+    const dir = ex.kierunek ? `\nKierunek sygnału: ${ex.kierunek}` : '';
+    return `Przykład ${i + 1}:\nTicker: ${ex.ticker}  |  Data: ${ex.data}${dir}\nWerdykt który okazał się poprawny: ${ex.werdykt_ktory_sie_sprawdzil}\nKrótki komentarz: ${ex.komentarz}`;
+  }).join('\n\n');
+
+  return `Jesteś starszym analitykiem technicznym z instytucjonalnego desk'u, z 18 latami
+doświadczenia w analizie akcji i ETF-ów (w tym lewarowanych, typu SOXL). Piszesz
+chłodno, konkretnie i bez emocji. Zero hype'u, zero youtuberowania, zero lania
+wody. Mówisz tylko to, co da się uzasadnić danymi technicznymi.
+
+====================================================================
+HIERARCHIA ANALIZY (analizuj w tej kolejności, nie odwrotnie):
+1. STRUKTURA TRENDU  — SMA50 vs SMA200, cena vs SMA200, trend/cena vs średnie.
+   Jeśli struktura jest spadkowa, NIE gratuj longów.
+2. ŚREDNIE KROCZE    — EMA 9/21/50 (krótki i średni okres) oraz ułożenie EMA50/SMA200.
+3. MOMENTUM          — RSI (7 i 14), Stochastic, Stochastic RSI, MACD histogram,
+   CCI, Williams %R. Wykupienie/wyprzedanie = ostrzeżenie, nie impuls.
+4. ADX               — ADX >= 25 = silny trend; ADX < 25 = konsolidacja.
+5. WOLUMEN           — Volume SMA, OBV, MFI, CMF. Czy ruch jest POTWIERDZONY wolumenem?
+
+====================================================================
+ZASADY TWARDEGO WERDYKTU (non-negotiable):
+- "MA SENS"  → tylko, gdy: struktura trendu zgodna z kierunkiem setupu,
+  momentum potwierdza, ADX pokazuje trend, wolumen potwierdza ruch.
+  W przeciwnym razie NIE kombinuj — NIE dawaj MA SENS na siłę.
+- "NIE MA SENS" → gdy struktura/technikalia są JASNO przeciwne (np. cena
+  poniżej SMA200 i SMA50<SMA200 i MACD<0).
+- "CZEKAJ" → w każdym przypadku niejednoznacznym lub gdy brak potwierdzenia.
+  Wybieraj "CZEKAJ" częściej niż "MA SENS".
+
+====================================================================
+ABSOLUTNIE ZAKAZANE:
+- Żadnych rekomendacji opartych na fundamentach (P/E, przychody, hype).
+- Żadnych sformułowań typu "moon", "rocket", "bez ryzyka", "pewnik".
+- Używaj prawdopodobieństwa i warunków, nigdy gwarancji.
+
+====================================================================
+PRZYKŁADY FEW-SHOT Z BACKTESTU HISTORYCZNEGO:
+${few_shot_block}
+
+====================================================================
+FORMAT ODPOWIEDZI (zawsze dokładnie taki sam, nic poza tym):
+
+**WERDYKT:** MA SENS / NIE MA SENS / CZEKAJ
+
+**Uzasadnienie:**
+(4-7 konkretnych, zwięzłych zdań opartych o wskaźniki ze snapshotu)
+
+**Kluczowe poziomy:**
+- Wsparcie: (liczba/wartości)
+- Opór: (liczba/wartości)
+
+**Warunki unieważnienia setupu:**
+(lista konkretnych warunków technicznych, które oznaczają, że setup jest nieaktualny)`;
+}
+// -------------------- Wskaźniki techniczne (port z utils/data.py) --------------------
+function roundNum(v, d) {
+  return (v == null || Number.isNaN(v)) ? null : Number(Number(v).toFixed(d));
+}
+
+function btEMA(arr, p) {
+  const out = new Array(arr.length).fill(NaN);
+  let seed = -1;
+  for (let i = 0; i < arr.length; i++) if (!Number.isNaN(arr[i])) { seed = i; break; }
+  if (seed === -1) return out;
+  const alpha = 2 / (p + 1);
+  out[seed] = arr[seed];
+  for (let i = seed + 1; i < arr.length; i++) {
+    out[i] = Number.isNaN(arr[i]) ? out[i - 1] : arr[i] * alpha + out[i - 1] * (1 - alpha);
+  }
+  return out;
+}
+
+function btSMA(arr, p) {
+  const out = new Array(arr.length).fill(NaN);
+  let sum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (Number.isNaN(arr[i])) continue;
+    sum += arr[i];
+    if (i >= p && !Number.isNaN(arr[i - p])) sum -= arr[i - p];
+    if (i >= p - 1) out[i] = sum / p;
+  }
+  return out;
+}
+
+function btRSI(arr, p) {
+  const out = new Array(arr.length).fill(NaN);
+  if (arr.length < 2) return out;
+  const gain = new Array(arr.length).fill(0);
+  const loss = new Array(arr.length).fill(0);
+  for (let i = 1; i < arr.length; i++) {
+    const d = arr[i] - arr[i - 1];
+    if (d > 0) gain[i] = d; else if (d < 0) loss[i] = -d;
+  }
+  const alpha = 1 / p;
+  const ag = new Array(arr.length).fill(0);
+  const al = new Array(arr.length).fill(0);
+  ag[0] = gain[0]; al[0] = loss[0];
+  for (let i = 1; i < arr.length; i++) {
+    ag[i] = gain[i] * alpha + ag[i - 1] * (1 - alpha);
+    al[i] = loss[i] * alpha + al[i - 1] * (1 - alpha);
+  }
+  for (let i = 0; i < arr.length; i++) {
+    if (al[i] === 0) out[i] = ag[i] === 0 ? 0 : 100;
+    else out[i] = 100 - 100 / (1 + ag[i] / al[i]);
+  }
+  return out;
+}
+
+function btMACD(arr) {
+  const e12 = btEMA(arr, 12);
+  const e26 = btEMA(arr, 26);
+  const macd = arr.map((_, i) => (Number.isNaN(e12[i]) || Number.isNaN(e26[i])) ? NaN : e12[i] - e26[i]);
+  const signal = btEMA(macd, 9);
+  const hist = macd.map((v, i) => (Number.isNaN(v) || Number.isNaN(signal[i])) ? NaN : v - signal[i]);
+  return { macd, signal, hist };
+}
+
+function btATR(hist, p) {
+  const n = hist.length;
+  const out = new Array(n).fill(NaN);
+  if (n < 2) return out;
+  const tr = new Array(n).fill(NaN);
+  tr[0] = hist[0].high - hist[0].low;
+  for (let i = 1; i < n; i++) {
+    const pc = hist[i - 1].close;
+    tr[i] = Math.max(hist[i].high - hist[i].low, Math.abs(hist[i].high - pc), Math.abs(hist[i].low - pc));
+  }
+  let seed = -1;
+  for (let i = 0; i < n; i++) if (!Number.isNaN(tr[i])) { seed = i; break; }
+  if (seed === -1) return out;
+  const alpha = 1 / p;
+  out[seed] = tr[seed];
+  for (let i = seed + 1; i < n; i++) out[i] = tr[i] * alpha + out[i - 1] * (1 - alpha);
+  return out;
+}
+
+function btADX(hist, p) {
+  const n = hist.length;
+  const out = new Array(n).fill(NaN);
+  if (n < p + 1) return out;
+  const tr = new Array(n).fill(0);
+  const pdm = new Array(n).fill(0);
+  const mdm = new Array(n).fill(0);
+  for (let i = 1; i < n; i++) {
+    const h = hist[i].high, l = hist[i].low, pc = hist[i - 1].close, ph = hist[i - 1].high, pl = hist[i - 1].low;
+    const up = h - ph, dn = pl - l;
+    tr[i] = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+    pdm[i] = (up > dn && up > 0) ? up : 0;
+    mdm[i] = (dn > up && dn > 0) ? dn : 0;
+  }
+  const str = [tr[0]], sp = [pdm[0]], sm = [mdm[0]];
+  for (let i = 1; i < n; i++) {
+    str.push(str[i - 1] - str[i - 1] / p + tr[i]);
+    sp.push(sp[i - 1] - sp[i - 1] / p + pdm[i]);
+    sm.push(sm[i - 1] - sm[i - 1] / p + mdm[i]);
+  }
+  const dx = new Array(n).fill(NaN);
+  for (let i = 0; i < n; i++) {
+    if (str[i] !== 0 && (sp[i] + sm[i]) !== 0) {
+      dx[i] = 100 * Math.abs(sp[i] - sm[i]) / (sp[i] + sm[i]);
+    }
+  }
+  let seed = -1;
+  for (let i = 0; i < n; i++) if (!Number.isNaN(dx[i])) { seed = i; break; }
+  if (seed === -1) return out;
+  out[seed] = dx[seed];
+  for (let i = seed + 1; i < n; i++) out[i] = Number.isNaN(dx[i]) ? out[i - 1] : out[i - 1] - out[i - 1] / p + dx[i];
+  return out;
+}
+
+function btOBV(closes, vols) {
+  const out = new Array(closes.length).fill(0);
+  for (let i = 1; i < closes.length; i++) {
+    if (closes[i] > closes[i - 1]) out[i] = out[i - 1] + vols[i];
+    else if (closes[i] < closes[i - 1]) out[i] = out[i - 1] - vols[i];
+    else out[i] = out[i - 1];
+  }
+  return out;
+}
+function btMFI(hist, p) {
+  const n = hist.length;
+  const out = new Array(n).fill(NaN);
+  const tp = hist.map(h => (h.high + h.low + h.close) / 3);
+  const mf = hist.map((h, i) => tp[i] * h.volume);
+  for (let i = p; i < n; i++) {
+    let pos = 0, neg = 0;
+    for (let j = i - p + 1; j <= i; j++) {
+      if (tp[j] > tp[j - 1]) pos += mf[j];
+      else if (tp[j] < tp[j - 1]) neg += mf[j];
+    }
+    out[i] = neg === 0 ? 100 : 100 - 100 / (1 + pos / neg);
+  }
+  return out;
+}
+
+function btCMF(hist, p) {
+  const n = hist.length;
+  const out = new Array(n).fill(NaN);
+  for (let i = p - 1; i < n; i++) {
+    let mfv = 0, vol = 0;
+    for (let j = i - p + 1; j <= i; j++) {
+      const hi = hist[j].high, lo = hist[j].low, c = hist[j].close;
+      const mfm = hi !== lo ? ((c - lo) - (hi - c)) / (hi - lo) : 0;
+      mfv += mfm * hist[j].volume;
+      vol += hist[j].volume;
+    }
+    out[i] = vol !== 0 ? mfv / vol : 0;
+  }
+  return out;
+}
+
+function btStoch(hist, pK, pD) {
+  const n = hist.length;
+  const k = new Array(n).fill(NaN);
+  for (let i = pK - 1; i < n; i++) {
+    let hh = -Infinity, ll = Infinity;
+    for (let j = i - pK + 1; j <= i; j++) {
+      if (hist[j].high > hh) hh = hist[j].high;
+      if (hist[j].low < ll) ll = hist[j].low;
+    }
+    k[i] = (hh - ll) === 0 ? 50 : (hist[i].close - ll) / (hh - ll) * 100;
+  }
+  const d = btSMA(k.map(v => Number.isNaN(v) ? NaN : v), pD);
+  return { k, d };
+}
+
+function btCCI(hist, p) {
+  const n = hist.length;
+  const out = new Array(n).fill(NaN);
+  const tp = hist.map(h => (h.high + h.low + h.close) / 3);
+  for (let i = p - 1; i < n; i++) {
+    let sum = 0;
+    for (let j = i - p + 1; j <= i; j++) sum += tp[j];
+    const mean = sum / p;
+    let md = 0;
+    for (let j = i - p + 1; j <= i; j++) md += Math.abs(tp[j] - mean);
+    md /= p;
+    out[i] = md === 0 ? 0 : (tp[i] - mean) / (0.015 * md);
+  }
+  return out;
+}
+
+function btWillR(hist, p) {
+  const n = hist.length;
+  const out = new Array(n).fill(NaN);
+  for (let i = p - 1; i < n; i++) {
+    let hh = -Infinity, ll = Infinity;
+    for (let j = i - p + 1; j <= i; j++) {
+      if (hist[j].high > hh) hh = hist[j].high;
+      if (hist[j].low < ll) ll = hist[j].low;
+    }
+    out[i] = (hh - ll) === 0 ? 0 : (hh - hist[i].close) / (hh - ll) * -100;
+  }
+  return out;
+}
+
+function btROC(arr, p) {
+  const out = new Array(arr.length).fill(NaN);
+  for (let i = p; i < arr.length; i++) out[i] = arr[i - p] === 0 ? NaN : (arr[i] / arr[i - p] - 1) * 100;
+  return out;
+}
+
+function btMomentum(arr, p) {
+  const out = new Array(arr.length).fill(NaN);
+  for (let i = p; i < arr.length; i++) out[i] = arr[i] - arr[i - p];
+  return out;
+}
+
+function btBB(closes, p, k) {
+  const mid = btSMA(closes, p);
+  const upper = new Array(closes.length).fill(NaN);
+  const lower = new Array(closes.length).fill(NaN);
+  const bw = new Array(closes.length).fill(NaN);
+  for (let i = p - 1; i < closes.length; i++) {
+    let m = 0, sd = 0;
+    for (let j = i - p + 1; j <= i; j++) m += closes[j];
+    m /= p;
+    for (let j = i - p + 1; j <= i; j++) sd += (closes[j] - m) ** 2;
+    sd = Math.sqrt(sd / p);
+    upper[i] = m + k * sd;
+    lower[i] = m - k * sd;
+    bw[i] = m === 0 ? NaN : (upper[i] - lower[i]) / m * 100;
+  }
+  return { mid, upper, lower, bw };
+}
+
+function btDonchian(hist, p) {
+  const n = hist.length;
+  const upper = new Array(n).fill(NaN), lower = new Array(n).fill(NaN), mid = new Array(n).fill(NaN);
+  for (let i = p - 1; i < n; i++) {
+    let hh = -Infinity, ll = Infinity;
+    for (let j = i - p + 1; j <= i; j++) {
+      if (hist[j].high > hh) hh = hist[j].high;
+      if (hist[j].low < ll) ll = hist[j].low;
+    }
+    upper[i] = hh; lower[i] = ll; mid[i] = (hh + ll) / 2;
+  }
+  return { upper, lower, mid };
+}
+
+function btKeltner(closes, hist, p, k) {
+  const mid = btEMA(closes, p);
+  const atr = btATR(hist, p);
+  const upper = mid.map((v, i) => Number.isNaN(v) || Number.isNaN(atr[i]) ? NaN : v + k * atr[i]);
+  const lower = mid.map((v, i) => Number.isNaN(v) || Number.isNaN(atr[i]) ? NaN : v - k * atr[i]);
+  return { mid, upper, lower };
+}
+
+function btIchimoku(hist, tenkan, kijun) {
+  const n = hist.length;
+  const conv = new Array(n).fill(NaN), base = new Array(n).fill(NaN);
+  for (let i = Math.max(tenkan, kijun) - 1; i < n; i++) {
+    let hh9 = -Infinity, ll9 = Infinity, hh26 = -Infinity, ll26 = Infinity;
+    for (let j = i - tenkan + 1; j <= i; j++) {
+      if (hist[j].high > hh9) hh9 = hist[j].high;
+      if (hist[j].low < ll9) ll9 = hist[j].low;
+    }
+    for (let j = i - kijun + 1; j <= i; j++) {
+      if (hist[j].high > hh26) hh26 = hist[j].high;
+      if (hist[j].low < ll26) ll26 = hist[j].low;
+    }
+    conv[i] = (hh9 + ll9) / 2;
+    base[i] = (hh26 + ll26) / 2;
+  }
+  return { conv, base };
+}
+
+function trendStructure(close, ema9, ema21, ema50, sma50, sma200) {
+  const parts = [];
+  if (!Number.isNaN(sma50) && !Number.isNaN(sma200)) {
+    parts.push(sma50 > sma200 ? 'SMA50>SMA200 (trend wzrostowy)' : 'SMA50<SMA200 (trend spadkowy)');
+  } else {
+    parts.push('brak pełnych SMA');
+  }
+  if (close > ema9 && ema9 > ema21 && ema21 > ema50) parts.push('cena>EMA9>EMA21>EMA50 (momentum byka)');
+  else if (close < ema9 && ema9 < ema21 && ema21 < ema50) parts.push('cena<EMA9<EMA21<EMA50 (momentum niedźwiedzia)');
+  else parts.push('struktura mieszana');
+  return parts.join(' | ');
+}
+
+function calcPivots(bar) {
+  const P = (bar.high + bar.low + bar.close) / 3;
+  return {
+    P: roundNum(P), R1: roundNum(2 * P - bar.low), S1: roundNum(2 * P - bar.high),
+    R2: roundNum(P + (bar.high - bar.low)), S2: roundNum(P - (bar.high - bar.low)),
+    R3: roundNum(bar.high + 2 * (P - bar.low)), S3: roundNum(bar.low - 2 * (bar.high - P))
+  };
+}
+function calculateBuffettSnapshot(history) {
+  const n = history.length;
+  const closes = history.map(h => h.close);
+  const vols = history.map(h => h.volume);
+  const i = n - 1;
+  const sma = (p) => roundNum(btSMA(closes, p)[i]);
+  const ema = (p) => roundNum(btEMA(closes, p)[i]);
+  const r7 = btRSI(closes, 7)[i];
+  const r14 = btRSI(closes, 14)[i];
+  const macd = btMACD(closes);
+  const adxArr = btADX(history, 14);
+  const atrArr = btATR(history, 14);
+  const stoch = btStoch(history, 14, 3);
+  const bb = btBB(closes, 20, 2);
+  const kelt = btKeltner(closes, history, 20, 2);
+  const dc = btDonchian(history, 20);
+  const cci = btCCI(history, 20);
+  const willr = btWillR(history, 14);
+  const roc = btROC(closes, 10);
+  const mom = btMomentum(closes, 10);
+  const mfi = btMFI(history, 14);
+  const cmf = btCMF(history, 20);
+  const obv = btOBV(closes, vols);
+  const ichi = btIchimoku(history, 9, 26);
+  const close = closes[i];
+  const sma50v = btSMA(closes, 50)[i], sma200v = btSMA(closes, 200)[i];
+  const ema9v = btEMA(closes, 9)[i], ema21v = btEMA(closes, 21)[i], ema50v = btEMA(closes, 50)[i];
+
+  const rsiZone = r14 >= 70 ? 'wykupienie' : r14 <= 30 ? 'wyprzedanie' : (r14 > 40 && r14 < 60 ? 'neutralne' : (r14 > 60 ? 'lekko wykupione' : 'lekko wyprzedane'));
+  const long_term = (!Number.isNaN(sma50v) && !Number.isNaN(sma200v))
+    ? (sma50v > sma200v && close > sma200v ? 'bull (SMA50>SMA200 i cena>SMA200)' : (sma50v < sma200v ? 'bear (SMA50<SMA200)' : 'mieszana/nieokreślona'))
+    : 'brak danych';
+
+  const snapshot = {
+    data: new Date(history[i].date).toISOString().split('T')[0],
+    cena: roundNum(close),
+    trend_struktura: trendStructure(close, ema9v, ema21v, ema50v, sma50v, sma200v),
+    EMA: { EMA9: ema(9), EMA21: ema(21), EMA50: ema(50), EMA100: ema(100), EMA200: ema(200) },
+    SMA: { SMA20: sma(20), SMA50: sma(50), SMA100: sma(100), SMA200: sma(200) },
+    RSI: { rsi7: roundNum(r7, 2), rsi14: roundNum(r14, 2), strefa_rsi14: rsiZone },
+    MACD: { linia: roundNum(macd.macd[i], 4), sygnal: roundNum(macd.signal[i], 4), histogram: roundNum(macd.hist[i], 4), momentum: macd.hist[i] >= 0 ? 'momentum byka' : 'momentum niedźwiedzia' },
+    ADX: { adx: roundNum(adxArr[i], 2), komentarz: !Number.isNaN(adxArr[i]) ? (adxArr[i] >= 25 ? 'silny trend' : 'konsolidacja') : 'brak' },
+    Stochastic: { k: roundNum(stoch.k[i], 2), d: roundNum(stoch.d[i], 2) },
+    CCI: roundNum(cci[i], 2),
+    WilliamsR: roundNum(willr[i], 2),
+    ROC: roundNum(roc[i], 2),
+    Momentum: roundNum(mom[i], 4),
+    ATR: { atr: roundNum(atrArr[i], 4), atr_pct: roundNum(close ? (atrArr[i] / close * 100) : NaN, 2) },
+    Bollinger: { mid: roundNum(bb.mid[i], 4), upper: roundNum(bb.upper[i], 4), lower: roundNum(bb.lower[i], 4), bandwidth: roundNum(bb.bw[i], 2) },
+    Keltner: { mid: roundNum(kelt.mid[i], 4), upper: roundNum(kelt.upper[i], 4), lower: roundNum(kelt.lower[i], 4) },
+    Donchian: { mid: roundNum(dc.mid[i], 4), upper: roundNum(dc.upper[i], 4), lower: roundNum(dc.lower[i], 4) },
+    Volume: { vol: history[i].volume, vol_sma20: roundNum(btSMA(vols, 20)[i], 0), vol_sma50: roundNum(btSMA(vols, 50)[i], 0), obv: roundNum(obv[i], 0), mfi: roundNum(mfi[i], 2), cmf: roundNum(cmf[i], 4) },
+    Ichimoku: { conversion: roundNum(ichi.conv[i], 4), base: roundNum(ichi.base[i], 4) },
+    SuperTrend: { kierunek: close > ema21v ? 'bull' : 'bear' },
+    struktura_dlugoterminowa: long_term,
+    PivotPoints: calcPivots(history[i])
+  };
+  return snapshot;
+}
+
+function buildBuffettChart(history) {
+  const n = history.length;
+  const start = Math.max(0, n - 250);
+  const view = history.slice(start);
+  const closes = history.map(h => h.close);
+  const beat = (v) => (v == null || Number.isNaN(v)) ? null : Number(v);
+  const toSeries = (arr) => view.map((h, idx) => {
+    const v = beat(arr[start + idx]);
+    return { time: Math.floor(new Date(h.date).getTime() / 1000), value: v };
+  }).filter(d => d.value !== null);
+
+  const macd = btMACD(closes);
+  const rsi7 = btRSI(closes, 7), rsi14 = btRSI(closes, 14);
+  const ema9 = btEMA(closes, 9), ema21 = btEMA(closes, 21), ema50 = btEMA(closes, 50), ema100 = btEMA(closes, 100), ema200 = btEMA(closes, 200);
+  const sma20 = btSMA(closes, 20), sma50 = btSMA(closes, 50), sma100 = btSMA(closes, 100), sma200 = btSMA(closes, 200);
+
+  return {
+    price_history: view.map(h => ({ time: Math.floor(new Date(h.date).getTime() / 1000), open: h.open, high: h.high, low: h.low, close: h.close, volume: h.volume })),
+    ema: { 9: toSeries(ema9), 21: toSeries(ema21), 50: toSeries(ema50), 100: toSeries(ema100), 200: toSeries(ema200) },
+    sma: { 20: toSeries(sma20), 50: toSeries(sma50), 100: toSeries(sma100), 200: toSeries(sma200) },
+    rsi: { rsi7: toSeries(rsi7), rsi14: toSeries(rsi14) },
+    volume: view.map(h => ({ time: Math.floor(new Date(h.date).getTime() / 1000), value: h.volume, color: h.close >= h.open ? '#10b981' : '#ef4444' })),
+    macd: { macd: toSeries(macd.macd), signal: toSeries(macd.signal), histogram: toSeries(macd.hist) }
+  };
+}
+
+function buildSummaryTable(s) {
+  const items = [
+    ['Cena', s.cena, ''],
+    ['RSI(14)', s.RSI.rsi14, s.RSI.strefa_rsi14],
+    ['RSI(7)', s.RSI.rsi7, ''],
+    ['ADX', s.ADX.adx, s.ADX.komentarz],
+    ['MACD hist', s.MACD.histogram, s.MACD.momentum],
+    ['EMA21', s.EMA.EMA21, ''],
+    ['SMA50', s.SMA.SMA50, ''],
+    ['SMA200', s.SMA.SMA200, ''],
+    ['ATR %', s.ATR.atr_pct, ''],
+    ['MFI', s.Volume.mfi, ''],
+    ['CMF', s.Volume.cmf, ''],
+    ['Wolumen (SMA50)', s.Volume.vol_sma50, ''],
+    ['Bollinger BW %', s.Bollinger.bandwidth, ''],
+    ['CCI', s.CCI, ''],
+    ['Struktura', s.struktura_dlugoterminowa, '']
+  ];
+  return items.map(([name, value, note]) => ({ name, value: (value == null ? 'n/d' : value), note: note || '' }));
+}
+const BUFFETT_MODEL_OPTIONS = {
+  'Nemotron 3 Ultra 550B (główny)': 'nvidia/nemotron-3-ultra-550b-a55b',
+  'Inkling (reasoning)': 'thinkingmachines/inkling'
+};
+const BUFFETT_FALLBACK_MODELS = ['z-ai/glm-5.2', 'nvidia/nemotron-3-nano-30b-a3b', 'nvidia/llama-3.3-nemotron-super-49b-v1.5'];
+
+async function callBuffettAnalyze(systemPrompt, userPrompt, model) {
+  const primary = BUFFETT_MODEL_OPTIONS[model] || 'nvidia/nemotron-3-ultra-550b-a55b';
+  const candidates = [primary];
+  for (const id of Object.values(BUFFETT_MODEL_OPTIONS)) if (!candidates.includes(id)) candidates.push(id);
+  for (const fb of BUFFETT_FALLBACK_MODELS) if (!candidates.includes(fb)) candidates.push(fb);
+
+  const errors = [];
+  for (const m of candidates) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 60000);
+      const resp = await fetch(NVIDIA_API_URL, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${NVIDIA_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: m,
+          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+          temperature: 0.25, max_tokens: 1200, stream: false
+        }),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      if (!resp.ok) {
+        const t = await resp.text();
+        errors.push(`${m}: HTTP ${resp.status} ${t.slice(0, 120)}`);
+        continue;
+      }
+      const data = await resp.json();
+      const content = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.message?.reasoning_content;
+      if (content && String(content).trim()) return String(content).trim();
+      errors.push(`${m}: pusta treść odpowiedzi`);
+    } catch (e) {
+      errors.push(`${m}: ${e.name}: ${e.message}`);
+    }
+  }
+  throw new Error('NVIDIA NIM nie odpowiedziało — ' + errors.join(' | '));
+}
+
+function detectBadge(verdict) {
+  if (verdict.includes('NIE MA SENS')) return { badge: 'NIE MA SENS', cls: 'NIE' };
+  if (verdict.includes('MA SENS')) return { badge: 'MA SENS', cls: 'MA' };
+  if (verdict.includes('CZEKAJ')) return { badge: 'CZEKAJ', cls: 'CZEKAJ' };
+  return { badge: 'ANALIZA', cls: 'CZEKAJ' };
+}
+
+// POST /api/buffett-ai/analyze — nowe AI
+app.post('/api/buffett-ai/analyze', async (req, res) => {
+  const { symbol, period = '1y', model } = req.body || {};
+  if (!symbol) return res.status(400).json({ error: 'Brak symbolu w żądaniu' });
+  const cleanSymbol = String(symbol).toUpperCase().trim();
+  if (!cleanSymbol) return res.status(400).json({ error: 'Pusty symbol' });
+  const cleanPeriod = ['1y', '2y', '5y'].includes(period) ? period : '1y';
+
+  console.log(`[BUFFETT AI] Analizuję: ${cleanSymbol} (${cleanPeriod}, model: ${model || 'domyślny'})`);
+  try {
+    let history;
+    try {
+      history = await fetchPriceHistory(cleanSymbol, cleanPeriod);
+    } catch (e) {
+      console.log(`[BUFFETT AI] Yahoo błąd, mock: ${e.message}`);
+      history = generateMockHistory(cleanSymbol, cleanPeriod === '1y' ? 320 : cleanPeriod === '2y' ? 620 : 780);
+    }
+    if (!history || history.length < 60) return res.status(422).json({ error: `Za mało danych dla ${cleanSymbol}` });
+    history = history
+      .map(h => ({ date: new Date(h.date), open: h.open, high: h.high, low: h.low, close: h.close, volume: h.volume }))
+      .filter(h => !Number.isNaN(h.close) && h.close !== null)
+      .sort((a, b) => a.date - b.date);
+
+    const snapshot = calculateBuffettSnapshot(history);
+    const charts = buildBuffettChart(history);
+    const systemPrompt = buildBuffettSystemPrompt();
+    const userPrompt = `Przeanalizuj technicznie ${cleanSymbol} na podstawie poniższego snapshotu wskaźników. Wydaj twardy werdykt (MA SENS / NIE MA SENS / CZEKAJ) w wymaganym formacie.\n\nSNAPSHOT:\n${JSON.stringify(snapshot, null, 2)}`;
+    const verdict = await callBuffettAnalyze(systemPrompt, userPrompt, model);
+    const { badge, cls } = detectBadge(verdict);
+
+    res.json({
+      symbol: cleanSymbol, period: cleanPeriod,
+      quote: { symbol: cleanSymbol, shortName: cleanSymbol, price: snapshot.cena, currency: snapshot.currency || 'USD' },
+      charts, snapshot, summary: buildSummaryTable(snapshot),
+      verdict: { text: verdict, badge, cls }
+    });
+  } catch (error) {
+    console.error('[BUFFETT AI] Błąd:', error);
+    res.status(500).json({ error: error.message || 'Wewnętrzny błąd serwera' });
+  }
 });
 
 // ========== SERWOWANIE STATYCZNEGO FRONTENDU ==========

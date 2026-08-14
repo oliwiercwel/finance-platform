@@ -3,108 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BUFFET AI - Twój Inteligentny Analityk Inwestycyjny</title>
+  <title>BUFFETT AI - Chłodna analiza techniczna</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@300;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Sora:wght@600;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', 'Plus Jakarta Sans', sans-serif; background:#0f172a; color:#e2e8f0; overflow-x:hidden; }
-    .glass { background:rgba(15,23,42,0.85); border:1px solid rgba(148,163,184,0.1); backdrop-filter:blur(20px) saturate(130%); }
-    .glass:hover { border-color:rgba(0,242,254,0.3); box-shadow:0 0 25px rgba(0,242,254,0.08); }
-    .neon-cyan { color:#00f2fe; text-shadow:0 0 16px rgba(0,242,254,0.45); }
-    .neon-purple { color:#7928ca; text-shadow:0 0 16px rgba(121,40,202,0.45); }
-    .neon-green { color:#10b981; text-shadow:0 0 16px rgba(16,185,129,0.45); }
+    body { font-family: 'Inter', sans-serif; background: #07090f; color: #e5e7eb; overflow-x: hidden; }
+    .glass { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); backdrop-filter: blur(14px); }
+    @keyframes flow { 0%{background-position:0% 0} 100%{background-position:300% 0} }
+    .hero-title { font-family:'Sora',sans-serif; font-weight:800;
+      background: linear-gradient(90deg,#22d3ee,#a78bfa,#34d399,#22d3ee);
+      background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: flow 6s linear infinite; }
+    .pulse-dot { animation: pulse-glow 2s infinite; }
     @keyframes pulse-glow { 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
-    .pulse-dot { animation:pulse-glow 2s infinite; }
-    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-    .scrollbar-thin::-webkit-scrollbar-track { background: #1e293b; }
-    .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-    .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #475569; }
-    .message-bubble { animation: slideUp 0.3s ease-out; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00f2fe; margin: 0 2px; animation: typing 1.4s infinite ease-in-out; }
-    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
-    .indicator-card { transition: all 0.2s; }
-    .indicator-card:hover { transform: translateX(4px); background: rgba(0,242,254,0.05); }
-    .positive { color: #10b981; }
-    .negative { color: #ef4444; }
-    .neutral { color: #f59e0b; }
-    .chart-container { position: relative; height: 300px; width: 100%; }
-    .tab-btn { transition: all 0.2s; }
-    .tab-btn.active { background: linear-gradient(135deg, #00f2fe, #7928ca); color: #0f172a; }
-    .tab-btn:not(.active):hover { background: rgba(148,163,184,0.1); }
-    .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-    .collapsible-content.open { max-height: 2000px; transition: max-height 0.5s ease-in; }
-    @media (max-width: 1024px) {
-      .sidebar { position: fixed; right: -400px; top: 0; height: 100vh; width: 380px; z-index: 50; background: #0f172a; border-left: 1px solid rgba(148,163,184,0.1); transition: right 0.3s; }
-      .sidebar.open { right: 0; }
-      .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-      .sidebar-overlay.open { display: block; }
-    }
-    
-    @media (max-width: 768px) {
-      .chat-input-container { padding: 0.75rem; }
-      #chatInput { font-size: 16px; }
-      .message-bubble { max-width: 100%; }
-      .prose { font-size: 0.875rem; }
-      .indicator-card { padding: 0.75rem; }
-      .chart-container { height: 250px; }
-      header { padding: 1rem; }
-      header h1 { font-size: 1.5rem; }
-      header p { display: none; }
-    }
-    
-    @media (max-width: 640px) {
-      .sidebar { width: 100%; right: -100%; }
-      .sidebar.open { right: 0; }
-      .grid-cols-2 { grid-template-columns: 1fr; }
-      .flex-wrap > * { flex: 1 1 100%; }
-    }
-    
-    .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .table-wrapper table { min-width: 600px; }
-    
-    .lwc-chart { width: 100%; height: 100%; }
-    .lwc-chart canvas { display: block; }
-    
-    .prose h1 { @apply neon-cyan font-black mt-6 mb-3 text-xl; }
-    .prose h2 { @apply text-cyan-300 font-bold mt-6 mb-3 text-lg; }
-    .prose h3 { @apply text-cyan-400 font-bold mt-4 mb-2 text-base; }
-    .prose strong { @apply text-white; }
-    .prose code { @apply bg-slate-800 px-1.5 py-0.5 rounded text-cyan-300 text-sm font-mono; }
-    .prose pre { @apply bg-slate-900/50 p-4 rounded-xl overflow-x-auto my-4 border border-slate-700; }
-    .prose pre code { @apply bg-transparent p-0 text-slate-200; }
-    .prose ul { @apply list-disc pl-6 my-3 space-y-1; }
-    .prose ol { @apply list-decimal pl-6 my-3 space-y-1; }
-    .prose li { @apply text-slate-300; }
-    .prose blockquote { @apply border-l-4 border-cyan-500/50 pl-4 italic text-slate-400 my-4; }
-    .prose a { @apply text-cyan-400 hover:text-cyan-300 underline; }
-    .prose table { @apply w-full border-collapse my-4 text-sm; }
-    .prose th, .prose td { @apply border border-slate-700 px-3 py-2; }
-    .prose th { @apply bg-slate-800/50 font-bold text-cyan-300; }
-    .prose tr:nth-child(even) { @apply bg-slate-800/30; }
+    .btn-analyze { background: linear-gradient(90deg,#22d3ee,#a78bfa); color:#041018; font-weight:800;
+      border:none; border-radius:12px; transition:.2s; letter-spacing:.3px;
+      box-shadow:0 0 16px rgba(34,211,238,.55), 0 0 34px rgba(167,139,250,.4); }
+    .btn-analyze:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 0 24px rgba(34,211,238,.9), 0 0 56px rgba(167,139,250,.6); }
+    .btn-analyze:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+    .pill { display:inline-block; font-family:'Sora',sans-serif; font-weight:800; padding:6px 18px; border-radius:999px; font-size:1.05rem; letter-spacing:.5px; }
+    .pill.MA    { background:rgba(34,197,94,.18); color:#4ade80; border:1px solid #22c55e; box-shadow:0 0 22px rgba(34,197,94,.5); }
+    .pill.NIE   { background:rgba(239,68,68,.18); color:#f87171; border:1px solid #ef4444; box-shadow:0 0 22px rgba(239,68,68,.5); }
+    .pill.CZEKAJ{ background:rgba(250,204,21,.16); color:#facc15; border:1px solid #eab308; box-shadow:0 0 22px rgba(250,204,21,.4); }
+    .vcard { border-radius:18px; padding:22px 26px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); box-shadow:0 8px 40px rgba(0,0,0,.45); animation: rise .5s ease; }
+    @keyframes rise { from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none} }
+    .lwc-chart { width:100%; }
+    .lwc-chart canvas { display:block; }
+    .verdict-body { line-height:1.65; color:#d1d5db; }
+    .verdict-body strong { color:#ffffff; }
+    .verdict-body ul { list-style:none; padding-left:0; margin:6px 0; }
+    .verdict-body li { padding-left:20px; position:relative; margin:2px 0; }
+    .verdict-body li:before { content:"▸"; position:absolute; left:2px; color:#22d3ee; }
+    .chart-title { color:#22d3ee; font-weight:700; }
+    select, input { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:#e5e7eb; border-radius:10px; padding:10px 12px; width:100%; outline:none; }
+    select:focus, input:focus { border-color:#22d3ee; }
+    .loader { width:26px; height:26px; border:3px solid rgba(255,255,255,.15); border-top-color:#22d3ee; border-radius:50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ind-row { display:flex; justify-content:space-between; padding:7px 4px; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.86rem; }
+    .ind-row:last-child { border-bottom:none; }
+    .ind-name { color:#94a3b8; }
+    .ind-val { color:#e5e7eb; font-weight:600; }
+    .ind-note { color:#7dd3fc; font-size:0.75rem; }
   </style>
 </head>
-<body class="min-h-screen flex">
-
-  <!-- MAIN CONTENT -->
-  <main class="flex-1 flex flex-col min-w-0">
-    <!-- TOP BAR -->
-    <header class="glass border-b border-slate-700/50 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    <!-- HEADER -->
+    <header class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
-        <a href="index.html" class="p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition"><i class="fa-solid fa-arrow-left text-xl"></i></a>
+        <a href="index.html" class="p-2 rounded-xl glass hover:bg-white/10 transition" title="Wróć do strony głównej"><i class="fa-solid fa-arrow-left text-xl"></i></a>
         <div>
-          <h1 class="text-2xl font-black neon-cyan">BUFFET AI</h1>
-          <p class="text-xs text-slate-400">Twój osobisty analityk inwestycyjny</p>
+          <h1 class="hero-title text-2xl sm:text-3xl">BUFFETT AI</h1>
+          <p class="text-xs text-slate-400">Chłodna, instytucjonalna analiza techniczna — akcje i ETF-y (w tym SOXL)</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <span class="text-xs text-slate-400 hidden sm:block">Model: Nemotron 3 Ultra</span>
+        <span class="text-xs text-slate-400 hidden sm:block">Model: NVIDIA NIM</span>
         <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30">
           <span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span>
           <span class="text-xs font-medium text-green-400">LIVE</span>
@@ -112,739 +69,261 @@
       </div>
     </header>
 
-    <!-- CHAT AREA -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
-        <!-- Welcome Message -->
-        <div class="message-bubble flex gap-4 max-w-3xl">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-            <i class="fa-solid fa-brain text-white text-xl"></i>
-          </div>
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="font-bold text-cyan-400">BUFFET AI</span>
-              <span class="text-xs text-slate-500">Witaj! Jestem Twoim analitykiem AI.</span>
-            </div>
-            <div class="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed">
-              <p>Wpisz ticker spółki (np. <strong>NVDA</strong>, <strong>AAPL</strong>, <strong>TSLA</strong>, <strong>CDR.WA</strong>) i przeanalizuję ją na <strong>100+ wskaźnikach</strong> - od wyceny, przez jakość zysków, po analizę techniczną i flow opcji.</p>
-              <p class="mt-2">Wyjaśnię wszystko <strong>prostym językiem</strong> - bez żargonu inwestorskiego. Pokażę też <strong>interaktywne wykresy</strong>, żebyś widział, co się dzieje.</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <button onclick="analyzeStock('NVDA')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">NVDA</button>
-                <button onclick="analyzeStock('AAPL')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">AAPL</button>
-                <button onclick="analyzeStock('TSLA')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">TSLA</button>
-                <button onclick="analyzeStock('CDR.WA')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">CDR.WA</button>
-                <button onclick="analyzeStock('MSFT')" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/30 transition">MSFT</button>
-              </div>
-            </div>
-          </div>
+    <!-- CONTROLS -->
+    <section class="glass rounded-2xl p-5 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1.4fr_1fr] gap-3 items-end">
+        <div>
+          <label class="text-xs text-slate-400 mb-1 block">Ticker</label>
+          <input id="ticker" type="text" value="SOXL" placeholder="np. SOXL, NVDA, AMD, QQQ" autocomplete="off">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 mb-1 block">Okres</label>
+          <select id="period">
+            <option value="1y" selected>1 rok</option>
+            <option value="2y">2 lata</option>
+            <option value="5y">5 lat</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 mb-1 block">Model AI</label>
+          <select id="model">
+            <option value="Nemotron 3 Ultra 550B (główny)">Nemotron 3 Ultra 550B (główny)</option>
+            <option value="Inkling (reasoning)">Inkling (reasoning)</option>
+          </select>
+        </div>
+        <div>
+          <button id="analyze" class="btn-analyze w-full py-3 px-5 flex items-center justify-center gap-2">🚀 Analizuj</button>
+        </div>
+      </div>
+      <div id="status" class="hidden items-center gap-3 mt-4 text-sm text-slate-300"></div>
+    </section>
+
+    <!-- RESULTS -->
+    <div id="results" class="hidden">
+      <div id="verdictWrap" class="vcard mb-6">
+        <h2 class="text-lg font-extrabold mb-3" style="font-family:'Sora',sans-serif;">WERDYKT ANALITYKA</h2>
+        <div id="badgeWrap" class="mb-4"></div>
+        <div id="verdictText" class="verdict-body"></div>
+      </div>
+      <!-- CHARTS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="glass rounded-2xl p-4">
+          <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-chart-line"></i> Cena + EMA/SMA</h3>
+          <div class="lwc-chart" id="priceChart" style="height:320px;"></div>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-chart-column"></i> Wolumen</h3>
+          <div class="lwc-chart" id="volumeChart" style="height:320px;"></div>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-wave-square"></i> RSI (7 / 14)</h3>
+          <div class="lwc-chart" id="rsiChart" style="height:320px;"></div>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-bolt"></i> MACD</h3>
+          <div class="lwc-chart" id="macdChart" style="height:320px;"></div>
         </div>
       </div>
 
-      <!-- CHARTS CONTAINER - REMOVED FROM MAIN AREA, NOW IN SIDEBAR -->
-      <!-- <div id="chartsContainer" class="px-6 pb-6 hidden scrollbar-thin"></div> -->
-
-      <!-- INPUT AREA -->
-      <div class="glass border-t border-slate-700/50 p-4 chat-input-container">
-        <div class="flex gap-3 max-w-4xl mx-auto">
-          <input type="text" id="chatInput" placeholder="Wpisz ticker spółki (np. NVDA, AAPL, CDR.WA)..." 
-            class="flex-1 px-5 py-3 rounded-2xl bg-slate-800/50 border border-slate-600/50 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 text-white placeholder-slate-500"
-            onkeypress="if(event.key==='Enter') sendMessage()">
-          <button onclick="sendMessage()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold hover:from-cyan-400 hover:to-purple-500 transition shadow-lg shadow-cyan-500/20">
-            <i class="fa-solid fa-paper-plane"></i>
-          </button>
-        </div>
-        <p class="text-xs text-slate-500 text-center mt-2">Przykłady: "NVDA", "analizuj Apple", "co myślisz o Tesla?", "CDR.WA - czy kupować?"</p>
+      <!-- INDICATORS -->
+      <div class="glass rounded-2xl p-5 mb-6">
+        <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-table"></i> Kluczowe wskaźniki (snapshot)</h3>
+        <div id="indTable" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6"></div>
       </div>
     </div>
-  </main>
 
-  <!-- RIGHT SIDEBAR - INDICATORS PANEL -->
-  <aside id="indicatorsSidebar" class="sidebar hidden lg:block w-96 flex flex-col">
-    <div class="p-4 border-b border-slate-700/50 flex items-center justify-between">
-      <h2 class="font-bold text-lg neon-cyan">📊 Analiza</h2>
-      <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <!-- TABS -->
-    <div class="flex border-b border-slate-700/50 px-4" id="sidebarTabs">
-      <button class="tab-btn active px-4 py-2 text-sm font-medium text-slate-300" data-tab="indicators" onclick="switchTab('indicators')">
-        <i class="fa-solid fa-chart-bar mr-1"></i> Wskaźniki
-      </button>
-      <button class="tab-btn px-4 py-2 text-sm font-medium text-slate-300" data-tab="charts" onclick="switchTab('charts')">
-        <i class="fa-solid fa-chart-line mr-1"></i> Wykresy
-      </button>
-    </div>
-    <!-- INDICATORS TAB CONTENT -->
-    <div id="tab-indicators" class="tab-content flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
-      <div class="text-center text-slate-500 py-12" id="indicatorsPlaceholder">
-        <i class="fa-solid fa-brain text-4xl text-cyan-500/50 mb-3"></i>
-        <p>Wpisz ticker w czacie,<br>a tu pokażę 100+ wskaźników</p>
-      </div>
-      <div id="indicatorsContent" class="space-y-4"></div>
-    </div>
-    <!-- CHARTS TAB CONTENT -->
-    <div id="tab-charts" class="tab-content hidden flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin">
-      <div class="text-center text-slate-500 py-12" id="chartsPlaceholder">
-        <i class="fa-solid fa-chart-line text-4xl text-cyan-500/50 mb-3"></i>
-        <p>Wykresy pojawią się tutaj<br>po analizie spółki</p>
-      </div>
-      <div id="chartsContainer" class="space-y-6"></div>
-    </div>
-  </aside>
-  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-  <!-- MOBILE SIDEBAR TOGGLE -->
-  <button onclick="toggleSidebar()" class="lg:hidden fixed bottom-6 right-6 z-40 p-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-xl shadow-cyan-500/30">
-    <i class="fa-solid fa-chart-bar text-xl"></i>
-  </button>
+    <footer class="text-center text-xs text-slate-500 mt-8">
+      Informacja edukacyjna — to nie jest porada inwestycyjna. Rynek, a zwłaszcza lewarowane ETF-y (SOXL), niosą wysokie ryzyko.
+    </footer>
+  </div>
 
   <script>
-    // ========== STATE ==========
-    let currentSymbol = null;
-    let currentIndicators = null;
-    let charts = {};
-    let isAnalyzing = false;
+  const $ = (id) => document.getElementById(id);
+  const chartsRef = {};
+  let activeCharts = [];
 
-    // ========== SIMPLE EXPLANATIONS ==========
-    const simpleExplanations = {
-      // Valuation
-      'pe_ratio': { 
-        name: 'P/E (Cena do Zysku)', 
-        simple: 'Ile płacisz za 1 zł zysku firmy. Niżej = taniej. Poniżej 15 to zazwyczaj tanio, powyżej 25 drogo.' 
-      },
-      'forward_pe': { 
-        name: 'Forward P/E', 
-        simple: 'P/E ale na przyszły rok. Jeśli niższe od obecnego - analitycy oczekują wzrostu zysków.' 
-      },
-      'peg_ratio': { 
-        name: 'PEG Ratio', 
-        simple: 'P/E podzielone na wzrost. Ponizej 1 = super okazja. 1-2 = OK. Powyzej 2 = drogo.' 
-      },
-      'pb_ratio': { 
-        name: 'P/B (Cena do Wartości Księgowej)', 
-        simple: 'Ile płacisz za 1 zł majątku firmy (budynki, maszyny, gotówka minus długi). Poniżej 1 = kupujesz poniżej wartości.' 
-      },
-      'ps_ratio': { 
-        name: 'P/S (Cena do Przychodu)', 
-        simple: 'Ile płacisz za 1 zł sprzedaży. Dobre dla firm, które nie mają jeszcze zysku. Niżej = lepiej.' 
-      },
-      'ev_ebitda': { 
-        name: 'EV/EBITDA', 
-        simple: 'Wartość całej firmy (akcje + długi - gotówka) do zysku operacyjnego. Lepsze od P/E bo uwzględnia dług. Poniżej 10 = tanio.' 
-      },
-      'dividend_yield': { 
-        name: 'Dywidenda %', 
-        simple: 'Ile % ceny akcji dostajesz co roku w gotówce. 2-4% = standard. Powyżej 6% = ryzykowne.' 
-      },
-      
-      // Profitability
-      'roe': { 
-        name: 'ROE (Zwrot z Kapitału Własnego)', 
-        simple: 'Na ile % firma pomnaża pieniądze akcjonariuszy. Powyżej 15% = świetnie. Powyżej 25% = maszyna do pieniędzy.' 
-      },
-      'roic': { 
-        name: 'ROIC (Zwrot z Kapitału Zaangażowanego)', 
-        simple: 'Na ile % firma zarabia na WSZYSTKIM kapitałe (akcje + długi). Najważniejszy wskaźnik Buffetta! Powyżej WACC = tworzy wartość.' 
-      },
-      'gross_margin': { 
-        name: 'Marża Brutto', 
-        simple: 'Z każdego 100 zł sprzedaży, ile zostaje po odjęciu kosztów produkcji. Powyżej 40% = dobre. Powyżej 70% = software/SaaS.' 
-      },
-      'operating_margin': { 
-        name: 'Marża Operacyjna', 
-        simple: 'Z każdego 100 zł sprzedaży, ile zostaje po WSZYSTKICH kosztach operacyjnych. Pokazuje siłę biznesu.' 
-      },
-      'fcf_margin': { 
-        name: 'Marża FCF', 
-        simple: 'Ile % przychodu zamienia się w WOLNY GOTÓWKĘ (po inwestycjach). To prawdziwe pieniądze dla właścicieli.' 
-      },
-      
-      // Leverage
-      'debt_equity': { 
-        name: 'Dług do Kapitału', 
-        simple: 'Ile długu na 1 zł własnego kapitału. Poniżej 0.5 = bezpiecznie. Powyżej 2 = ryzykownie.' 
-      },
-      'net_debt_ebitda': { 
-        name: 'Net Debt / EBITDA', 
-        simple: 'Ile lat firma musi zarabiać, by spłacić dług (minus gotówka). Poniżej 2 = super. 2-3 = OK. Powyżej 4 = problem.' 
-      },
-      'interest_coverage': { 
-        name: 'Pokrycie Odsetek', 
-        simple: 'Ile razy zysk operacyjny pokrywa odsetki od długu. Powyżej 5 = bezpiecznie. Poniżej 2 = stres.' 
-      },
-      'current_ratio': { 
-        name: 'Płynność Bieżąca', 
-        simple: 'Czy firma ma gotówkę na spłatę długów w tym roku. Powyżej 1.5 = OK. Poniżej 1 = ryzyko bankructwa.' 
-      },
-      
-      // Growth
-      'revenue_growth_yoy': { 
-        name: 'Wzrost Przychodu (Rok do Roku)', 
-        simple: 'O ile % wzrosła sprzedaż w porównaniu do tego samego czasu rok temu. Powyżej 15% = szybki wzrost. Poniżej 5% = stagnacja.' 
-      },
-      'eps_growth_yoy': { 
-        name: 'Wzrost Zysku na Akcję (YoY)', 
-        simple: 'O ile % wzrósł zysk przypadający na 1 akcję. To co napędza cenę akcji w długim terminie.' 
-      },
-      'fcf_growth_yoy': { 
-        name: 'Wzrost Wolnego Przeływu Gotówkowego', 
-        simple: 'Czy firma generuje coraz więcej prawdziwej gotówki. Najlepszy wskaźnik zdrowia biznesu.' 
-      },
-      
-      // Quality
-      'accruals_ratio': { 
-        name: 'Współczynnik Należności', 
-        simple: 'Różnica między zyskiem księgowym a gotówką. Wysoki = firma "maluje" zyski. Niski = zyski są prawdziwe.' 
-      },
-      'cash_conversion': { 
-        name: 'Konwersja Gotówkowa', 
-        simple: 'Ile % zysku księgowego zamienia się w gotówkę. Powyżej 100% = super. Poniżej 80% = uwaga.' 
-      },
-      'sbc_revenue': { 
-        name: 'SBC / Przychód', 
-        simple: 'Ile % przychodu firma wydaje na akcje dla pracowników. Powyżej 10% = rozcieńcza akcjonariuszy.' 
-      },
-      
-      // Technical
-      'rsi': { 
-        name: 'RSI (Siła Względna)', 
-        simple: 'Czy akcja jest "przekupiona" (powyżej 70) czy "przesprzedana" (poniżej 30). 50 = neutralnie.' 
-      },
-      'macd': { 
-        name: 'MACD', 
-        simple: 'Trend i momentum. Gdy linia MACD przecina linię sygnału w górę = sygnał kupna. W dół = sprzedaży.' 
-      },
-      'sma_20': { 
-        name: 'Średnia 20 dni', 
-        simple: 'Średnia cena z ostatnich 20 dni. Cena powyżej = trend w górę. Poniżej = trend w dół.' 
-      },
-      'sma_50': { 
-        name: 'Średnia 50 dni', 
-        simple: 'Średnia z 50 dni. Ważniejsza od 20. Cena powyżej = średnioterminowy trend w górę.' 
-      },
-      'sma_200': { 
-        name: 'Średnia 200 dni', 
-        simple: 'Średnia z 200 dni = DŁUGOTERMINOWY TREND. To linia życia/śmierci. Powyżej = byk. Poniżej = niedźwiedź.' 
-      },
-      'volume_ratio': { 
-        name: 'Wolumen vs Średnia', 
-        simple: 'Czy dzisiaj handluje się więcej czy mniej niż zwykle. Powyżej 1.5 = duże zainteresowanie.' 
-      },
-      
-      // Ownership
-      'insider_ownership': { 
-        name: 'Udział Insiderów', 
-        simple: 'Ile % firmy posiadają ludzie zarządzający. Powyżej 10% = ich interesy = Twoje interesy.' 
-      },
-      'institutional_ownership': { 
-        name: 'Udział Instytucjonalnych', 
-        simple: 'Ile % mają fundusze, banki, emerytalne. Powyżej 70% = duże zaufanie profi. Ale może być tłok przy wyjściu.' 
-      },
-      'short_interest': { 
-        name: 'Short Interest %', 
-        simple: 'Ile % akcji jest pożyczonych do sprzedaży na spadki. Powyżej 10% = duże obstawianie upadku. Może wywołać "short squeeze".' 
-      },
-      
-      // Macro
-      'beta': { 
-        name: 'Beta (Ryzyko Rynkowe)', 
-        simple: 'Jak mocno akcja skacze z rynkiem. 1 = jak rynek. 1.5 = o 50% mocniej. 0.5 = o 50% słabiej. Ujemna = idzie w przeciwną stronę.' 
-      },
-      'sector_rank': { 
-        name: 'Ranking w Sektorze', 
-        simple: 'Gdzie firma stoi w swojej branży. 1 = lider. 10 = średniak.' 
+  function showStatus(html, loading) {
+    const st = $('status');
+    st.classList.remove('hidden');
+    st.classList.add('flex');
+    st.innerHTML = loading ? '<span class="loader"></span> ' + html : html;
+  }
+  function hideStatus() {
+    const st = $('status');
+    st.classList.add('hidden');
+    st.classList.remove('flex');
+  }
+  function setLoading(on) {
+    const b = $('analyze');
+    b.disabled = on;
+    b.innerHTML = on ? '<span class="loader"></span> Analizowanie…' : '🚀 Analizuj';
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function renderVerdictText(text) {
+    const lines = String(text).split('\n');
+    let html = '', inList = false;
+    const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+    for (const raw of lines) {
+      let line = escapeHtml(raw).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      const t = line.trim();
+      if (t === '') { closeList(); html += '<br>'; continue; }
+      if (/^[-*•]\s+/.test(t)) {
+        if (!inList) { html += '<ul>'; inList = true; }
+        html += '<li>' + t.replace(/^[-*•]\s+/, '') + '</li>';
+      } else {
+        closeList();
+        html += /^#{1,6}\s/.test(t)
+          ? '<h3 style="color:#22d3ee;font-weight:700;margin:10px 0 4px;">' + t.replace(/^#{1,6}\s*/, '') + '</h3>'
+          : '<div>' + line + '</div>';
       }
-    };
-
-    // ========== DOM ELEMENTS ==========
-    const chatMessages = document.getElementById('chatMessages');
-    const chatInput = document.getElementById('chatInput');
-    const indicatorsContent = document.getElementById('indicatorsContent');
-    const sidebar = document.getElementById('indicatorsSidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    // ========== INIT ==========
-    document.addEventListener('DOMContentLoaded', () => {
-      chatInput.focus();
+    }
+    closeList();
+    return html;
+  }
+  function fireConfetti() {
+    if (!window.confetti) return;
+    const colors = ['#22d3ee', '#a78bfa', '#34d399', '#fbbf24', '#f472b6'];
+    const burst = () => confetti({ particleCount: 90, spread: 75, origin: { y: 0.35 }, colors });
+    for (let i = 0; i < 4; i++) setTimeout(burst, i * 260);
+  }
+  function renderResult(data) {
+    const v = data.verdict || {};
+    $('badgeWrap').innerHTML = '<span class="pill ' + (v.cls || 'CZEKAJ') + '">' + (v.badge || 'ANALIZA') + '</span>';
+    $('verdictText').innerHTML = renderVerdictText(v.text || '(brak treści werdyktu)');
+    renderCharts(data.charts || {});
+    renderIndicators(data.summary || []);
+    $('results').classList.remove('hidden');
+    $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    fireConfetti();
+  }
+  async function analyze() {
+    const symbol = $('ticker').value.trim().toUpperCase();
+    if (!symbol) { alert('Podaj ticker.'); return; }
+    setLoading(true);
+    $('results').classList.add('hidden');
+    showStatus('Pobieram dane i analizuję <b>' + symbol + '</b> przez NVIDIA NIM… (to może potrwać ~30 s)', true);
+    try {
+      const resp = await fetch('/api/buffett-ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol, period: $('period').value, model: $('model').value })
+      });
+      const data = await resp.json();
+      hideStatus();
+      if (!resp.ok) {
+        $('badgeWrap').innerHTML = '<span class="pill CZEKAJ">BŁĄD</span>';
+        $('verdictText').innerHTML = '<strong style="color:#f87171;">Błąd:</strong> ' + escapeHtml(data.error || 'Nieznany błąd');
+        $('results').classList.remove('hidden');
+        return;
+      }
+      renderResult(data);
+    } catch (e) {
+      hideStatus();
+      $('badgeWrap').innerHTML = '<span class="pill CZEKAJ">BŁĄD</span>';
+      $('verdictText').innerHTML = '<strong style="color:#f87171;">Błąd połączenia:</strong> ' + escapeHtml(e.message);
+      $('results').classList.remove('hidden');
+    } finally {
+      setLoading(false);
+    }
+  }
+  function wipeCharts() {
+    activeCharts.forEach(ch => { try { ch.remove(); } catch (e) {} });
+    activeCharts = [];
+  }
+  function makeChart(el, extra) {
+    const ch = LightweightCharts.createChart(el, Object.assign({
+      layout: { background: { color: 'transparent' }, textColor: '#94a3b8' },
+      grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+      timeScale: { timeVisible: true, borderColor: '#334155' },
+      rightPriceScale: { borderColor: '#334155' },
+      crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
+    }, extra));
+    activeCharts.push(ch);
+    return ch;
+  }
+  function createPriceChart(c) {
+    const el = $('priceChart');
+    el.innerHTML = '';
+    const ch = makeChart(el, {});
+    ch.addCandlestickSeries({
+      upColor: '#22c55e', downColor: '#ef4444',
+      wickUpColor: '#22c55e', wickDownColor: '#ef4444', borderVisible: false
+    }).setData(c.price_history.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
+    const emaColors = { 9: '#f59e0b', 21: '#3b82f6', 50: '#8b5cf6' };
+    for (const p of [9, 21, 50]) {
+      if (c.ema && c.ema[p] && c.ema[p].length) ch.addLineSeries({ color: emaColors[p], lineWidth: 1, title: 'EMA' + p }).setData(c.ema[p]);
+    }
+    const smaColors = { 20: '#f97316', 50: '#0ea5e9', 200: '#eab308' };
+    for (const p of [20, 50, 200]) {
+      if (c.sma && c.sma[p] && c.sma[p].length) ch.addLineSeries({ color: smaColors[p], lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'SMA' + p }).setData(c.sma[p]);
+    }
+    ch.timeScale().fitContent();
+  }
+  function createVolumeChart(c) {
+    const el = $('volumeChart');
+    el.innerHTML = '';
+    const ch = makeChart(el, { rightPriceScale: { visible: false } });
+    ch.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: '' })
+      .setData(c.volume.map(d => ({ time: d.time, value: d.value, color: d.color })));
+    ch.timeScale().fitContent();
+  }
+  function createRSIChart(c) {
+    const el = $('rsiChart');
+    el.innerHTML = '';
+    const ch = makeChart(el, { rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 } } });
+    const pts = [];
+    if (c.rsi && c.rsi.rsi7 && c.rsi.rsi7.length) pts.push(c.rsi.rsi7);
+    if (c.rsi && c.rsi.rsi14 && c.rsi.rsi14.length) pts.push(c.rsi.rsi14);
+    if (pts.length) {
+      const lo = Math.min(...pts.map(a => a[0].time)), hi = Math.max(...pts.map(a => a[a.length - 1].time));
+      const addLine = (color, val, w) => ch.addLineSeries({ color, lineWidth: w, lineStyle: LightweightCharts.LineStyle.Dashed, priceLineVisible: false }).setData([
+        { time: lo, value: val }, { time: hi, value: val }]);
+      addLine('#ef4444', 70, 1);
+      addLine('#22c55e', 30, 1);
+      addLine('#94a3b8', 50, 1);
+    }
+    if (c.rsi && c.rsi.rsi7 && c.rsi.rsi7.length) ch.addLineSeries({ color: '#f59e0b', lineWidth: 1, title: 'RSI 7' }).setData(c.rsi.rsi7);
+    if (c.rsi && c.rsi.rsi14 && c.rsi.rsi14.length) ch.addLineSeries({ color: '#8b5cf6', lineWidth: 1.2, title: 'RSI 14' }).setData(c.rsi.rsi14);
+    ch.timeScale().fitContent();
+  }
+  function createMACDChart(c) {
+    const el = $('macdChart');
+    el.innerHTML = '';
+    const ch = makeChart(el, {});
+    if (c.macd && c.macd.histogram && c.macd.histogram.length) {
+      ch.addHistogramSeries({ priceScaleId: 'hist' })
+        .setData(c.macd.histogram.map(d => ({ time: d.time, value: d.value, color: d.value >= 0 ? '#22c55e' : '#ef4444' })));
+    }
+    if (c.macd && c.macd.macd && c.macd.macd.length) ch.addLineSeries({ color: '#3b82f6', lineWidth: 1.2, title: 'MACD' }).setData(c.macd.macd);
+    if (c.macd && c.macd.signal && c.macd.signal.length) ch.addLineSeries({ color: '#f97316', lineWidth: 1, title: 'Sygnał' }).setData(c.macd.signal);
+    ch.timeScale().fitContent();
+  }
+  function renderCharts(charts) {
+    wipeCharts();
+    if (charts.price_history && charts.price_history.length) createPriceChart(charts);
+    if (charts.volume && charts.volume.length) createVolumeChart(charts);
+    if (charts.rsi && (charts.rsi.rsi7 || charts.rsi.rsi14)) createRSIChart(charts);
+    if (charts.macd && (charts.macd.macd || charts.macd.histogram)) createMACDChart(charts);
+  }
+  function renderIndicators(summary) {
+    const wrap = $('indTable');
+    wrap.innerHTML = '';
+    if (!summary || !summary.length) { wrap.innerHTML = '<div class="text-slate-400 text-sm">Brak danych.</div>'; return; }
+    summary.forEach(it => {
+      const card = document.createElement('div');
+      card.className = 'rounded-lg px-2';
+      card.innerHTML =
+        '<div class="ind-row"><span class="ind-name">' + escapeHtml(it.name) + '</span><span class="ind-val">' + escapeHtml(it.value) + '</span></div>' +
+        (it.note ? '<div class="ind-note pl-1">' + escapeHtml(it.note) + '</div>' : '');
+      wrap.appendChild(card);
     });
-
-    // ========== SIDEBAR ==========
-    function toggleSidebar() {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    }
-
-    // ========== CHAT ==========
-    function addMessage(role, content, isHtml = false) {
-      const div = document.createElement('div');
-      div.className = `message-bubble flex gap-4 max-w-3xl ${role === 'user' ? 'ml-auto flex-row-reverse' : ''}`;
-      
-      const avatar = document.createElement('div');
-      avatar.className = `w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${role === 'user' ? 'bg-slate-700' : 'bg-gradient-to-br from-cyan-500 to-purple-600'}`;
-      avatar.innerHTML = role === 'user' ? '<i class="fa-solid fa-user text-white text-xl"></i>' : '<i class="fa-solid fa-brain text-white text-xl"></i>';
-      
-      const bubble = document.createElement('div');
-      bubble.className = `flex-1 ${role === 'user' ? 'text-right' : ''}`;
-      
-      const header = document.createElement('div');
-      header.className = 'flex items-center gap-2 mb-2 justify-end';
-      if (role === 'assistant') header.className = 'flex items-center gap-2 mb-2';
-      header.innerHTML = `<span class="font-bold ${role === 'user' ? 'text-slate-300' : 'text-cyan-400'}">${role === 'user' ? 'Ty' : 'BUFFET AI'}</span><span class="text-xs text-slate-500">${new Date().toLocaleTimeString('pl-PL', {hour:'2-digit',minute:'2-digit'})}</span>`;
-      
-      const text = document.createElement('div');
-      text.className = `prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed ${role === 'user' ? 'text-right' : ''}`;
-      if (isHtml) text.innerHTML = content; else text.textContent = content;
-      
-      bubble.appendChild(header);
-      bubble.appendChild(text);
-      div.appendChild(role === 'user' ? bubble : avatar);
-      div.appendChild(role === 'user' ? avatar : bubble);
-      
-      chatMessages.appendChild(div);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-      return div;
-    }
-
-    function addTypingIndicator() {
-      const div = document.createElement('div');
-      div.className = 'message-bubble flex gap-4 max-w-3xl';
-      div.id = 'typingIndicator';
-      div.innerHTML = `
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-          <i class="fa-solid fa-brain text-white text-xl"></i>
-        </div>
-        <div class="flex-1">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="font-bold text-cyan-400">BUFFET AI</span>
-            <span class="text-xs text-slate-500">Analizuję...</span>
-          </div>
-          <div class="typing-indicator flex items-center gap-1 py-2">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
-      `;
-      chatMessages.appendChild(div);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function removeTypingIndicator() {
-      const el = document.getElementById('typingIndicator');
-      if (el) el.remove();
-    }
-
-    async function sendMessage() {
-      const text = chatInput.value.trim();
-      if (!text || isAnalyzing) return;
-      
-      chatInput.value = '';
-      addMessage('user', text);
-      await analyzeStock(extractTicker(text));
-    }
-
-    function extractTicker(text) {
-      // Proste wyciąganie tickera
-      const upper = text.toUpperCase();
-      const matches = upper.match(/\b([A-Z]{1,5}(?:\.WA)?)\b/);
-      if (matches) return matches[1];
-      
-      // Polskie nazwy
-      const known = {
-        'NVIDIA': 'NVDA', 'APPLE': 'AAPL', 'TESLA': 'TSLA', 'MICROSOFT': 'MSFT',
-        'GOOGLE': 'GOOGL', 'AMAZON': 'AMZN', 'META': 'META', 'NETFLIX': 'NFLX',
-        'CD PROJEKT': 'CDR.WA', 'CDP': 'CDR.WA', 'PKN': 'PKN.WA', 'PKO': 'PKO.WA',
-        'DINO': 'DNP.WA', 'PZU': 'PZU.WA', 'LPP': 'LPP.WA', 'ALLEGRO': 'ALE.WA'
-      };
-      for (const [name, ticker] of Object.entries(known)) {
-        if (upper.includes(name)) return ticker;
-      }
-      return text.toUpperCase().replace(/[^A-Z.]/g, '');
-    }
-
-    // ========== MAIN ANALYSIS FUNCTION ==========
-    async function analyzeStock(symbol) {
-      if (!symbol || isAnalyzing) return;
-      isAnalyzing = true;
-      currentSymbol = symbol;
-      
-      addTypingIndicator();
-      
-      try {
-        // 1. Pobierz dane z backendu
-        const response = await fetch('/api/buffet-ai/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ symbol: symbol.toUpperCase(), depth: 'full' })
-        });
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        // 2. Stream odpowiedzi
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullResponse = '';
-        let messageDiv = null;
-        let firstChunk = true;
-        
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                console.log('[DEBUG] SSE:', Object.keys(data));
-                if (data.token) {
-                  fullResponse += data.token;
-                  if (firstChunk) { removeTypingIndicator(); messageDiv = addMessage('assistant', '', true); firstChunk = false; }
-                  if (messageDiv) messageDiv.querySelector('.prose').innerHTML = markedParse(fullResponse);
-                } else if (data.indicators) { console.log('[DEBUG] indicators keys:', Object.keys(data.indicators)); currentIndicators = data.indicators; renderIndicators(data.indicators); }
-                else if (data.charts) { console.log('[DEBUG] charts keys:', Object.keys(data.charts)); renderCharts(data.charts); document.getElementById('chartsContainer')?.classList.remove('hidden'); document.getElementById('chartsPlaceholder')?.classList.add('hidden'); document.getElementById('tab-charts')?.classList.remove('hidden'); }
-                else if (data.done) isAnalyzing = false;
-                else if (data.error) { removeTypingIndicator(); addMessage('assistant', `Błąd: ${data.error}`); isAnalyzing = false; }
-              } catch (e) { console.error('[DEBUG] Parse error:', e); }
-            }
-          }
-        }
-        
-        if (firstChunk) {
-          removeTypingIndicator();
-          addMessage('assistant', 'Przepraszam, nie udało się pobrać analizy. Spróbuj ponownie.');
-        }
-        
-      } catch (error) {
-        removeTypingIndicator();
-        addMessage('assistant', `Błąd: ${error.message}. Sprawdź czy ticker jest poprawny (np. NVDA, AAPL, CDR.WA).`);
-        isAnalyzing = false;
-      }
-    }
-
-    // ========== MARKDOWN PARSER (marked.js) ==========
-    function markedParse(text) {
-      if (typeof marked !== 'undefined') {
-        return marked.parse(text, { 
-          gfm: true, 
-          breaks: true,
-          headerIds: false,
-          mangle: false
-        });
-      }
-      // Fallback jeśli marked nie załadował się
-      return text
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/`(.+?)`/g, '<code class="bg-slate-800 px-1 rounded">$1</code>')
-        .replace(/\n/g, '<br>')
-        .replace(/### (.+)/g, '<h3 class="text-cyan-400 font-bold mt-4 mb-2">$1</h3>')
-        .replace(/## (.+)/g, '<h2 class="text-cyan-300 font-bold mt-6 mb-3">$1</h2>')
-        .replace(/# (.+)/g, '<h1 class="neon-cyan font-black mt-6 mb-3">$1</h1>')
-        .replace(/- (.+)/g, '<li>$1</li>')
-        .replace(/(<li>.+<\/li>)/g, '<ul class="list-disc pl-6 my-2">$1</ul>');
-    }
-
-    // ========== RENDER INDICATORS ==========
-    function renderIndicators(indicators) {
-      if (!indicators) return;
-      
-      const categories = [
-        { key: 'valuation', title: '💰 Wycena', icon: 'fa-money-bill-wave' },
-        { key: 'profitability', title: '📈 Rentowność', icon: 'fa-chart-line' },
-        { key: 'leverage', title: '⚖️ Dług i Płynność', icon: 'fa-balance-scale' },
-        { key: 'growth', title: '🚀 Wzrost', icon: 'fa-rocket' },
-        { key: 'quality', title: '💎 Jakość Zysków', icon: 'fa-gem' },
-        { key: 'technical', title: '📊 Technika', icon: 'fa-chart-area' },
-        { key: 'ownership', title: '👥 Akcjonariusze', icon: 'fa-users' },
-        { key: 'macro', title: '🌍 Makro i Sektor', icon: 'fa-globe' }
-      ];
-      
-      let html = '';
-      
-      for (const cat of categories) {
-        const data = indicators[cat.key];
-        if (!data) continue;
-        
-        html += `
-          <div class="collapsible-content open" id="cat-${cat.key}">
-            <button onclick="toggleCategory('${cat.key}')" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-cyan-500/30 transition text-left">
-              <i class="fa-solid ${cat.icon} text-cyan-400 text-xl"></i>
-              <span class="font-bold text-white flex-1">${cat.title}</span>
-              <i class="fa-solid fa-chevron-down text-slate-400 transition-transform" id="chevron-${cat.key}"></i>
-            </button>
-            <div class="mt-2 space-y-2" id="content-${cat.key}">
-        `;
-        
-        for (const [key, value] of Object.entries(data)) {
-          if (value === null || value === undefined) continue;
-          
-          const exp = simpleExplanations[key] || { name: key, simple: 'Brak opisu' };
-          const formattedValue = formatValue(key, value);
-          const cls = getValueClass(key, value);
-          
-          html += `
-            <div class="indicator-card p-3 rounded-xl bg-slate-800/30 border border-slate-700/50 group">
-              <div class="flex items-start justify-between gap-2">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="font-medium text-slate-200">${exp.name}</span>
-                    <button onclick="showExplanation('${exp.name}', '${exp.simple.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 text-xs px-2 py-0.5 rounded bg-cyan-500/10">💡</button>
-                  </div>
-                  <p class="text-xs text-slate-500 line-clamp-2">${exp.simple}</p>
-                </div>
-                <span class="font-bold text-lg ${cls} whitespace-nowrap">${formattedValue}</span>
-              </div>
-            </div>
-          `;
-        }
-        
-        html += '</div></div>';
-      }
-      
-      indicatorsContent.innerHTML = html;
-    }
-
-    function toggleCategory(key) {
-      const content = document.getElementById(`content-${key}`);
-      const chevron = document.getElementById(`chevron-${key}`);
-      if (content && chevron) {
-        content.classList.toggle('open');
-        chevron.style.transform = content.classList.contains('open') ? 'rotate(0deg)' : 'rotate(-90deg)';
-      }
-    }
-
-    function formatValue(key, value) {
-      if (typeof value === 'number') {
-        if (key.includes('ratio') || key.includes('margin') || key.includes('yield') || key.includes('growth') || key.includes('ownership') || key.includes('short')) {
-          return (value * 100).toFixed(1) + '%';
-        }
-        if (key.includes('pe') || key.includes('pb') || key.includes('ps') || key.includes('ev') || key.includes('beta')) {
-          return value.toFixed(2);
-        }
-        return value.toLocaleString('pl-PL', { maximumFractionDigits: 2 });
-      }
-      return value;
-    }
-
-    function getValueClass(key, value) {
-      if (typeof value !== 'number') return 'neutral';
-      
-      // Dobre wartości (zielone)
-      const goodHigh = ['roe', 'roic', 'roa', 'gross_margin', 'operating_margin', 'fcf_margin', 'interest_coverage', 'current_ratio', 'revenue_growth_yoy', 'eps_growth_yoy', 'fcf_growth_yoy', 'cash_conversion', 'insider_ownership'];
-      const goodLow = ['pe_ratio', 'forward_pe', 'peg_ratio', 'pb_ratio', 'ps_ratio', 'ev_ebitda', 'debt_equity', 'net_debt_ebitda', 'accruals_ratio', 'sbc_revenue', 'short_interest'];
-      
-      if (goodHigh.includes(key) && value > 0) return 'positive';
-      if (goodLow.includes(key) && value > 0) return 'negative';
-      
-      // Specyficzne progi
-      if (key === 'roe' && value > 0.15) return 'positive';
-      if (key === 'roic' && value > 0.15) return 'positive';
-      if (key === 'pe_ratio' && value > 0 && value < 15) return 'positive';
-      if (key === 'pe_ratio' && value > 25) return 'negative';
-      if (key === 'net_debt_ebitda' && value < 2) return 'positive';
-      if (key === 'net_debt_ebitda' && value > 4) return 'negative';
-      if (key === 'rsi' && value > 70) return 'negative';
-      if (key === 'rsi' && value < 30) return 'positive';
-      
-      return 'neutral';
-    }
-
-    function showExplanation(title, text) {
-      alert(`${title}\n\n${text}`);
-    }
-
-    // ========== TAB SWITCHING ==========
-    function switchTab(tabName) {
-      // Update tab buttons
-      document.querySelectorAll('#sidebarTabs .tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
-      });
-      // Show/hide tab content
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.toggle('hidden', content.id !== `tab-${tabName}`);
-      });
-    }
-
-    // ========== RENDER CHARTS (Lightweight Charts) ==========
-    function renderCharts(chartData) {
-      if (!chartData) return;
-      
-      // Usuń stare wykresy
-      Object.values(charts).forEach(chart => {
-        if (chart && chart.remove) chart.remove();
-      });
-      charts = {};
-      
-      const container = document.getElementById('chartsContainer');
-      if (!container) return;
-      
-      container.innerHTML = '';
-      
-      // Wykres ceny z SMA
-      if (chartData.price_history && chartData.price_history.length > 0) {
-        createPriceChart(container, chartData);
-      }
-      
-      // Wykres RSI
-      if (chartData.rsi && chartData.rsi.length > 0) {
-        createRSIChart(container, chartData);
-      }
-      
-      // Wykres wolumenu
-      if (chartData.price_history && chartData.price_history.length > 0) {
-        createVolumeChart(container, chartData);
-      }
-    }
-
-    function createPriceChart(container, data) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'mb-6';
-      wrapper.innerHTML = `
-        <h3 class="text-cyan-400 font-bold mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-chart-line"></i> Cena z średnimi kroczącymi (SMA 20/50/200)
-        </h3>
-        <div class="chart-container lwc-chart" id="priceChart"></div>
-      `;
-      container.appendChild(wrapper);
-      
-      const chart = LightweightCharts.createChart(document.getElementById('priceChart'), {
-        layout: { background: { color: '#0f172a' }, textColor: '#94a3b8' },
-        grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
-        timeScale: { timeVisible: true, secondsVisible: false, borderColor: '#334155' },
-        rightPriceScale: { borderColor: '#334155', scaleMargins: { top: 0.1, bottom: 0.1 } },
-        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
-        handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true, pinch: true }
-      });
-      
-      // Cena - świece
-      const candleSeries = chart.addCandlestickSeries({
-        upColor: '#10b981', downColor: '#ef4444',
-        wickUpColor: '#10b981', wickDownColor: '#ef4444',
-        borderVisible: false
-      });
-      
-      const candleData = data.price_history.map(d => ({
-        time: d.time, // backend już zwraca sekundy
-        open: d.open, high: d.high, low: d.low, close: d.close
-      }));
-      candleSeries.setData(candleData);
-      
-      // SMA 20
-      if (data.sma20 && data.sma20.length > 0) {
-        const sma20Series = chart.addLineSeries({ color: '#00f2fe', lineWidth: 1.5, title: 'SMA 20' });
-        sma20Series.setData(data.sma20.map(d => ({ time: d.time, value: d.value })));
-      }
-      
-      // SMA 50
-      if (data.sma50 && data.sma50.length > 0) {
-        const sma50Series = chart.addLineSeries({ color: '#7928ca', lineWidth: 1.5, title: 'SMA 50' });
-        sma50Series.setData(data.sma50.map(d => ({ time: d.time, value: d.value })));
-      }
-      
-      // SMA 200
-      if (data.sma200 && data.sma200.length > 0) {
-        const sma200Series = chart.addLineSeries({ color: '#f59e0b', lineWidth: 2, title: 'SMA 200' });
-        sma200Series.setData(data.sma200.map(d => ({ time: d.time, value: d.value })));
-      }
-      
-      charts.price = chart;
-      
-      // Resize handler
-      const resizeObserver = new ResizeObserver(() => {
-        chart.applyOptions({ width: wrapper.clientWidth, height: 300 });
-      });
-      resizeObserver.observe(wrapper);
-    }
-
-    function createRSIChart(container, data) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'mb-6';
-      wrapper.innerHTML = `
-        <h3 class="text-cyan-400 font-bold mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-wave-square"></i> RSI (14) - Siła Względna
-        </h3>
-        <div class="chart-container lwc-chart" id="rsiChart" style="height: 150px;"></div>
-      `;
-      container.appendChild(wrapper);
-      
-      const chart = LightweightCharts.createChart(document.getElementById('rsiChart'), {
-        layout: { background: { color: '#0f172a' }, textColor: '#94a3b8' },
-        grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
-        timeScale: { timeVisible: true, secondsVisible: false, borderColor: '#334155', visible: false },
-        rightPriceScale: { borderColor: '#334155', scaleMargins: { top: 0.1, bottom: 0.1 }, minValue: 0, maxValue: 100 },
-        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true },
-        handleScale: { mouseWheel: false, pinch: false }
-      });
-      
-      const rsiSeries = chart.addLineSeries({ color: '#00f2fe', lineWidth: 2, title: 'RSI' });
-      rsiSeries.setData(data.rsi.map(d => ({ time: d.time, value: d.value })));
-      
-      // Linie 30 i 70
-      chart.addLineSeries({ color: '#10b981', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Przesprzedane (30)' }).setData([
-        { time: data.rsi[0].time, value: 30 },
-        { time: data.rsi[data.rsi.length - 1].time, value: 30 }
-      ]);
-      chart.addLineSeries({ color: '#ef4444', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Przekupione (70)' }).setData([
-        { time: data.rsi[0].time, value: 70 },
-        { time: data.rsi[data.rsi.length - 1].time, value: 70 }
-      ]);
-      chart.addLineSeries({ color: '#94a3b8', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Neutralne (50)' }).setData([
-        { time: data.rsi[0].time, value: 50 },
-        { time: data.rsi[data.rsi.length - 1].time, value: 50 }
-      ]);
-      
-      charts.rsi = chart;
-    }
-
-    function createVolumeChart(container, data) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'mb-6';
-      wrapper.innerHTML = `
-        <h3 class="text-cyan-400 font-bold mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-chart-column"></i> Wolumen
-        </h3>
-        <div class="chart-container lwc-chart" id="volumeChart" style="height: 120px;"></div>
-      `;
-      container.appendChild(wrapper);
-      
-      const chart = LightweightCharts.createChart(document.getElementById('volumeChart'), {
-        layout: { background: { color: '#0f172a' }, textColor: '#94a3b8' },
-        grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
-        timeScale: { timeVisible: true, secondsVisible: false, borderColor: '#334155', visible: false },
-        rightPriceScale: { borderColor: '#334155', visible: false },
-        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true },
-        handleScale: { mouseWheel: false, pinch: false }
-      });
-      
-      const volumeSeries = chart.addHistogramSeries({
-        color: '#00f2fe',
-        priceFormat: { type: 'volume' },
-        priceScaleId: ''
-      });
-      
-      const volumeData = data.price_history.map(d => ({
-        time: d.time,
-        value: d.volume,
-        color: d.close >= d.open ? '#10b981' : '#ef4444'
-      }));
-      volumeSeries.setData(volumeData);
-      
-      charts.volume = chart;
-    }
-
-    // ========== ENTER KEY ==========
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    // Focus input on load
-    chatInput.focus();
+  }
+  $('analyze').addEventListener('click', analyze);
+  $('ticker').addEventListener('keydown', (e) => { if (e.key === 'Enter') analyze(); });
+  $('ticker').focus();
   </script>
 </body>
 </html>
+
