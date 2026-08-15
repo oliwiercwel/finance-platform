@@ -105,6 +105,17 @@
         <div id="badgeWrap" class="mb-4"></div>
         <div id="verdictText" class="verdict-body"></div>
       </div>
+      <!-- CHAT / DOPYTANIE -->
+      <div class="glass rounded-2xl p-5 mb-6">
+        <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-comments"></i> Zapytaj analityka</h3>
+        <p class="text-xs text-slate-400 mb-3">Możesz dopytać o konkretny wskaźnik, poziom ceny albo o to, czy poczekać. Odpowiadam prostym językiem.</p>
+        <div class="flex gap-2">
+          <input id="followupInput" type="text" placeholder="np. Czy warto czekać na korektę? Co wskazuje RSI?" autocomplete="off">
+          <button id="followupBtn" class="btn-analyze px-4 py-2 whitespace-nowrap" style="width:auto;">Zapytaj</button>
+        </div>
+        <div id="followupBox" class="mt-4 flex flex-col gap-3"></div>
+      </div>
+
       <!-- CHARTS -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div class="glass rounded-2xl p-4">
@@ -141,6 +152,7 @@
   const $ = (id) => document.getElementById(id);
   const chartsRef = {};
   let activeCharts = [];
+  let currentSymbol = '';
 
   function showStatus(html, loading) {
     const st = $('status');
@@ -200,6 +212,7 @@
   }
   async function analyze() {
     const symbol = $('ticker').value.trim().toUpperCase();
+    currentSymbol = symbol;
     if (!symbol) { alert('Podaj ticker.'); return; }
     setLoading(true);
     $('results').classList.add('hidden');
@@ -322,6 +335,37 @@
   }
   $('analyze').addEventListener('click', analyze);
   $('ticker').addEventListener('keydown', (e) => { if (e.key === 'Enter') analyze(); });
+  function askAnalityk() {
+    const q = $('followupInput').value.trim();
+    if (!q) return;
+    if (!currentSymbol) { alert('Najpierw wykonaj analizę.'); return; }
+    const box = $('followupBox');
+    const qEl = document.createElement('div');
+    qEl.className = 'text-right';
+    qEl.innerHTML = '<span class="inline-block rounded-xl px-3 py-2" style="background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.3);max-width:85%;">' + escapeHtml(q) + '</span>';
+    box.appendChild(qEl);
+    $('followupInput').value = '';
+    const aEl = document.createElement('div');
+    aEl.className = 'flex items-center gap-2 text-slate-400 text-sm';
+    aEl.innerHTML = '<span class="loader" style="width:16px;height:16px;"></span> Analityk odpowiada…';
+    box.appendChild(aEl);
+    fetch('/api/buffett-ai/followup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbol: currentSymbol, question: q })
+    }).then(r => r.json()).then(data => {
+      aEl.remove();
+      const resp = document.createElement('div');
+      resp.className = 'rounded-xl px-3 py-2';
+      resp.style.cssText = 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#d1d5db;max-width:90%;';
+      resp.innerHTML = data.answer ? renderVerdictText(data.answer) : ('<strong style="color:#f87171;">Błąd:</strong> ' + escapeHtml(data.error || 'Brak odpowiedzi'));
+      box.appendChild(resp);
+    }).catch(err => {
+      aEl.innerHTML = '<strong style="color:#f87171;">Błąd połączenia:</strong> ' + escapeHtml(err.message);
+    });
+  }
+  $('followupBtn').addEventListener('click', askAnalityk);
+  $('followupInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') askAnalityk(); });
   $('ticker').focus();
   </script>
 </body>

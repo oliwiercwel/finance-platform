@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "finance-platform-backend"
+version = "1.0.0"
+description = "Backend dla platformy finansowej FinanceHub (w tym TRADING AI)"
+authors = ["FinanceHub Team"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+flask = "3.0.3"
+requests = "2.32.3"
+python-dotenv = "1.0.1"
+waitress = "3.0.0"
+numpy = ">=1.26"
+pandas = ">=2.1"
+yfinance = ">=0.2.40"
+openai = ">=1.40"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

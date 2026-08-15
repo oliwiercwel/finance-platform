@@ -8,6 +8,22 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime, timedelta
 import calendar as cal_module
 
+# ============================================================
+# TRADING AI — realna analiza techniczna (NVIDIA NIM)
+# Moduły przeniesione z folderu trading-ai (data/ai_client/system_prompt)
+# ============================================================
+try:
+    from trading_ai.data import get_full_data, get_latest_snapshot
+    from trading_ai.ai_client import analyze as ai_analyze, followup as ai_followup
+    from trading_ai import system_prompt as ta_prompt
+    TRADING_AI_OK = True
+except Exception as _ta_imp_err:
+    TRADING_AI_OK = False
+    print(f'[TRADING AI] Nie udało się zaimportować modułów AI: {_ta_imp_err}')
+
+# Stan w pamięci (cache snapshotów) do dopytania analityka po analizie.
+_ai_state = {'snapshot': {}}
+
 # Lista popularnych symboli
 ALL_SYMBOLS = [
     # 🇵🇱 GPW
@@ -690,15 +706,20 @@ class FinanceHandler(SimpleHTTPRequestHandler):
         self.end_headers()
     
     def do_POST(self):
-        """Obsługa POST requests - SSE streaming dla BUFFET AI"""
+        """Obsługa POST requests - BUFFET AI (realna analiza NVIDIA NIM)"""
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
-        
-        # /api/buffet-ai/analyze - GŁÓWNY ENDPOINT
-        if path == '/api/buffet-ai/analyze':
-            self.handle_buffet_ai_analyze()
+
+        # GŁÓWNY ENDPOINT analizy (obsługuje wersje z 1 i 2 literą "t")
+        if path in ('/api/buffet-ai/analyze', '/api/buffett-ai/analyze'):
+            self.handle_buffet_ai_analyze_json()
             return
-        
+
+        # ENDPOINT dopytania (chat z analitykiem)
+        if path in ('/api/buffet-ai/followup', '/api/buffett-ai/followup'):
+            self.handle_buffet_ai_followup()
+            return
+
         send_json(self, {'error': 'Not found'}, 404)
     
     def handle_buffet_ai_analyze(self):
@@ -774,7 +795,374 @@ class FinanceHandler(SimpleHTTPRequestHandler):
             elif 'Failed to fetch' in error_msg or 'network' in error_msg.lower():
                 error_msg = 'Problem z połączeniem do Yahoo Finance. Sprawdź połączenie internetowe.'
             send_error_and_end(error_msg)
-    
+
+    def handle_buffet_ai_analyze_json(self):
+        """Realna analiza BUFFET AI (NVIDIA NIM) — odpowiedź JSON dla frontendu."""
+        import traceback
+
+        # Wczytaj body
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+            request_data = json.loads(body)
+        except Exception:
+            request_data = {}
+
+        symbol = str(request_data.get('symbol', '')).upper().strip()
+        period = str(request_data.get('period', '1y'))
+        model = request_data.get('model')
+
+        if not symbol:
+            send_json(self, {'error': 'Brak symbolu w żądaniu'}, 400)
+            return
+
+        if not TRADING_AI_OK:
+            send_json(self, {'error': 'Moduły AI nie są dostępne na serwerze.'}, 500)
+            return
+
+        try:
+            # 1. Pobierz dane + pełny zestaw wskaźników technicznych
+            df, snapshot = get_full_data(symbol, period)
+
+            # 2. Zbuduj tabelę wskaźników dla UI
+            summary = self.build_indicator_summary(snapshot)
+
+            # 3. Zbuduj dane wykresów (prawdziwe świece + wskaźniki)
+            charts = self.build_chart_data_from_df(df, symbol)
+
+            # 4. Wywołaj prawdziwe AI (NVIDIA NIM) z limitem czasu; jeśli nie odpowie, użyj lokalnego fallbacka
+            sys_prompt = ta_prompt.build_system_prompt()
+            verdict_text = None
+            try:
+                from concurrent.futures import ThreadPoolExecutor
+                _ex = ThreadPoolExecutor(max_workers=1)
+                _fut = _ex.submit(ai_analyze, sys_prompt, snapshot, model=model)
+                try:
+                    verdict_text = _fut.result(timeout=15)
+                except Exception:
+                    verdict_text = None
+                _ex.shutdown(wait=False)
+            except Exception:
+                verdict_text = None
+            if not verdict_text:
+                verdict_text = self.fallback_verdict(snapshot)
+
+            # 5. Wyznacz plakietkę (MA SENS / NIE MA SENS / CZEKAJ)
+            badge, cls = self.classify_verdict(verdict_text)
+
+            # 6. Zapamiętaj snapshot do dopytania analityka
+            _ai_state['snapshot'][symbol] = {
+                'snapshot': snapshot,
+                'symbol': symbol,
+                'period': period,
+                'model': model,
+            }
+
+            send_json(self, {
+                'verdict': {'text': verdict_text, 'badge': badge, 'cls': cls},
+                'charts': charts,
+                'summary': summary,
+                'symbol': symbol,
+            }, 200)
+
+        except Exception as e:
+            traceback.print_exc()
+            err = str(e)
+            if '429' in err or 'Too Many Requests' in err:
+                err = 'Yahoo Finance / NVIDIA tymczasowo blokuje zapytania (za dużo requestów). Spróbuj za chwilę.'
+            elif 'Brak danych' in err:
+                err = f'Nie znaleziono danych dla {symbol}. Sprawdź czy ticker jest poprawny (np. NVDA, AAPL, SOXL).'
+            elif 'Failed to fetch' in err or 'network' in err.lower():
+                err = 'Problem z połączeniem z internetem. Spróbuj ponownie.'
+            send_json(self, {'error': err}, 500)
+
+    def handle_buffet_ai_followup(self):
+        """Dopytanie analityka (chat) — odpowiada prostym językiem."""
+        import traceback
+
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else ''
+            request_data = json.loads(body)
+        except Exception:
+            request_data = {}
+
+        symbol = str(request_data.get('symbol', '')).upper().strip()
+        question = str(request_data.get('question', '')).strip()
+
+        if not symbol or not question:
+            send_json(self, {'error': 'Brak symbolu lub pytania'}, 400)
+            return
+
+        if not TRADING_AI_OK:
+            send_json(self, {'error': 'Moduły AI nie są dostępne na serwerze.'}, 500)
+            return
+
+        state = _ai_state['snapshot'].get(symbol)
+        snapshot = state.get('snapshot') if state else None
+        period = state.get('period', '1y') if state else '1y'
+        model = state.get('model') if state else None
+
+        try:
+            if snapshot is None:
+                _, snapshot = get_full_data(symbol, period)
+
+            sys_prompt = ta_prompt.build_system_prompt()
+            answer = None
+            try:
+                from concurrent.futures import ThreadPoolExecutor
+                _ex = ThreadPoolExecutor(max_workers=1)
+                _fut = _ex.submit(ai_followup, sys_prompt, snapshot, question, model=model)
+                try:
+                    answer = _fut.result(timeout=15)
+                except Exception:
+                    answer = None
+                _ex.shutdown(wait=False)
+            except Exception:
+                answer = None
+            if not answer:
+                answer = self.fallback_followup(snapshot, question)
+            send_json(self, {'answer': answer}, 200)
+        except Exception as e:
+            traceback.print_exc()
+            send_json(self, {'error': 'Błąd analizy: ' + str(e)}, 500)
+
+    def build_indicator_summary(self, snapshot):
+        """Buduje tabelę kluczowych wskaźników (name/value/note) dla UI."""
+        s = snapshot
+        def num(d, *path, default='n/d'):
+            node = d
+            for k in path:
+                if isinstance(node, dict) and k in node and node[k] is not None:
+                    node = node[k]
+                else:
+                    return default
+            return node
+
+        rows = []
+        add = lambda name, value, note='': rows.append({'name': name, 'value': value, 'note': note})
+
+        add('Cena', s.get('cena'))
+        add('Data', s.get('data'))
+        add('Trend (struktura)', s.get('trend_struktura'))
+        add('Struktura długoterminowa', s.get('struktura_dlugoterminowa'))
+
+        # RSI
+        rsi14 = num(s, 'RSI', 'rsi14')
+        add('RSI(14)', rsi14, num(s, 'RSI', 'strefa_rsi14'))
+        add('RSI(7)', num(s, 'RSI', 'rsi7'))
+
+        # MACD
+        macd = s.get('MACD', {})
+        add('MACD', macd.get('linia'))
+        add('MACD sygnał', macd.get('sygnal'))
+        add('MACD histogram', macd.get('histogram'), macd.get('momentum'))
+
+        # Trend / średnie
+        sma = s.get('SMA', {})
+        add('SMA50', sma.get('SMA50'))
+        add('SMA200', sma.get('SMA200'))
+        ema = s.get('EMA', {})
+        add('EMA50', ema.get('EMA50'))
+
+        # ADX
+        adx = s.get('ADX', {})
+        add('ADX', adx.get('adx'), adx.get('komentarz'))
+
+        # Supertrend / PSAR
+        st = s.get('Supertrend', {})
+        add('Supertrend', st.get('wartosc'), 'kierunek: ' + str(st.get('kierunek')))
+        add('PSAR', s.get('PSAR'))
+
+        # Wolumen
+        vol = s.get('Volume', {})
+        add('Wolumen', vol.get('vol'))
+        add('MFI', vol.get('mfi'))
+        add('CMF', vol.get('cmf'))
+        add('OBV', vol.get('obv'))
+
+        # Bollinger / ATR
+        bb = s.get('Bollinger', {})
+        add('Bollinger góra', bb.get('upper'))
+        add('Bollinger dół', bb.get('lower'))
+        atr = s.get('ATR', {})
+        add('ATR %', atr.get('atr_pct'))
+
+        return rows
+
+    def classify_verdict(self, text):
+        """Na podstawie tekstu werdyktu wyznacza plakietkę i klasę CSS."""
+        t = str(text)
+        if 'NIE MA SENS' in t:
+            return 'NIE MA SENS', 'NIE'
+        if 'MA SENS' in t:
+            return 'MA SENS', 'MA'
+        if 'CZEKAJ' in t:
+            return 'CZEKAJ', 'CZEKAJ'
+        return 'ANALIZA', 'CZEKAJ'
+
+    def fallback_verdict(self, snapshot):
+        """Lokalny werdykt (offline) generowany z realnych wskaźników, prostym językiem.
+        Używany, gdy NVIDIA NIM nie odpowie — dzięki temu strona zawsze zwraca wynik."""
+        def num(d, *path, default=0):
+            node = d
+            for k in path:
+                if isinstance(node, dict) and node.get(k) is not None:
+                    node = node[k]
+                else:
+                    return default
+            return node
+
+        price = num(snapshot, 'cena')
+        trend = snapshot.get('struktura_dlugoterminowa', snapshot.get('trend_struktura', 'brak danych'))
+        rsi14 = num(snapshot, 'RSI', 'rsi14')
+        macd_h = num(snapshot, 'MACD', 'histogram')
+        adx = num(snapshot, 'ADX', 'adx')
+        cmf = num(snapshot, 'Volume', 'cmf')
+
+        trend_bull = isinstance(trend, str) and ('bull' in trend or 'wzrostowy' in trend or 'POWYŻEJ' in trend)
+        trend_bear = isinstance(trend, str) and ('bear' in trend or 'spadkowy' in trend or 'PONIŻEJ' in trend)
+        rsi_bull = rsi14 and rsi14 >= 55
+        rsi_ok = rsi14 and 30 <= rsi14 <= 70
+        macd_bull = macd_h and macd_h > 0
+        adx_trend = adx and adx >= 25
+        vol_bull = cmf and cmf > 0
+
+        reasons = []
+        if trend_bull:
+            reasons.append('cena trzyma się powyżej długoterminowej średniej (trend wzrostowy)')
+        if rsi_ok:
+            reasons.append('wskaźnik siły RSI nie jest ani wyprzedany, ani przekupiony')
+        if macd_bull:
+            reasons.append('momentum (MACD) wskazuje przewagę kupujących')
+        if adx_trend:
+            reasons.append('widać wyraźny kierunek rynku (ADX >= 25)')
+        if vol_bull:
+            reasons.append('wolumen potwierdza ruch (kapitał wchodzi w akcję)')
+
+        if trend_bull and macd_bull and rsi_bull and not trend_bear:
+            verdict = 'MA SENS'
+        elif trend_bear and (macd_h < 0 or rsi14 < 30):
+            verdict = 'NIE MA SENS'
+        else:
+            verdict = 'CZEKAJ'
+
+        if not reasons:
+            reasons.append('brak jednoznacznego potwierdzenia technicznego')
+
+        tail = ("Dlatego ryzyko i potencjał przemawiają za wejściem po korekcie." if verdict == 'MA SENS'
+                else "Dlatego wstrzymałbym się — brak potwierdzenia to nie jest okazja." if verdict == 'CZEKAJ'
+                else "Dlatego nie wchodzę — struktura działa przeciw.")
+
+        return (
+            "**WERDYKT:** " + verdict + "\n\n"
+            "**Czym się kierowałem (prosto):**\n"
+            "Najważniejsze dla mnie było, czy ruch ma solidne potwierdzenie. "
+            + " ".join(reasons) + ". " + tail + "\n\n"
+            + "**Uzasadnienie (konkretnie):**\n"
+            + f"- RSI(14): {rsi14} | MACD histogram: {macd_h} | ADX: {adx}\n"
+            + f"- Struktura: {trend}\n"
+            + "- Do pełnego przekonania brakuje jednoznacznego potwierdzenia wolumenem.\n\n"
+            + "**Kluczowe poziomy:**\n"
+            + "- Wsparcie: ostatnie minimum lokalne\n"
+            + "- Opór: ostatnie maksimum lokalne\n\n"
+            + "**Warunki unieważnienia setupu:**\n"
+            + "- cena traci poziom wsparcia / zmienia kierunek średnich\n"
+            + "- RSI przekracza 70 (wykupienie) przy spadkowej dywergencji\n\n"
+            + "*Tryb offline — lokalna analiza wskaźników (AI chwilowo niedostępne).*"
+        )
+
+    def fallback_followup(self, snapshot, question):
+        """Uczciwa odpowiedź offline na pytanie użytkownika, na bazie snapshotu."""
+        return (
+            "Analizuję to na podstawie wskaźników technicznych, które mam w danych. "
+            "W skrócie: najważniejsze są trend długoterminowy, momentum (RSI/MACD) i wolumen. "
+            "Jeśli wszystkie idą w tę samą stronę, sygnał jest mocniejszy; jeśli są sprzeczne, "
+            "bezpieczniej czekać. Aby udzielić bardziej konkretnej odpowiedzi na Twoje pytanie, "
+            "włącz dostęp do AI (NVIDIA NIM) — w tej chwili działa tryb lokalny (offline)."
+        )
+
+    def build_chart_data_from_df(self, df, symbol):
+        """Buduje dane wykresów (fresh, EMA, SMA, wolumen, RSI, MACD) z df."""
+        import math
+
+        def fmt_t(idx):
+            # LightweightCharts akceptuje "YYYY-MM-DD" dla świec dziennych
+            return idx.strftime('%Y-%m-%d') if hasattr(idx, 'strftime') else str(idx)
+
+        price_history = []
+        volume = []
+        for ts, row in df.iterrows():
+            price_history.append({
+                'time': fmt_t(ts),
+                'open': round(float(row.get('Open', 0)), 2),
+                'high': round(float(row.get('High', 0)), 2),
+                'low': round(float(row.get('Low', 0)), 2),
+                'close': round(float(row.get('Close', 0)), 2),
+            })
+            v = row.get('Volume', 0)
+            try:
+                vf = float(v)
+            except (TypeError, ValueError):
+                vf = 0
+            prev = price_history[-2]['close'] if len(price_history) >= 2 else None
+            color = '#22c55e'
+            if prev is not None:
+                color = '#22c55e' if price_history[-1]['close'] >= prev else '#ef4444'
+            volume.append({'time': fmt_t(ts), 'value': vf, 'color': color})
+
+        def col_series(name):
+            if name not in df.columns:
+                return []
+            out = []
+            for ts, row in df.iterrows():
+                val = row.get(name)
+                try:
+                    fv = float(val)
+                except (TypeError, ValueError):
+                    continue
+                if not math.isnan(fv):
+                    out.append({'time': fmt_t(ts), 'value': round(fv, 3)})
+            return out
+
+        # Średnie EMA / SMA
+        ema_series = {}
+        for p in (9, 21, 50):
+            ema_series[p] = col_series(f'EMA{p}')
+        sma_series = {}
+        for p in (20, 50, 200):
+            sma_series[p] = col_series(f'SMA{p}')
+
+        # RSI
+        rsi = {'rsi7': col_series('RSI7'), 'rsi14': col_series('RSI14')}
+
+        # MACD
+        macd_hist = []
+        for ts, row in df.iterrows():
+            val = row.get('MACD_HIST')
+            try:
+                fv = float(val)
+            except (TypeError, ValueError):
+                continue
+            if not math.isnan(fv):
+                macd_hist.append({
+                    'time': fmt_t(ts),
+                    'value': round(fv, 3),
+                    'color': '#22c55e' if fv >= 0 else '#ef4444',
+                })
+
+        return {
+            'price_history': price_history,
+            'ema': ema_series,
+            'sma': sma_series,
+            'volume': volume,
+            'rsi': rsi,
+            'macd': {
+                'histogram': macd_hist,
+                'macd': col_series('MACD'),
+                'signal': col_series('MACD_SIGNAL'),
+            },
+        }
     def fetch_yahoo_fundamentals(self, symbol):
         """Pobierz PEŁNE dane fundamentalne z Yahoo Finance v10/quoteSummary"""
         try:

@@ -6,6 +6,12 @@ Flask==3.0.3
 requests==2.32.3
 python-dotenv==1.0.1
 
+# Zależności dla TRADING AI (realna analiza techniczna + NVIDIA NIM)
+numpy>=1.26
+pandas>=2.1
+yfinance>=0.2.40
+openai>=1.40
+
 # Zależności dla frontend
 waitress==3.0.0
 

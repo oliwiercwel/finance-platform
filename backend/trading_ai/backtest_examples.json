@@ -1,0 +1,1032 @@
+[
+  {
+    "ticker": "SOXL",
+    "data": "2026-01-02",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2026-01-02",
+      "cena": 47.24,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 43.8363,
+        "EMA21": 43.0995,
+        "EMA50": 41.4483,
+        "EMA100": 37.8326,
+        "EMA200": 33.6336
+      },
+      "SMA": {
+        "SMA20": 43.8855,
+        "SMA50": 42.4828,
+        "SMA100": 37.4348,
+        "SMA200": 28.3137
+      },
+      "Ichimoku": {
+        "conversion": 43.795,
+        "base": 41.07,
+        "span_a": 37.9075,
+        "span_b": 39.44,
+        "pozycja": "powyżej chmury"
+      },
+      "Supertrend": {
+        "wartosc": 39.703,
+        "kierunek": "bull"
+      },
+      "PSAR": 36.4057,
+      "ADX": {
+        "adx": 11.46,
+        "di_plus": 27.76,
+        "di_minus": 24.19,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 11)"
+      },
+      "RSI": {
+        "rsi7": 66.84,
+        "rsi14": 59.01,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 93.14,
+        "d": 65.49
+      },
+      "StochasticRSI": {
+        "k": 33.33,
+        "d": 22.22
+      },
+      "MACD": {
+        "linia": 0.7303,
+        "sygnal": 0.5362,
+        "histogram": 0.1941,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 61.87,
+      "WilliamsR": -6.86,
+      "ROC": 31.19,
+      "Momentum": 11.23,
+      "ATR": {
+        "atr": 3.1744,
+        "atr_pct": 6.72
+      },
+      "Bollinger": {
+        "mid": 43.8855,
+        "upper": 50.8691,
+        "lower": 36.9019,
+        "bandwidth": 31.83
+      },
+      "Keltner": {
+        "mid": 43.1478,
+        "upper": 49.6868,
+        "lower": 36.6087
+      },
+      "Donchian": {
+        "mid": 42.895,
+        "upper": 50.09,
+        "lower": 35.7
+      },
+      "Volume": {
+        "vol": 132719700,
+        "vol_sma20": 76744145.0,
+        "vol_sma50": 91613716.0,
+        "obv": 2763780000.0,
+        "mfi": 47.05,
+        "cmf": -0.0708
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 42.73,
+        "R1": 43.45,
+        "S1": 41.31,
+        "R2": 44.87,
+        "S2": 40.59
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "MA SENS",
+    "komentarz": "Setup long potwierdzony — struktura zgodna z kierunkiem, RSI przekroczyło 50, MACD potwierdza; cena poruszyła się zgodnie z założeniem o +38.0%.",
+    "forward_ret_pct": 38.02
+  },
+  {
+    "ticker": "NVDA",
+    "data": "2025-02-13",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2025-02-13",
+      "cena": 135.0882,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 130.3381,
+        "EMA21": 130.7997,
+        "EMA50": 133.0934,
+        "EMA100": 131.3557,
+        "EMA200": 120.4215
+      },
+      "SMA": {
+        "SMA20": 130.6204,
+        "SMA50": 134.7484,
+        "SMA100": 135.1009,
+        "SMA200": 124.3286
+      },
+      "Ichimoku": {
+        "conversion": 124.569,
+        "base": 132.8716,
+        "span_a": 141.0419,
+        "span_b": 139.6611,
+        "pozycja": "poniżej chmury"
+      },
+      "Supertrend": {
+        "wartosc": 134.4973,
+        "kierunek": "bull"
+      },
+      "PSAR": 114.1327,
+      "ADX": {
+        "adx": 14.52,
+        "di_plus": 28.24,
+        "di_minus": 24.14,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 15)"
+      },
+      "RSI": {
+        "rsi7": 61.66,
+        "rsi14": 53.52,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 94.85,
+        "d": 66.77
+      },
+      "StochasticRSI": {
+        "k": 59.24,
+        "d": 70.35
+      },
+      "MACD": {
+        "linia": -1.309,
+        "sygnal": -2.4945,
+        "histogram": 1.1856,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 34.21,
+      "WilliamsR": -5.15,
+      "ROC": 8.54,
+      "Momentum": 10.6241,
+      "ATR": {
+        "atr": 6.3257,
+        "atr_pct": 4.68
+      },
+      "Bollinger": {
+        "mid": 130.6204,
+        "upper": 149.0065,
+        "lower": 112.2343,
+        "bandwidth": 28.15
+      },
+      "Keltner": {
+        "mid": 130.683,
+        "upper": 143.3007,
+        "lower": 118.0652
+      },
+      "Donchian": {
+        "mid": 130.7947,
+        "upper": 148.7479,
+        "lower": 112.8415
+      },
+      "Volume": {
+        "vol": 197430000,
+        "vol_sma20": 300319445.0,
+        "vol_sma50": 243150850.0,
+        "obv": 26244577600.0,
+        "mfi": 42.53,
+        "cmf": 0.2012
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 130.6249,
+        "R1": 132.3623,
+        "S1": 129.207,
+        "R2": 133.7802,
+        "S2": 127.4696
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "NIE MA SENS",
+    "komentarz": "Setup long zawiódł mimo sygnału — momentum nie utrzymało się, struktura się pogorszyła; cena -10.1% wbrew założeniu. Brak potwierdzenia = brak akcji.",
+    "forward_ret_pct": -10.06
+  },
+  {
+    "ticker": "AMD",
+    "data": "2023-10-06",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2023-10-06",
+      "cena": 107.24,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 102.8482,
+        "EMA21": 102.8369,
+        "EMA50": 105.1003,
+        "EMA100": 104.743,
+        "EMA200": 100.249
+      },
+      "SMA": {
+        "SMA20": 101.8825,
+        "SMA50": 106.2008,
+        "SMA100": 110.6434,
+        "SMA200": 96.8321
+      },
+      "Ichimoku": {
+        "conversion": 101.57,
+        "base": 103.14,
+        "span_a": 107.575,
+        "span_b": 112.715,
+        "pozycja": "poniżej chmury"
+      },
+      "Supertrend": {
+        "wartosc": 107.4023,
+        "kierunek": "bear"
+      },
+      "PSAR": 95.4669,
+      "ADX": {
+        "adx": 12.9,
+        "di_plus": 25.15,
+        "di_minus": 20.23,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 13)"
+      },
+      "RSI": {
+        "rsi7": 66.69,
+        "rsi14": 56.88,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 95.3,
+        "d": 84.69
+      },
+      "StochasticRSI": {
+        "k": 90.7,
+        "d": 71.58
+      },
+      "MACD": {
+        "linia": -0.6981,
+        "sygnal": -1.66,
+        "histogram": 0.9619,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 78.79,
+      "WilliamsR": -4.7,
+      "ROC": 11.48,
+      "Momentum": 11.04,
+      "ATR": {
+        "atr": 3.973,
+        "atr_pct": 3.7
+      },
+      "Bollinger": {
+        "mid": 101.8825,
+        "upper": 109.2777,
+        "lower": 94.4873,
+        "bandwidth": 14.52
+      },
+      "Keltner": {
+        "mid": 102.7646,
+        "upper": 110.893,
+        "lower": 94.6363
+      },
+      "Donchian": {
+        "mid": 101.805,
+        "upper": 109.15,
+        "lower": 94.46
+      },
+      "Volume": {
+        "vol": 64864100,
+        "vol_sma20": 52072805.0,
+        "vol_sma50": 59731102.0,
+        "obv": 11439600.0,
+        "mfi": 46.63,
+        "cmf": -0.0269
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 102.3067,
+        "R1": 104.3433,
+        "S1": 100.8733,
+        "R2": 105.7767,
+        "S2": 98.8367
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "CZEKAJ",
+    "komentarz": "Sygnał long był niejednoznaczny — cena +4.7%, brak wyraźnego ruchu. Profesjonalne podejście: CZEKAJ, dopóki nie ma potwierdzenia.",
+    "forward_ret_pct": 4.67
+  },
+  {
+    "ticker": "SOXX",
+    "data": "2023-05-15",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2023-05-15",
+      "cena": 137.6337,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 135.0227,
+        "EMA21": 135.3448,
+        "EMA50": 135.3842,
+        "EMA100": 132.6529,
+        "EMA200": 130.4975
+      },
+      "SMA": {
+        "SMA20": 134.7501,
+        "SMA50": 136.9704,
+        "SMA100": 132.5009,
+        "SMA200": 124.8611
+      },
+      "Ichimoku": {
+        "conversion": 134.4555,
+        "base": 135.0363,
+        "span_a": 138.7606,
+        "span_b": 136.4109,
+        "pozycja": "w chmurze"
+      },
+      "Supertrend": {
+        "wartosc": 132.3842,
+        "kierunek": "bull"
+      },
+      "PSAR": 131.2486,
+      "ADX": {
+        "adx": 9.0,
+        "di_plus": 26.01,
+        "di_minus": 22.01,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 9)"
+      },
+      "RSI": {
+        "rsi7": 63.89,
+        "rsi14": 55.14,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 99.71,
+        "d": 78.68
+      },
+      "StochasticRSI": {
+        "k": 47.04,
+        "d": 39.25
+      },
+      "MACD": {
+        "linia": -0.545,
+        "sygnal": -0.8615,
+        "histogram": 0.3165,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 44.27,
+      "WilliamsR": -0.29,
+      "ROC": 1.42,
+      "Momentum": 1.9318,
+      "ATR": {
+        "atr": 2.9055,
+        "atr_pct": 2.11
+      },
+      "Bollinger": {
+        "mid": 134.7501,
+        "upper": 138.8997,
+        "lower": 130.6005,
+        "bandwidth": 6.16
+      },
+      "Keltner": {
+        "mid": 135.2995,
+        "upper": 141.3715,
+        "lower": 129.2274
+      },
+      "Donchian": {
+        "mid": 134.5484,
+        "upper": 140.3388,
+        "lower": 128.7581
+      },
+      "Volume": {
+        "vol": 1799100,
+        "vol_sma20": 2111145.0,
+        "vol_sma50": 2457558.0,
+        "obv": -17817600.0,
+        "mfi": 40.61,
+        "cmf": 0.1185
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 133.9616,
+        "R1": 135.1907,
+        "S1": 132.7662,
+        "R2": 136.3861,
+        "S2": 131.5371
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "MA SENS",
+    "komentarz": "Setup long potwierdzony — struktura zgodna z kierunkiem, RSI przekroczyło 50, MACD potwierdza; cena poruszyła się zgodnie z założeniem o +20.9%.",
+    "forward_ret_pct": 20.9
+  },
+  {
+    "ticker": "QQQ",
+    "data": "2023-08-29",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2023-08-29",
+      "cena": 368.3385,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 360.6072,
+        "EMA21": 361.6242,
+        "EMA50": 359.038,
+        "EMA100": 346.3889,
+        "EMA200": 329.4783
+      },
+      "SMA": {
+        "SMA20": 361.1604,
+        "SMA50": 364.2686,
+        "SMA100": 345.4593,
+        "SMA200": 315.0939
+      },
+      "Ichimoku": {
+        "conversion": 358.6575,
+        "base": 363.4489,
+        "span_a": 369.5106,
+        "span_b": 348.3475,
+        "pozycja": "w chmurze"
+      },
+      "Supertrend": {
+        "wartosc": 364.5932,
+        "kierunek": "bull"
+      },
+      "PSAR": 352.3171,
+      "ADX": {
+        "adx": 14.69,
+        "di_plus": 28.22,
+        "di_minus": 21.77,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 15)"
+      },
+      "RSI": {
+        "rsi7": 65.16,
+        "rsi14": 56.92,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 98.24,
+        "d": 68.98
+      },
+      "StochasticRSI": {
+        "k": 80.31,
+        "d": 58.09
+      },
+      "MACD": {
+        "linia": -1.2183,
+        "sygnal": -1.6903,
+        "histogram": 0.472,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 42.35,
+      "WilliamsR": -1.76,
+      "ROC": 2.28,
+      "Momentum": 8.2067,
+      "ATR": {
+        "atr": 5.9401,
+        "atr_pct": 1.61
+      },
+      "Bollinger": {
+        "mid": 361.1604,
+        "upper": 371.5293,
+        "lower": 350.7914,
+        "bandwidth": 5.74
+      },
+      "Keltner": {
+        "mid": 361.5355,
+        "upper": 373.0303,
+        "lower": 350.0408
+      },
+      "Donchian": {
+        "mid": 360.6871,
+        "upper": 372.7515,
+        "lower": 348.6227
+      },
+      "Volume": {
+        "vol": 58492400,
+        "vol_sma20": 54188310.0,
+        "vol_sma50": 51049764.0,
+        "obv": -1496505400.0,
+        "mfi": 47.22,
+        "cmf": -0.0883
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 359.9549,
+        "R1": 361.9107,
+        "S1": 358.5101,
+        "R2": 363.3555,
+        "S2": 356.5543
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "NIE MA SENS",
+    "komentarz": "Setup long zawiódł mimo sygnału — momentum nie utrzymało się, struktura się pogorszyła; cena -5.1% wbrew założeniu. Brak potwierdzenia = brak akcji.",
+    "forward_ret_pct": -5.13
+  },
+  {
+    "ticker": "SPY",
+    "data": "2023-08-29",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2023-08-29",
+      "cena": 432.7201,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 426.343,
+        "EMA21": 427.4306,
+        "EMA50": 425.1407,
+        "EMA100": 416.1683,
+        "EMA200": 404.7804
+      },
+      "SMA": {
+        "SMA20": 427.5216,
+        "SMA50": 428.6746,
+        "SMA100": 414.6299,
+        "SMA200": 397.1581
+      },
+      "Ichimoku": {
+        "conversion": 425.0804,
+        "base": 429.8926,
+        "span_a": 430.8704,
+        "span_b": 416.0855,
+        "pozycja": "powyżej chmury"
+      },
+      "Supertrend": {
+        "wartosc": 429.3028,
+        "kierunek": "bull"
+      },
+      "PSAR": 419.0784,
+      "ADX": {
+        "adx": 19.23,
+        "di_plus": 25.95,
+        "di_minus": 20.7,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 19)"
+      },
+      "RSI": {
+        "rsi7": 64.93,
+        "rsi14": 56.84,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 86.41,
+        "d": 58.61
+      },
+      "StochasticRSI": {
+        "k": 87.24,
+        "d": 67.23
+      },
+      "MACD": {
+        "linia": -1.0811,
+        "sygnal": -1.2304,
+        "histogram": 0.1493,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 35.56,
+      "WilliamsR": -13.59,
+      "ROC": 1.42,
+      "Momentum": 6.0404,
+      "ATR": {
+        "atr": 4.7911,
+        "atr_pct": 1.11
+      },
+      "Bollinger": {
+        "mid": 427.5216,
+        "upper": 436.8931,
+        "lower": 418.1502,
+        "bandwidth": 4.38
+      },
+      "Keltner": {
+        "mid": 427.3605,
+        "upper": 436.5655,
+        "lower": 418.1555
+      },
+      "Donchian": {
+        "mid": 427.0409,
+        "upper": 436.9205,
+        "lower": 417.1612
+      },
+      "Volume": {
+        "vol": 83081900,
+        "vol_sma20": 78223125.0,
+        "vol_sma50": 74088530.0,
+        "obv": -2334399100.0,
+        "mfi": 44.63,
+        "cmf": -0.0864
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 425.8639,
+        "R1": 427.8614,
+        "S1": 424.5569,
+        "R2": 429.1684,
+        "S2": 422.5595
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "CZEKAJ",
+    "komentarz": "Sygnał long był niejednoznaczny — cena -4.8%, brak wyraźnego ruchu. Profesjonalne podejście: CZEKAJ, dopóki nie ma potwierdzenia.",
+    "forward_ret_pct": -4.81
+  },
+  {
+    "ticker": "SOXL",
+    "data": "2022-08-26",
+    "kierunek": "short",
+    "snapshot": {
+      "data": "2022-08-26",
+      "cena": 15.5303,
+      "trend_struktura": "cena PONIŻEJ EMA50; SMA50<SMA200 (trend spadkowy); EMA50<SMA200 (pro-spadkowa); cena PONIŻEJ SMA200",
+      "EMA": {
+        "EMA9": 17.798,
+        "EMA21": 18.2114,
+        "EMA50": 18.4685,
+        "EMA100": 21.9507,
+        "EMA200": 28.7268
+      },
+      "SMA": {
+        "SMA20": 19.1572,
+        "SMA50": 16.4703,
+        "SMA100": 19.7027,
+        "SMA200": 34.966
+      },
+      "Ichimoku": {
+        "conversion": 18.3146,
+        "base": 18.5722,
+        "span_a": 14.7965,
+        "span_b": 17.8706,
+        "pozycja": "w chmurze"
+      },
+      "Supertrend": {
+        "wartosc": 16.3533,
+        "kierunek": "bear"
+      },
+      "PSAR": 20.771,
+      "ADX": {
+        "adx": 14.8,
+        "di_plus": 22.33,
+        "di_minus": 28.05,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 15)"
+      },
+      "RSI": {
+        "rsi7": 34.92,
+        "rsi14": 41.81,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 0.5,
+        "d": 20.5
+      },
+      "StochasticRSI": {
+        "k": 66.67,
+        "d": 59.2
+      },
+      "MACD": {
+        "linia": -0.1072,
+        "sygnal": 0.406,
+        "histogram": -0.5133,
+        "momentum": "MACD hist<0 (momentum pro-bear)"
+      },
+      "CCI": -76.34,
+      "WilliamsR": -99.5,
+      "ROC": -26.02,
+      "Momentum": -5.4618,
+      "ATR": {
+        "atr": 1.8381,
+        "atr_pct": 11.84
+      },
+      "Bollinger": {
+        "mid": 19.1572,
+        "upper": 22.6424,
+        "lower": 15.672,
+        "bandwidth": 36.39
+      },
+      "Keltner": {
+        "mid": 18.2174,
+        "upper": 21.9174,
+        "lower": 14.5174
+      },
+      "Donchian": {
+        "mid": 18.5722,
+        "upper": 21.6432,
+        "lower": 15.5011
+      },
+      "Volume": {
+        "vol": 84676900,
+        "vol_sma20": 58472440.0,
+        "vol_sma50": 64025300.0,
+        "obv": -151423900.0,
+        "mfi": 51.57,
+        "cmf": 0.1053
+      },
+      "struktura_dlugoterminowa": "bear (SMA50<SMA200)",
+      "PivotPoints": {
+        "P": 18.1802,
+        "R1": 19.4306,
+        "S1": 17.5258,
+        "R2": 20.085,
+        "S2": 16.2753
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "MA SENS",
+    "komentarz": "Setup short potwierdzony — struktura zgodna z kierunkiem, RSI przekroczyło 50, MACD potwierdza; cena poruszyła się zgodnie z założeniem o +66.8%.",
+    "forward_ret_pct": 66.78
+  },
+  {
+    "ticker": "AMD",
+    "data": "2024-07-02",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2024-07-02",
+      "cena": 164.31,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 160.6233,
+        "EMA21": 160.8024,
+        "EMA50": 161.925,
+        "EMA100": 160.7681,
+        "EMA200": 150.1213
+      },
+      "SMA": {
+        "SMA20": 160.882,
+        "SMA50": 159.1386,
+        "SMA100": 169.2646,
+        "SMA200": 148.2034
+      },
+      "Ichimoku": {
+        "conversion": 160.23,
+        "base": 163.945,
+        "span_a": 159.055,
+        "span_b": 172.005,
+        "pozycja": "w chmurze"
+      },
+      "Supertrend": {
+        "wartosc": 166.2171,
+        "kierunek": "bear"
+      },
+      "PSAR": 166.5564,
+      "ADX": {
+        "adx": 9.93,
+        "di_plus": 22.93,
+        "di_minus": 19.66,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 10)"
+      },
+      "RSI": {
+        "rsi7": 59.78,
+        "rsi14": 54.38,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 81.38,
+        "d": 59.82
+      },
+      "StochasticRSI": {
+        "k": 66.67,
+        "d": 62.73
+      },
+      "MACD": {
+        "linia": -0.3157,
+        "sygnal": -0.4885,
+        "histogram": 0.1728,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 21.86,
+      "WilliamsR": -18.62,
+      "ROC": 3.73,
+      "Momentum": 5.91,
+      "ATR": {
+        "atr": 6.33,
+        "atr_pct": 3.85
+      },
+      "Bollinger": {
+        "mid": 160.882,
+        "upper": 167.4217,
+        "lower": 154.3423,
+        "bandwidth": 8.13
+      },
+      "Keltner": {
+        "mid": 160.7805,
+        "upper": 173.5991,
+        "lower": 147.9619
+      },
+      "Donchian": {
+        "mid": 161.425,
+        "upper": 169.51,
+        "lower": 153.34
+      },
+      "Volume": {
+        "vol": 57838600,
+        "vol_sma20": 50413780.0,
+        "vol_sma50": 50278178.0,
+        "obv": 852446900.0,
+        "mfi": 41.79,
+        "cmf": 0.0582
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 157.6133,
+        "R1": 161.5867,
+        "S1": 153.7167,
+        "R2": 165.4833,
+        "S2": 149.7433
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "NIE MA SENS",
+    "komentarz": "Setup long zawiódł mimo sygnału — momentum nie utrzymało się, struktura się pogorszyła; cena -12.1% wbrew założeniu. Brak potwierdzenia = brak akcji.",
+    "forward_ret_pct": -12.07
+  },
+  {
+    "ticker": "SOXL",
+    "data": "2023-03-16",
+    "kierunek": "long",
+    "snapshot": {
+      "data": "2023-03-16",
+      "cena": 16.0672,
+      "trend_struktura": "cena POWYŻEJ EMA50; SMA50>SMA200 (trend wzrostowy); EMA50>SMA200 (pro-wzrostowa); cena POWYŻEJ SMA200",
+      "EMA": {
+        "EMA9": 14.7977,
+        "EMA21": 14.7425,
+        "EMA50": 14.1562,
+        "EMA100": 13.805,
+        "EMA200": 16.6684
+      },
+      "SMA": {
+        "SMA20": 14.6029,
+        "SMA50": 14.2636,
+        "SMA100": 12.5093,
+        "SMA200": 13.6241
+      },
+      "Ichimoku": {
+        "conversion": 14.5261,
+        "base": 15.1914,
+        "span_a": 14.5554,
+        "span_b": 13.2785,
+        "pozycja": "powyżej chmury"
+      },
+      "Supertrend": {
+        "wartosc": 13.5715,
+        "kierunek": "bull"
+      },
+      "PSAR": 12.8675,
+      "ADX": {
+        "adx": 13.68,
+        "di_plus": 30.16,
+        "di_minus": 22.27,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 14)"
+      },
+      "RSI": {
+        "rsi7": 63.48,
+        "rsi14": 57.26,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 96.46,
+        "d": 67.65
+      },
+      "StochasticRSI": {
+        "k": 85.88,
+        "d": 57.25
+      },
+      "MACD": {
+        "linia": 0.0899,
+        "sygnal": 0.0751,
+        "histogram": 0.0148,
+        "momentum": "MACD hist>0 (momentum pro-bull)"
+      },
+      "CCI": 65.38,
+      "WilliamsR": -3.54,
+      "ROC": 9.39,
+      "Momentum": 1.3797,
+      "ATR": {
+        "atr": 1.3333,
+        "atr_pct": 8.3
+      },
+      "Bollinger": {
+        "mid": 14.6029,
+        "upper": 16.0494,
+        "lower": 13.1564,
+        "bandwidth": 19.81
+      },
+      "Keltner": {
+        "mid": 14.7501,
+        "upper": 17.3346,
+        "lower": 12.1656
+      },
+      "Donchian": {
+        "mid": 14.8343,
+        "upper": 16.8011,
+        "lower": 12.8675
+      },
+      "Volume": {
+        "vol": 108646600,
+        "vol_sma20": 83850810.0,
+        "vol_sma50": 91758114.0,
+        "obv": 390577800.0,
+        "mfi": 51.02,
+        "cmf": -0.0143
+      },
+      "struktura_dlugoterminowa": "bull (SMA50>SMA200 i cena>SMA200)",
+      "PivotPoints": {
+        "P": 14.12,
+        "R1": 14.7854,
+        "S1": 13.709,
+        "R2": 15.1963,
+        "S2": 13.0436
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "CZEKAJ",
+    "komentarz": "Sygnał long był niejednoznaczny — cena -5.0%, brak wyraźnego ruchu. Profesjonalne podejście: CZEKAJ, dopóki nie ma potwierdzenia.",
+    "forward_ret_pct": -4.97
+  },
+  {
+    "ticker": "SOXL",
+    "data": "2024-10-30",
+    "kierunek": "short",
+    "snapshot": {
+      "data": "2024-10-30",
+      "cena": 33.6928,
+      "trend_struktura": "cena PONIŻEJ EMA50; SMA50<SMA200 (trend spadkowy); EMA50<SMA200 (pro-spadkowa); cena PONIŻEJ SMA200",
+      "EMA": {
+        "EMA9": 35.0674,
+        "EMA21": 35.2091,
+        "EMA50": 36.11,
+        "EMA100": 38.1623,
+        "EMA200": 37.7097
+      },
+      "SMA": {
+        "SMA20": 35.743,
+        "SMA50": 34.6391,
+        "SMA100": 41.7035,
+        "SMA200": 41.5131
+      },
+      "Ichimoku": {
+        "conversion": 35.0401,
+        "base": 36.3973,
+        "span_a": 33.4181,
+        "span_b": 44.897,
+        "pozycja": "w chmurze"
+      },
+      "Supertrend": {
+        "wartosc": 38.0252,
+        "kierunek": "bear"
+      },
+      "PSAR": 38.7045,
+      "ADX": {
+        "adx": 11.15,
+        "di_plus": 23.51,
+        "di_minus": 22.26,
+        "komentarz": "brak wyraźnego trendu / konsolidacja (ADX 11)"
+      },
+      "RSI": {
+        "rsi7": 41.89,
+        "rsi14": 45.89,
+        "strefa_rsi14": "strefa neutralna (30-70)"
+      },
+      "Stochastic": {
+        "k": 19.33,
+        "d": 39.21
+      },
+      "StochasticRSI": {
+        "k": 66.67,
+        "d": 85.34
+      },
+      "MACD": {
+        "linia": -0.1092,
+        "sygnal": -0.012,
+        "histogram": -0.0972,
+        "momentum": "MACD hist<0 (momentum pro-bear)"
+      },
+      "CCI": -55.82,
+      "WilliamsR": -80.67,
+      "ROC": -1.31,
+      "Momentum": -0.4458,
+      "ATR": {
+        "atr": 2.67,
+        "atr_pct": 7.92
+      },
+      "Bollinger": {
+        "mid": 35.743,
+        "upper": 39.5128,
+        "lower": 31.9732,
+        "bandwidth": 21.09
+      },
+      "Keltner": {
+        "mid": 35.2055,
+        "upper": 40.8703,
+        "lower": 29.5408
+      },
+      "Donchian": {
+        "mid": 36.3973,
+        "upper": 40.8058,
+        "lower": 31.9888
+      },
+      "Volume": {
+        "vol": 89440100,
+        "vol_sma20": 75349900.0,
+        "vol_sma50": 89122698.0,
+        "obv": 935891600.0,
+        "mfi": 43.9,
+        "cmf": -0.0231
+      },
+      "struktura_dlugoterminowa": "bear (SMA50<SMA200)",
+      "PivotPoints": {
+        "P": 36.7771,
+        "R1": 38.94,
+        "S1": 35.4628,
+        "R2": 40.2543,
+        "S2": 33.2998
+      }
+    },
+    "werdykt_ktory_sie_sprawdzil": "MA SENS",
+    "komentarz": "Setup short potwierdzony — struktura zgodna z kierunkiem, RSI przekroczyło 50, MACD potwierdza; cena poruszyła się zgodnie z założeniem o +26.1%.",
+    "forward_ret_pct": 26.06
+  }
+]
