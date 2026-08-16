@@ -427,6 +427,10 @@ def send_file(handler, filepath, content_type):
         handler.send_response(200)
         handler.send_header('Content-Type', content_type)
         handler.send_header('Content-Length', str(len(body)))
+        if 'text/html' in content_type:
+            handler.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            handler.send_header('Pragma', 'no-cache')
+            handler.send_header('Expires', '0')
         handler.end_headers()
         handler.wfile.write(body)
     except FileNotFoundError:
