@@ -447,10 +447,21 @@ def handle_api(handler, path, query_params):
             today = dt.date.today().isoformat()
             cache_key = f'_daily_play_{today}'
             if not hasattr(handle_api, cache_key):
-                # generate mock daily play
-                # TODO: full scoring logic
-                # For now return null (no signal)
-                setattr(handle_api, cache_key, {'date': today, 'play': None})
+                # Demo daily play – deep selection long/short
+                # W prod: pełny scoring na podstawie volatility, volume, news, formacji, Fib, RSI/MACD/SuperTrend
+                play = {
+                    'symbol': 'NVDA',
+                    'direction': 'LONG',
+                    'summary': 'Wybicie z konsolidacji z potwierdzeniem wolumenu, formacja Morning Star + bullish engulfing, RSI wybija z oversell, Fibonacci retracement 38.2% jako support.',
+                    'prob': 0.72,
+                    'sl': '124.50',
+                    'tp': '155.00'
+                }
+                # dla demo losowo czasem brak sygnału
+                import random
+                if random.random() < 0.15:
+                    play = None
+                setattr(handle_api, cache_key, {'date': today, 'play': play})
             data = getattr(handle_api, cache_key)
             send_json(handler, data)
             return

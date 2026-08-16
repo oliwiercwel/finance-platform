@@ -104,6 +104,24 @@
       <div id="status" class="hidden items-center gap-3 mt-4 text-sm text-slate-300"></div>
     </section>
 
+    <!-- TRADING CONTROLS -->
+    <section id="tradingControls" class="glass rounded-2xl p-5 mb-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+        <div>
+          <label class="text-xs text-slate-400 mb-1 block">Symbol do weryfikacji tezy</label>
+          <input id="tradingTicker" type="text" value="AMD" placeholder="np. NVDA, AMD, SOXL" autocomplete="off" class="w-full">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 mb-1 block">Twoja teza</label>
+          <input id="tradingThesis" type="text" placeholder="np. Long AMD – wybicie powyżej 150 z wolumenem" class="w-full">
+        </div>
+        <div>
+          <button id="tradingCheck" class="btn-analyze w-full py-3 px-5">Sprawdź tezę</button>
+        </div>
+      </div>
+      <div id="tradingDaily" class="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 text-sm"></div>
+    </section>
+
     <!-- RESULTS -->
     <div id="results" class="hidden">
       <div id="verdictWrap" class="vcard mb-6">
@@ -375,35 +393,79 @@
   // Tab switching
   const tabAnalysis = document.getElementById('tab-analysis');
   const tabTrading = document.getElementById('tab-trading');
+  const analysisControls = document.querySelector('section.glass.rounded-2xl.p-5.mb-6');
+  const tradingControls = document.getElementById('tradingControls');
+  const resultsDiv = document.getElementById('results');
+
+  function renderTradingDaily(play){
+    const el = document.getElementById('tradingDaily');
+    if(!el) return;
+    if(!play){
+      el.innerHTML = '<div class="text-slate-300">BUFFETT NIE WIDZI SENSU dziś – brak jednoznacznego long/short.</div>';
+    }else{
+      el.innerHTML = `<div class="flex items-center gap-3 mb-2"><span class="pill MA">MA SENS</span><span class="font-bold text-lg">${play.symbol}</span><span class="text-blue-300">${play.direction||''}</span></div>
+      <div class="text-slate-300">${play.summary||''}</div>
+      <div class="text-xs text-slate-500 mt-2">Prawdopodobieństwo: ${(play.prob||0)*100|0}% • SL ${play.sl||'n/d'} • TP ${play.tp||'n/d'}</div>`;
+      // prefill trading ticker
+      document.getElementById('tradingTicker').value = play.symbol || document.getElementById('tradingTicker').value;
+    }
+  }
+
+  async function loadDailyPlay(){
+    try{
+      const r = await fetch('/api/buffett-ai/daily-play');
+      const d = await r.json();
+      renderTradingDaily(d.play);
+    }catch(e){ console.warn(e); }
+  }
+
+  async function runTradingAnalysis(symbol, thesis=''){
+    const payload = { symbol, timeframe:'1D', direction:'' };
+    if(thesis) payload.thesis = thesis;
+    const r = await fetch('/api/buffett-ai/trading-analysis',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    // render w results
+    if(resultsDiv){
+      resultsDiv.classList.remove('hidden');
+      const verdict = document.getElementById('verdictText');
+      if(verdict){
+        const pats = (d.patterns||[]).map(p=>p.pattern||p).join(', ') || 'brak formacji';
+        const fib = d.fibonacci ? `Fib: ${JSON.stringify(d.fibonacci)}` : '';
+        verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><strong>Formacje:</strong> ${pats}<br>${fib}<br>${thesis?'<strong>Teza użytkownika:</strong> '+thesis+'<br>':''}`;
+      }
+    }
+  }
+
   function setTab(active){
     if(active==='trading'){
       tabAnalysis.classList.add('opacity-60');
       tabTrading.classList.remove('opacity-60');
-      // parse params
-      const params = new URLSearchParams(location.search);
-      const sym = params.get('symbol') || $('ticker').value;
-      if(sym){
-        fetch('/api/buffett-ai/trading-analysis',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({symbol:sym, timeframe:'1D', direction:''})
-        }).then(r=>r.json()).then(d=>{
-          console.log('trading', d);
-          // simple render
-          const results = document.getElementById('results');
-          if(results){
-            results.classList.remove('hidden');
-            document.getElementById('verdictText').innerText = 'Trading analiza: '+ (d.patterns?.[0]?.pattern||'brak formacji');
-          }
-        });
-      }
+      if(analysisControls) analysisControls.classList.add('hidden');
+      if(tradingControls) tradingControls.classList.remove('hidden');
+      if(resultsDiv) resultsDiv.classList.remove('hidden');
+      loadDailyPlay();
     }else{
       tabTrading.classList.add('opacity-60');
       tabAnalysis.classList.remove('opacity-60');
+      if(tradingControls) tradingControls.classList.add('hidden');
+      if(analysisControls) analysisControls.classList.remove('hidden');
     }
   }
+
   tabTrading.addEventListener('click', ()=>setTab('trading'));
   tabAnalysis.addEventListener('click', ()=>setTab('analysis'));
+
+  document.getElementById('tradingCheck')?.addEventListener('click', ()=>{
+    const sym = document.getElementById('tradingTicker').value.trim().toUpperCase();
+    const thesis = document.getElementById('tradingThesis').value.trim();
+    if(!sym){ alert('Podaj symbol'); return; }
+    runTradingAnalysis(sym, thesis);
+  });
+
   // auto-select tab from URL
   if(new URLSearchParams(location.search).get('tab')==='trading') setTab('trading');
   $('ticker').focus();
