@@ -69,6 +69,12 @@
       </div>
     </header>
 
+    <!-- TABS -->
+    <div class="flex gap-2 mb-4">
+      <button id="tab-analysis" class="px-4 py-2 rounded-xl glass font-bold">Analiza Buffett</button>
+      <button id="tab-trading" class="px-4 py-2 rounded-xl glass font-bold opacity-60">Trading z Buffett AI</button>
+    </div>
+
     <!-- CONTROLS -->
     <section class="glass rounded-2xl p-5 mb-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1.4fr_1fr] gap-3 items-end">
@@ -366,6 +372,40 @@
   }
   $('followupBtn').addEventListener('click', askAnalityk);
   $('followupInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') askAnalityk(); });
+  // Tab switching
+  const tabAnalysis = document.getElementById('tab-analysis');
+  const tabTrading = document.getElementById('tab-trading');
+  function setTab(active){
+    if(active==='trading'){
+      tabAnalysis.classList.add('opacity-60');
+      tabTrading.classList.remove('opacity-60');
+      // parse params
+      const params = new URLSearchParams(location.search);
+      const sym = params.get('symbol') || $('ticker').value;
+      if(sym){
+        fetch('/api/buffett-ai/trading-analysis',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({symbol:sym, timeframe:'1D', direction:''})
+        }).then(r=>r.json()).then(d=>{
+          console.log('trading', d);
+          // simple render
+          const results = document.getElementById('results');
+          if(results){
+            results.classList.remove('hidden');
+            document.getElementById('verdictText').innerText = 'Trading analiza: '+ (d.patterns?.[0]?.pattern||'brak formacji');
+          }
+        });
+      }
+    }else{
+      tabTrading.classList.add('opacity-60');
+      tabAnalysis.classList.remove('opacity-60');
+    }
+  }
+  tabTrading.addEventListener('click', ()=>setTab('trading'));
+  tabAnalysis.addEventListener('click', ()=>setTab('analysis'));
+  // auto-select tab from URL
+  if(new URLSearchParams(location.search).get('tab')==='trading') setTab('trading');
   $('ticker').focus();
   </script>
 </body>

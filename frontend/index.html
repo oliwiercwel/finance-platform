@@ -392,6 +392,26 @@
       const dropdown = document.getElementById('searchDropdown');
       if (!btn.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
     });
+    // Buffett AI Daily Play widget
+    fetch('/api/buffett-ai/daily-play')
+      .then(r=>r.json())
+      .then(data=>{
+        const main = document.querySelector('main.grid');
+        if(!main) return;
+        const card = document.createElement('section');
+        card.className = 'glass rounded-3xl p-6 lg:col-span-12';
+        const play = data.play;
+        if(!play){
+          card.innerHTML = '<h3 class="text-xl font-bold blue-tq mb-2">BUFFETT AI – Zagranie dnia</h3><p class="text-slate-300">BUFFETT NIE WIDZI SENSU</p>';
+        }else{
+          card.innerHTML = `<h3 class="text-xl font-bold blue-tq mb-2">BUFFETT AI – Zagranie dnia</h3>
+            <div class="flex items-center gap-3"><span class="pill MA">MA SENS</span><span class="font-bold">${play.symbol || ''}</span><span>${play.direction||''}</span></div>
+            <p class="text-sm text-slate-400 mt-2">${play.summary||''}</p>
+            <a href="buffet-ai.html?symbol=${play.symbol||''}&tab=trading" class="inline-block mt-3 text-blue-400 font-semibold">Otwórz pełny raport →</a>`;
+        }
+        main.appendChild(card);
+      })
+      .catch(()=>{});
   </script>
 </body>
 </html>

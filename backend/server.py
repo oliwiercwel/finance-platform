@@ -440,6 +440,21 @@ def handle_api(handler, path, query_params):
             send_json(handler, {'status': 'ok', 'timestamp': datetime.now().isoformat()})
             return
 
+        # /api/buffett-ai/daily-play
+        if path == '/api/buffett-ai/daily-play':
+            # Simple in-memory cache
+            import datetime as dt
+            today = dt.date.today().isoformat()
+            cache_key = f'_daily_play_{today}'
+            if not hasattr(handle_api, cache_key):
+                # generate mock daily play
+                # TODO: full scoring logic
+                # For now return null (no signal)
+                setattr(handle_api, cache_key, {'date': today, 'play': None})
+            data = getattr(handle_api, cache_key)
+            send_json(handler, data)
+            return
+
         # /api/stocks
         if path == '/api/stocks':
             results = []
@@ -720,6 +735,11 @@ class FinanceHandler(SimpleHTTPRequestHandler):
             self.handle_buffet_ai_followup()
             return
 
+        # Trading analysis endpoint
+        if path == '/api/buffett-ai/trading-analysis':
+            self.handle_trading_analysis()
+            return
+
         send_json(self, {'error': 'Not found'}, 404)
     
     def handle_buffet_ai_analyze(self):
@@ -926,6 +946,51 @@ class FinanceHandler(SimpleHTTPRequestHandler):
         except Exception as e:
             traceback.print_exc()
             send_json(self, {'error': 'Błąd analizy: ' + str(e)}, 500)
+
+    def handle_trading_analysis(self):
+        """Analiza tradingowa dla symbolu z pełnym zestawem wskaźników + formacje świecowe + Fibonnaci"""
+        import traceback, json
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+            req = json.loads(body)
+        except Exception:
+            req = {}
+        symbol = str(req.get('symbol','')).upper().strip()
+        timeframe = req.get('timeframe','1D')
+        direction = req.get('direction','')
+        if not symbol:
+            send_json(self, {'error':'Brak symbolu'}, 400); return
+        if not TRADING_AI_OK:
+            send_json(self, {'error':'AI niedostępne'}, 500); return
+        try:
+            df, snapshot = get_full_data(symbol, '1mo')
+            # Patterns
+            from trading_ai.trading_patterns import detect_all_patterns
+            patterns = detect_all_patterns(df)
+            # Fibonacci
+            from trading_ai.fibonacci import fibonacci_retracement
+            fib = fibonacci_retracement(df, period=100)
+            # News mock
+            news = []
+            # Build response
+            send_json(self, {
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'direction': direction,
+                'snapshot': snapshot,
+                'patterns': patterns['patterns'][:10],
+                'fibonacci': fib,
+                'news': news,
+                'indicators': {
+                    'RSI14': snapshot.get('RSI',{}).get('rsi14'),
+                    'EMA9': snapshot.get('EMA',{}).get('EMA9'),
+                    'EMA21': snapshot.get('EMA',{}).get('EMA21')
+                }
+            }, 200)
+        except Exception as e:
+            traceback.print_exc()
+            send_json(self, {'error': str(e)}, 500)
 
     def build_indicator_summary(self, snapshot):
         """Buduje tabelę kluczowych wskaźników (name/value/note) dla UI."""
