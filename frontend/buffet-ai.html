@@ -420,23 +420,31 @@
   }
 
   async function runTradingAnalysis(symbol, thesis=''){
+    // Wyczyść poprzedni wynik natychmiast
+    const verdict = document.getElementById('verdictText');
+    if(verdict){
+      verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><em>Analizuję…</em>`;
+    }
     const payload = { symbol, timeframe:'1D', direction:'' };
     if(thesis) payload.thesis = thesis;
-    const r = await fetch('/api/buffett-ai/trading-analysis',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    const d = await r.json();
-    // render w results
-    if(resultsDiv){
-      resultsDiv.classList.remove('hidden');
-      const verdict = document.getElementById('verdictText');
-      if(verdict){
-        const pats = (d.patterns||[]).map(p=>p.pattern||p).join(', ') || 'brak formacji';
-        const fib = d.fibonacci ? `Fib: ${JSON.stringify(d.fibonacci)}` : '';
-        verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><strong>Formacje:</strong> ${pats}<br>${fib}<br>${thesis?'<strong>Teza użytkownika:</strong> '+thesis+'<br>':''}`;
+    try{
+      const r = await fetch('/api/buffett-ai/trading-analysis',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const d = await r.json();
+      // render w results
+      if(resultsDiv){
+        resultsDiv.classList.remove('hidden');
+        if(verdict){
+          const pats = (d.patterns||[]).map(p=>p.pattern||p).join(', ') || 'brak formacji';
+          const fib = d.fibonacci ? `Fibonacci retracement: ${JSON.stringify(d.fibonacci)}` : '';
+          verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><strong>Formacje:</strong> ${pats}<br>${fib}<br>${thesis?'<strong>Teza użytkownika:</strong> '+thesis+'<br>':''}`;
+        }
       }
+    }catch(e){
+      if(verdict) verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><span style="color:#f87171">Błąd analizy</span>`;
     }
   }
 
@@ -459,9 +467,18 @@
   tabTrading.addEventListener('click', ()=>setTab('trading'));
   tabAnalysis.addEventListener('click', ()=>setTab('analysis'));
 
+  const tradingTickerEl = document.getElementById('tradingTicker');
+  const tradingThesisEl = document.getElementById('tradingThesis');
+  const clearVerdict = () => {
+    const verdict = document.getElementById('verdictText');
+    if(verdict) verdict.innerHTML = '';
+  };
+  tradingTickerEl?.addEventListener('input', clearVerdict);
+  tradingThesisEl?.addEventListener('input', clearVerdict);
+
   document.getElementById('tradingCheck')?.addEventListener('click', ()=>{
-    const sym = document.getElementById('tradingTicker').value.trim().toUpperCase();
-    const thesis = document.getElementById('tradingThesis').value.trim();
+    const sym = tradingTickerEl?.value.trim().toUpperCase();
+    const thesis = tradingThesisEl?.value.trim();
     if(!sym){ alert('Podaj symbol'); return; }
     runTradingAnalysis(sym, thesis);
   });
