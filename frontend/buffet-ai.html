@@ -76,6 +76,18 @@
       <button id="tab-chat" class="px-4 py-2 rounded-xl glass font-bold opacity-60">Czat</button>
     </div>
 
+    <!-- CHAT PANEL -->
+    <div id="chatPanel" class="hidden max-w-3xl mx-auto mb-6">
+      <div class="glass rounded-2xl p-5">
+        <h3 class="text-lg font-bold mb-2">Czat z AI</h3>
+        <div id="chatMessages" class="min-h-[180px]"></div>
+        <div class="mt-3 flex gap-2">
+          <input id="chatInput" type="text" placeholder="Napisz wiadomość..." autocomplete="off" class="w-full">
+          <button id="chatSend" class="btn-analyze px-4">Wyślij</button>
+        </div>
+      </div>
+    </div>
+
     <!-- CONTROLS -->
     <section class="glass rounded-2xl p-5 mb-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1.4fr_1fr] gap-3 items-end">
@@ -121,17 +133,6 @@
         </div>
       </div>
       <div id="tradingDaily" class="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 text-sm"></div>
-    </section>
-
-    <!-- CHAT PANEL -->
-    <section id="chatPanel" class="glass rounded-2xl p-5 mb-6 hidden">
-      <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-comments"></i> Czat bez ograniczeń</h3>
-      <p class="text-xs text-slate-400 mb-3">Możesz pytać o wszystko. Żadnych ograniczeń — od finansów po codzienne pytania.</p>
-      <div id="chatBox" class="flex flex-col gap-3 mb-4 max-h-[520px] overflow-y-auto"></div>
-      <div class="flex gap-2">
-        <input id="chatInput" type="text" placeholder="Napisz co myślisz..." autocomplete="off" class="flex-1">
-        <button id="chatSend" class="btn-analyze px-4 py-2 whitespace-nowrap" style="width:auto;">Wyślij</button>
-      </div>
     </section>
 
     <!-- RESULTS -->
@@ -405,10 +406,8 @@
   // Tab switching
   const tabAnalysis = document.getElementById('tab-analysis');
   const tabTrading = document.getElementById('tab-trading');
-  const tabChat = document.getElementById('tab-chat');
   const analysisControls = document.querySelector('section.glass.rounded-2xl.p-5.mb-6');
   const tradingControls = document.getElementById('tradingControls');
-  const chatPanel = document.getElementById('chatPanel');
   const resultsDiv = document.getElementById('results');
 
   function renderTradingDaily(play){
@@ -434,31 +433,23 @@
   }
 
   async function runTradingAnalysis(symbol, thesis=''){
-    // Wyczyść poprzedni wynik natychmiast
-    const verdict = document.getElementById('verdictText');
-    if(verdict){
-      verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><em>Analizuję…</em>`;
-    }
     const payload = { symbol, timeframe:'1D', direction:'' };
     if(thesis) payload.thesis = thesis;
-    try{
-      const r = await fetch('/api/buffett-ai/trading-analysis',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      const d = await r.json();
-      // render w results
-      if(resultsDiv){
-        resultsDiv.classList.remove('hidden');
-        if(verdict){
-          const pats = (d.patterns||[]).map(p=>p.pattern||p).join(', ') || 'brak formacji';
-          const fib = d.fibonacci ? `Fibonacci retracement: ${JSON.stringify(d.fibonacci)}` : '';
-          verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><strong>Formacje:</strong> ${pats}<br>${fib}<br>${thesis?'<strong>Teza użytkownika:</strong> '+thesis+'<br>':''}`;
-        }
+    const r = await fetch('/api/buffett-ai/trading-analysis',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    // render w results
+    if(resultsDiv){
+      resultsDiv.classList.remove('hidden');
+      const verdict = document.getElementById('verdictText');
+      if(verdict){
+        const pats = (d.patterns||[]).map(p=>p.pattern||p).join(', ') || 'brak formacji';
+        const fib = d.fibonacci ? `Fib: ${JSON.stringify(d.fibonacci)}` : '';
+        verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><strong>Formacje:</strong> ${pats}<br>${fib}<br>${thesis?'<strong>Teza użytkownika:</strong> '+thesis+'<br>':''}`;
       }
-    }catch(e){
-      if(verdict) verdict.innerHTML = `<strong>Symbol:</strong> ${symbol}<br><span style="color:#f87171">Błąd analizy</span>`;
     }
   }
 
@@ -466,104 +457,24 @@
     if(active==='trading'){
       tabAnalysis.classList.add('opacity-60');
       tabTrading.classList.remove('opacity-60');
-      tabChat.classList.add('opacity-60');
       if(analysisControls) analysisControls.classList.add('hidden');
       if(tradingControls) tradingControls.classList.remove('hidden');
-      if(chatPanel) chatPanel.classList.add('hidden');
       if(resultsDiv) resultsDiv.classList.remove('hidden');
       loadDailyPlay();
-    }else if(active==='chat'){
-      tabAnalysis.classList.add('opacity-60');
-      tabTrading.classList.add('opacity-60');
-      tabChat.classList.remove('opacity-60');
-      if(analysisControls) analysisControls.classList.add('hidden');
-      if(tradingControls) tradingControls.classList.add('hidden');
-      if(chatPanel) chatPanel.classList.remove('hidden');
-      if(resultsDiv) resultsDiv.classList.add('hidden');
     }else{
       tabTrading.classList.add('opacity-60');
-      tabChat.classList.add('opacity-60');
       tabAnalysis.classList.remove('opacity-60');
       if(tradingControls) tradingControls.classList.add('hidden');
-      if(chatPanel) chatPanel.classList.add('hidden');
       if(analysisControls) analysisControls.classList.remove('hidden');
     }
   }
 
   tabTrading.addEventListener('click', ()=>setTab('trading'));
   tabAnalysis.addEventListener('click', ()=>setTab('analysis'));
-  tabChat.addEventListener('click', ()=>setTab('chat'));
-
-  const chatInput = document.getElementById('chatInput');
-  const chatSend = document.getElementById('chatSend');
-  const chatBox = document.getElementById('chatBox');
-
-  function addChatMessage(text, isUser){
-    const el = document.createElement('div');
-    el.className = isUser ? 'text-right' : '';
-    el.innerHTML = `<span class="${isUser ? 'inline-block rounded-xl px-3 py-2 max-w-[85%]' : 'rounded-xl px-3 py-2 max-w-[90%]'}" style="${isUser ? 'background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.3);' : 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#d1d5db;'}">${escapeHtml(text)}</span>`;
-    chatBox.appendChild(el);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  function sendChatMessage(){
-    const text = chatInput.value.trim();
-    if(!text) return;
-    addChatMessage(text, true);
-    chatInput.value = '';
-    const loading = document.createElement('div');
-    loading.className = 'flex items-center gap-2 text-slate-400 text-sm';
-    loading.innerHTML = '<span class="loader" style="width:16px;height:16px;"></span> Czat myśli...';
-    chatBox.appendChild(loading);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
-    }).then(r => r.json()).then(data => {
-      chatBox.removeChild(loading);
-      if(data.response){
-        const resp = document.createElement('div');
-        resp.className = 'rounded-xl px-3 py-2';
-        resp.style.cssText = 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#d1d5db;max-width:90%;';
-        resp.innerHTML = data.response.replace(/\n/g, '<br>');
-        chatBox.appendChild(resp);
-      }else{
-        chatBox.removeChild(loading);
-        const err = document.createElement('div');
-        err.className = 'rounded-xl px-3 py-2';
-        err.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;max-width:90%;';
-        err.innerHTML = '<strong>Błąd:</strong> ' + escapeHtml(data.error || 'Nieznany błąd');
-        chatBox.appendChild(err);
-      }
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }).catch(err => {
-      chatBox.removeChild(loading);
-      const err = document.createElement('div');
-      err.className = 'rounded-xl px-3 py-2';
-      err.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;max-width:90%;';
-      err.innerHTML = '<strong>Błąd połączenia:</strong> ' + escapeHtml(err.message);
-      chatBox.appendChild(err);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-  }
-
-  chatSend.addEventListener('click', sendChatMessage);
-  chatInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendChatMessage(); });
-
-  const tradingTickerEl = document.getElementById('tradingTicker');
-  const tradingThesisEl = document.getElementById('tradingThesis');
-  const clearVerdict = () => {
-    const verdict = document.getElementById('verdictText');
-    if(verdict) verdict.innerHTML = '';
-  };
-  tradingTickerEl?.addEventListener('input', clearVerdict);
-  tradingThesisEl?.addEventListener('input', clearVerdict);
 
   document.getElementById('tradingCheck')?.addEventListener('click', ()=>{
-    const sym = tradingTickerEl?.value.trim().toUpperCase();
-    const thesis = tradingThesisEl?.value.trim();
+    const sym = document.getElementById('tradingTicker').value.trim().toUpperCase();
+    const thesis = document.getElementById('tradingThesis').value.trim();
     if(!sym){ alert('Podaj symbol'); return; }
     runTradingAnalysis(sym, thesis);
   });
@@ -571,6 +482,78 @@
   // auto-select tab from URL
   if(new URLSearchParams(location.search).get('tab')==='trading') setTab('trading');
   $('ticker').focus();
+  </script>
+  <script>
+    (function(){
+      const $ = id => document.getElementById(id);
+      const chatPanel = $('chatPanel');
+      const chatMessages = $('chatMessages');
+      const chatInput = $('chatInput');
+      const chatSend = $('chatSend');
+      const tabChat = $('tab-chat');
+      const tabAnalysis = $('tab-analysis');
+      const tabTrading = $('tab-trading');
+      const manualControls = document.querySelector('section.glass.rounded-2xl.p-5.mb-6');
+      const tradingControls = $('tradingControls');
+      const resultsDiv = $('results');
+
+      function displayMessage(role, text){
+        const div = document.createElement('div');
+        div.className = 'mb-2 ' + (role === 'user' ? 'text-right' : '');
+        div.innerHTML = '<div class="' + (role === 'user' ? 'glass inline-block px-3 py-2 rounded-xl' : '') + '">' + escapeHtml(text) + '</div>';
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      async function sendMessage(){
+        const text = chatInput.value.trim();
+        if(!text) return;
+        displayMessage('user', text);
+        chatInput.value = '';
+        chatSend.disabled = true;
+        try{
+          const res = await fetch('/api/chat', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ message: text })
+          });
+          const data = await res.json();
+          const reply = data.response || data.reply || data.text || data.content || 'Brak odpowiedzi';
+          displayMessage('assistant', reply);
+        }catch(err){
+          displayMessage('assistant', 'Błąd połączenia: ' + err.message);
+        }finally{
+          chatSend.disabled = false;
+          chatInput.focus();
+        }
+      }
+
+      chatSend.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
+
+      // Safe tab switch: snapshot current classes before we start hiding anything
+      const analysisOpacity = tabAnalysis.classList.contains('opacity-60');
+
+      function snapAnalysisOpacity(){
+        // Always keep analysis tab visually active as long as chat is not explicitly chosen as default via URL.
+        return analysisOpacity ? 'add' : 'remove';
+      }
+
+      function setChatTab(active){
+        if(active !== 'chat') return;
+        const keepAnalysisActive = snapAnalysisOpacity();
+        tabAnalysis.classList[keepAnalysisActive]('opacity-60');
+        tabTrading.classList.add('opacity-60');
+        tabChat.classList.remove('opacity-60');
+
+        if(manualControls) manualControls.classList.add('hidden');
+        if(tradingControls) tradingControls.classList.add('hidden');
+        if(resultsDiv) resultsDiv.classList.add('hidden');
+        if(chatPanel) chatPanel.classList.remove('hidden');
+      }
+
+      tabChat.addEventListener('click', ()=> setChatTab('chat'));
+    })();
   </script>
 </body>
 </html>
