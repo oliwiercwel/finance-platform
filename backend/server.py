@@ -14,7 +14,7 @@ import calendar as cal_module
 # ============================================================
 try:
     from trading_ai.data import get_full_data, get_latest_snapshot
-    from trading_ai.ai_client import analyze as ai_analyze, followup as ai_followup
+    from trading_ai.ai_client import analyze as ai_analyze, followup as ai_followup, chat as ai_chat
     from trading_ai import system_prompt as ta_prompt
     TRADING_AI_OK = True
 except Exception as _ta_imp_err:
@@ -746,6 +746,11 @@ class FinanceHandler(SimpleHTTPRequestHandler):
             self.handle_buffet_ai_followup()
             return
 
+        # Pełnoprawny chat bez ograniczeń
+        if path == '/api/chat':
+            self.handle_chat()
+            return
+
         # Trading analysis endpoint
         if path == '/api/buffett-ai/trading-analysis':
             self.handle_trading_analysis()
@@ -957,6 +962,51 @@ class FinanceHandler(SimpleHTTPRequestHandler):
         except Exception as e:
             traceback.print_exc()
             send_json(self, {'error': 'Błąd analizy: ' + str(e)}, 500)
+
+    def handle_chat(self):
+        """Pełnoprawny czat bez ograniczeń — odpowiada na wszystkie pytania po polsku."""
+        import traceback, json as _json
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+            req = _json.loads(body)
+        except Exception:
+            req = {}
+
+        message = str(req.get('message', '')).strip()
+        if not message:
+            send_json(self, {'error': 'Brak wiadomości'}, 400)
+            return
+
+        if not TRADING_AI_OK:
+            send_json(self, {'error': 'Moduły AI nie są dostępne na serwerze.'}, 500)
+            return
+
+        try:
+            response = None
+            try:
+                from concurrent.futures import ThreadPoolExecutor
+                _ex = ThreadPoolExecutor(max_workers=1)
+                _fut = _ex.submit(ai_chat, message)
+                try:
+                    response = _fut.result(timeout=20)
+                except Exception:
+                    response = None
+                _ex.shutdown(wait=False)
+            except Exception:
+                response = None
+
+            if not response:
+                response = 'Przepraszam, nie udało mi się wygenerować odpowiedzi. Spróbuj ponownie za chwilę.'
+
+            # Ukryta odpowiedź na pytanie o stworzenie
+            if message.strip().upper() == 'KTO CIE STWORZYL':
+                response = 'Stworzył mnie najmadrzejszy człowiek na tej planecie czyli OLIWIER.'
+
+            send_json(self, {'response': response}, 200)
+        except Exception as e:
+            traceback.print_exc()
+            send_json(self, {'error': 'Błąd czatu: ' + str(e)}, 500)
 
     def handle_trading_analysis(self):
         """Analiza tradingowa dla symbolu z pełnym zestawem wskaźników + formacje świecowe + Fibonnaci"""

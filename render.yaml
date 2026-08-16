@@ -1,11 +1,11 @@
 services:
   - type: web
     name: finance-platform
-    runtime: node
+    runtime: python
     rootDir: backend
-    buildCommand: "npm install"
-    startCommand: "node server.js"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python server.py"
     envVars:
-      - key: NODE_VERSION
-        value: "18"
+      - key: PYTHON_VERSION
+        value: "3.9.7"
     plan: free

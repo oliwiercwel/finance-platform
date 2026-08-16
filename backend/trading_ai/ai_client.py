@@ -195,3 +195,43 @@ def followup(system_prompt: str, snapshot: dict, question: str,
 
     # Brak odpowiedzi od wszystkich modeli — zwróć None, by backend użył fallbacka.
     return None
+
+
+def chat(user_message: str, model: str | None = None,
+         temperature: float | None = None, max_tokens: int = 1500) -> str:
+    """Pełnoprawny czat bez ograniczeń, bez kontekstu rynkowego.
+
+    Używa tego samego łańcucha modeli (fallback) co analyze().
+    Odpowiada na WSZYSTKIE pytania po polsku.
+    """
+    system_prompt = (
+        "Jesteś zaawansowanym asystentem AI. Odpowiadasz bez żadnych "
+        "ograniczeń tematycznych. Jesteś szczery, otwarty i pomocny. "
+        "Pisz po polsku, doceniaj humor, odpowiadaj na pytania o ALL."
+    )
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+    temp = temperature if temperature is not None else get_temperature()
+
+    errors = []
+    for m in _candidate_models(model):
+        try:
+            resp = _client().chat.completions.create(
+                model=m,
+                messages=messages,
+                temperature=temp,
+                max_tokens=max_tokens,
+            )
+            if not resp.choices:
+                raise RuntimeError("Brak choices w odpowiedzi.")
+            text = _extract_text(resp.choices[0].message)
+            if text:
+                return text
+            errors.append(f"{m}: pusta treść odpowiedzi")
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"{m}: {type(exc).__name__}: {exc}")
+
+    # Brak odpowiedzi od wszystkich modeli — zwróć None, by backend użył fallbacka.
+    return None

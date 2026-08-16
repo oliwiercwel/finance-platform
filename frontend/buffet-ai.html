@@ -73,6 +73,7 @@
     <div class="flex gap-2 mb-4">
       <button id="tab-analysis" class="px-4 py-2 rounded-xl glass font-bold">Analiza Buffett</button>
       <button id="tab-trading" class="px-4 py-2 rounded-xl glass font-bold opacity-60">Trading z Buffett AI</button>
+      <button id="tab-chat" class="px-4 py-2 rounded-xl glass font-bold opacity-60">Czat</button>
     </div>
 
     <!-- CONTROLS -->
@@ -120,6 +121,17 @@
         </div>
       </div>
       <div id="tradingDaily" class="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 text-sm"></div>
+    </section>
+
+    <!-- CHAT PANEL -->
+    <section id="chatPanel" class="glass rounded-2xl p-5 mb-6 hidden">
+      <h3 class="chart-title mb-3 flex items-center gap-2"><i class="fa-solid fa-comments"></i> Czat bez ograniczeń</h3>
+      <p class="text-xs text-slate-400 mb-3">Możesz pytać o wszystko. Żadnych ograniczeń — od finansów po codzienne pytania.</p>
+      <div id="chatBox" class="flex flex-col gap-3 mb-4 max-h-[520px] overflow-y-auto"></div>
+      <div class="flex gap-2">
+        <input id="chatInput" type="text" placeholder="Napisz co myślisz..." autocomplete="off" class="flex-1">
+        <button id="chatSend" class="btn-analyze px-4 py-2 whitespace-nowrap" style="width:auto;">Wyślij</button>
+      </div>
     </section>
 
     <!-- RESULTS -->
@@ -393,8 +405,10 @@
   // Tab switching
   const tabAnalysis = document.getElementById('tab-analysis');
   const tabTrading = document.getElementById('tab-trading');
+  const tabChat = document.getElementById('tab-chat');
   const analysisControls = document.querySelector('section.glass.rounded-2xl.p-5.mb-6');
   const tradingControls = document.getElementById('tradingControls');
+  const chatPanel = document.getElementById('chatPanel');
   const resultsDiv = document.getElementById('results');
 
   function renderTradingDaily(play){
@@ -452,20 +466,91 @@
     if(active==='trading'){
       tabAnalysis.classList.add('opacity-60');
       tabTrading.classList.remove('opacity-60');
+      tabChat.classList.add('opacity-60');
       if(analysisControls) analysisControls.classList.add('hidden');
       if(tradingControls) tradingControls.classList.remove('hidden');
+      if(chatPanel) chatPanel.classList.add('hidden');
       if(resultsDiv) resultsDiv.classList.remove('hidden');
       loadDailyPlay();
+    }else if(active==='chat'){
+      tabAnalysis.classList.add('opacity-60');
+      tabTrading.classList.add('opacity-60');
+      tabChat.classList.remove('opacity-60');
+      if(analysisControls) analysisControls.classList.add('hidden');
+      if(tradingControls) tradingControls.classList.add('hidden');
+      if(chatPanel) chatPanel.classList.remove('hidden');
+      if(resultsDiv) resultsDiv.classList.add('hidden');
     }else{
       tabTrading.classList.add('opacity-60');
+      tabChat.classList.add('opacity-60');
       tabAnalysis.classList.remove('opacity-60');
       if(tradingControls) tradingControls.classList.add('hidden');
+      if(chatPanel) chatPanel.classList.add('hidden');
       if(analysisControls) analysisControls.classList.remove('hidden');
     }
   }
 
   tabTrading.addEventListener('click', ()=>setTab('trading'));
   tabAnalysis.addEventListener('click', ()=>setTab('analysis'));
+  tabChat.addEventListener('click', ()=>setTab('chat'));
+
+  const chatInput = document.getElementById('chatInput');
+  const chatSend = document.getElementById('chatSend');
+  const chatBox = document.getElementById('chatBox');
+
+  function addChatMessage(text, isUser){
+    const el = document.createElement('div');
+    el.className = isUser ? 'text-right' : '';
+    el.innerHTML = `<span class="${isUser ? 'inline-block rounded-xl px-3 py-2 max-w-[85%]' : 'rounded-xl px-3 py-2 max-w-[90%]'}" style="${isUser ? 'background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.3);' : 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#d1d5db;'}">${escapeHtml(text)}</span>`;
+    chatBox.appendChild(el);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function sendChatMessage(){
+    const text = chatInput.value.trim();
+    if(!text) return;
+    addChatMessage(text, true);
+    chatInput.value = '';
+    const loading = document.createElement('div');
+    loading.className = 'flex items-center gap-2 text-slate-400 text-sm';
+    loading.innerHTML = '<span class="loader" style="width:16px;height:16px;"></span> Czat myśli...';
+    chatBox.appendChild(loading);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    }).then(r => r.json()).then(data => {
+      chatBox.removeChild(loading);
+      if(data.response){
+        const resp = document.createElement('div');
+        resp.className = 'rounded-xl px-3 py-2';
+        resp.style.cssText = 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#d1d5db;max-width:90%;';
+        resp.innerHTML = data.response.replace(/\n/g, '<br>');
+        chatBox.appendChild(resp);
+      }else{
+        chatBox.removeChild(loading);
+        const err = document.createElement('div');
+        err.className = 'rounded-xl px-3 py-2';
+        err.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;max-width:90%;';
+        err.innerHTML = '<strong>Błąd:</strong> ' + escapeHtml(data.error || 'Nieznany błąd');
+        chatBox.appendChild(err);
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }).catch(err => {
+      chatBox.removeChild(loading);
+      const err = document.createElement('div');
+      err.className = 'rounded-xl px-3 py-2';
+      err.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;max-width:90%;';
+      err.innerHTML = '<strong>Błąd połączenia:</strong> ' + escapeHtml(err.message);
+      chatBox.appendChild(err);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+  }
+
+  chatSend.addEventListener('click', sendChatMessage);
+  chatInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendChatMessage(); });
 
   const tradingTickerEl = document.getElementById('tradingTicker');
   const tradingThesisEl = document.getElementById('tradingThesis');

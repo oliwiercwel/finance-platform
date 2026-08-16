@@ -50,16 +50,17 @@ Finance Platform to aplikacja webowa do śledzenia notowań giełdowych, walut i
 
 ## Wdrożenie na Render
 
-Projekt jest skonfigurowany do wdrożenia na platformie Render. Plik `render.yaml` zawiera niezbędną konfigurację.
+Projekt jest skonfigurowany do automatycznego wdrożenia na platformie Render. Plik `render.yaml` zawiera niezbędną konfigurację.
 
-### Kroki wdrożenia:
+### Auto-deploy z GitHub
 
-1. Utwórz konto na [Render](https://render.com)
-2. Utwórz nowy serwis webowy
-3. Połącz swoje repozytorium GitHub
-4. Wybierz repozytorium `finance-platform`
-5. Render automatycznie wykryje plik `render.yaml`
-6. Kliknij "Deploy"
+1. Wypchnij kod do repozytorium (domyślnie branch `main`).
+2. Utwórz konto i serwis na [Render](https://render.com).
+3. W ustawieniach serwisu włącz **Auto Deploy** i połącz z repozytorium `finance-platform`.
+4. Dla całkowitej automatyzacji dodaj w GitHub Secrets:
+   - `RENDER_API_KEY`
+   - `RENDER_SERVICE_ID`
+5. Push do `main` uruchamia automatyczny build i deploy.
 
 ### Konfiguracja Render
 
