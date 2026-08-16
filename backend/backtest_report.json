@@ -1,0 +1,193 @@
+{
+  "ts": "2026-08-16T19:11:26.981Z",
+  "tested": 20,
+  "source": "mock",
+  "trades": 1879,
+  "tp": 348,
+  "sl": 425,
+  "timeout": 1106,
+  "winRate": 0.1852,
+  "winRatePct": 18.52,
+  "results": [
+    {
+      "symbol": "AAPL",
+      "status": "mock",
+      "trades": 95,
+      "tp": 36,
+      "sl": 14,
+      "timeout": 45,
+      "winRate": 0.3789
+    },
+    {
+      "symbol": "MSFT",
+      "status": "mock",
+      "trades": 172,
+      "tp": 27,
+      "sl": 36,
+      "timeout": 109,
+      "winRate": 0.157
+    },
+    {
+      "symbol": "GOOGL",
+      "status": "mock",
+      "trades": 88,
+      "tp": 11,
+      "sl": 26,
+      "timeout": 51,
+      "winRate": 0.125
+    },
+    {
+      "symbol": "AMZN",
+      "status": "mock",
+      "trades": 47,
+      "tp": 7,
+      "sl": 13,
+      "timeout": 27,
+      "winRate": 0.1489
+    },
+    {
+      "symbol": "NVDA",
+      "status": "mock",
+      "trades": 81,
+      "tp": 20,
+      "sl": 18,
+      "timeout": 43,
+      "winRate": 0.2469
+    },
+    {
+      "symbol": "META",
+      "status": "mock",
+      "trades": 115,
+      "tp": 13,
+      "sl": 18,
+      "timeout": 84,
+      "winRate": 0.113
+    },
+    {
+      "symbol": "TSLA",
+      "status": "mock",
+      "trades": 113,
+      "tp": 20,
+      "sl": 20,
+      "timeout": 73,
+      "winRate": 0.177
+    },
+    {
+      "symbol": "AVGO",
+      "status": "mock",
+      "trades": 114,
+      "tp": 20,
+      "sl": 29,
+      "timeout": 65,
+      "winRate": 0.1754
+    },
+    {
+      "symbol": "ORCL",
+      "status": "mock",
+      "trades": 97,
+      "tp": 13,
+      "sl": 23,
+      "timeout": 61,
+      "winRate": 0.134
+    },
+    {
+      "symbol": "CRM",
+      "status": "mock",
+      "trades": 90,
+      "tp": 24,
+      "sl": 19,
+      "timeout": 47,
+      "winRate": 0.2667
+    },
+    {
+      "symbol": "AMD",
+      "status": "mock",
+      "trades": 42,
+      "tp": 3,
+      "sl": 19,
+      "timeout": 20,
+      "winRate": 0.0714
+    },
+    {
+      "symbol": "INTC",
+      "status": "mock",
+      "trades": 94,
+      "tp": 14,
+      "sl": 22,
+      "timeout": 58,
+      "winRate": 0.1489
+    },
+    {
+      "symbol": "QCOM",
+      "status": "mock",
+      "trades": 83,
+      "tp": 6,
+      "sl": 28,
+      "timeout": 49,
+      "winRate": 0.0723
+    },
+    {
+      "symbol": "TXN",
+      "status": "mock",
+      "trades": 70,
+      "tp": 12,
+      "sl": 23,
+      "timeout": 35,
+      "winRate": 0.1714
+    },
+    {
+      "symbol": "ADI",
+      "status": "mock",
+      "trades": 123,
+      "tp": 30,
+      "sl": 24,
+      "timeout": 69,
+      "winRate": 0.2439
+    },
+    {
+      "symbol": "PYPL",
+      "status": "mock",
+      "trades": 89,
+      "tp": 16,
+      "sl": 21,
+      "timeout": 52,
+      "winRate": 0.1798
+    },
+    {
+      "symbol": "SHOP",
+      "status": "mock",
+      "trades": 95,
+      "tp": 20,
+      "sl": 24,
+      "timeout": 51,
+      "winRate": 0.2105
+    },
+    {
+      "symbol": "COIN",
+      "status": "mock",
+      "trades": 90,
+      "tp": 18,
+      "sl": 22,
+      "timeout": 50,
+      "winRate": 0.2
+    },
+    {
+      "symbol": "MRNA",
+      "status": "mock",
+      "trades": 78,
+      "tp": 11,
+      "sl": 10,
+      "timeout": 57,
+      "winRate": 0.141
+    },
+    {
+      "symbol": "PFE",
+      "status": "mock",
+      "trades": 103,
+      "tp": 27,
+      "sl": 16,
+      "timeout": 60,
+      "winRate": 0.2621
+    }
+  ]
+}
