@@ -1,4 +1,4 @@
-import json
+﻿import json
 import urllib.request
 import urllib.parse
 import os
@@ -21,8 +21,18 @@ except Exception as _ta_imp_err:
     TRADING_AI_OK = False
     print(f'[TRADING AI] Nie udało się zaimportować modułów AI: {_ta_imp_err}')
 
-# Stan w pamięci (cache snapshotów) do dopytania analityka po analizie.
+# Stan w pamięci (cache snapshotów) do dopytania analtyka po analizie.
 _ai_state = {'snapshot': {}}
+
+# Wspólne moduły analizy
+try:
+    from ai_pipeline import run_analysis
+    from news_engine import get_news_for_ticker
+    from signal_engine import get_signal
+    PIPELINE_OK = True
+except Exception as _pipeline_err:
+    PIPELINE_OK = False
+    print(f'[PIPELINE] Nie udało się zaimportować modułów pipeline: {_pipeline_err}')
 
 # Lista popularnych symboli
 ALL_SYMBOLS = [

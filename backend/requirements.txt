@@ -11,6 +11,9 @@ numpy>=1.26
 pandas>=2.1
 yfinance>=0.2.40
 openai>=1.40
+feedparser>=6.0
+trafilatura>=1.6
+scikit-learn>=1.5
 
 # Zależności dla frontend
 waitress==3.0.0
